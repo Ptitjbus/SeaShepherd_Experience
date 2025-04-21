@@ -1,0 +1,45 @@
+# Node.js
+node_modules/
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Static assets
+static/models/
+static/hdri/
+static/textures/
+
+
+# Logs
+logs/
+*.log
+*.log.*
+
+# Build output
+dist/
+.vite/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE files
+.vscode/
+.idea/
+*.sublime-workspace
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Static assets cache
+static/**/*.cache
+
+# Theatre.js studio state
+.theatre/
+
+# Temporary files
+*.tmp
+*.temp

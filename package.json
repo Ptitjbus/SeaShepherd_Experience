@@ -1,0 +1,23 @@
+{
+  "name": "threejs-journey-exercise",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "devDependencies": {
+    "vite": "^6.2.2",
+    "vite-plugin-restart": "^0.4.2"
+  },
+  "dependencies": {
+    "@theatre/core": "^0.7.2",
+    "@theatre/studio": "^0.7.2",
+    "eslint": "^9.24.0",
+    "gsap": "^3.12.7",
+    "howler": "^2.2.4",
+    "lil-gui": "^0.20.0",
+    "three": "^0.174.0"
+  }
+}
