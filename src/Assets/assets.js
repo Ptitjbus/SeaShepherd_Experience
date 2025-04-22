@@ -8,22 +8,6 @@
 // }
 
 export default [
-    // {
-    //     name: 'Scan',
-    //     type: 'gltf',
-    //     path: '../models/glb/museum8k.glb',
-    //     license: 'CC Attribution',
-    //     author: 'adLucem',
-    //     url: 'https://sketchfab.com/3d-models/old-piano-fc9cc06615084298b4c0c0a02244f356'
-    // },
-    {
-        name: 'Old piano',
-        type: 'gltf',
-        path: '/models/glb/old_piano.glb',
-        license: 'CC Attribution',
-        author: 'adLucem',
-        url: 'https://sketchfab.com/3d-models/old-piano-fc9cc06615084298b4c0c0a02244f356'
-    },
     {
         name: 'Fishes',
         type: 'gltf',
@@ -35,9 +19,9 @@ export default [
     {
         name: 'Museum',
         type: 'gltf',
-        path: '/models/gltf/Museum_test_v1.gltf',
+        path: '/models/glb/Museum_test_v5.glb',
         license: '',
         author: 'Kilian Rizzo',
         url: ''
-    }
+    },
 ]

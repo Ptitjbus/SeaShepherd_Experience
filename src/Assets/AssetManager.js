@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 
-import EventEmitter from "../../Utils/EventEmitter"
+import EventEmitter from "../Utils/EventEmitter"
 
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
@@ -10,13 +10,13 @@ import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 import { RGBELoader } from 'three/examples/jsm/Addons.js'
 import { EXRLoader } from 'three/examples/jsm/loaders/EXRLoader.js'
 
-import assets from "../assets"
+import assets from "./assets.js"
 
-import App from '../../App';
+import App from '../App';
 
 import gsap from 'gsap'
 
-export class AssetManager extends EventEmitter {
+export default class AssetManager extends EventEmitter {
     constructor() {
         super()
 
@@ -50,7 +50,7 @@ export class AssetManager extends EventEmitter {
         this.loaders.gltf = new GLTFLoader(this.loadingManager)
         
         const dracoLoader = new DRACOLoader()
-        dracoLoader.setDecoderPath('./lib/draco/');
+        dracoLoader.setDecoderPath('/draco/');
         this.loaders.gltf.setDRACOLoader(dracoLoader);
     }
 
