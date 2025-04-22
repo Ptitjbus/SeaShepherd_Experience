@@ -47,6 +47,10 @@ export default class Debug extends EventEmitter {
         if (event.key === 's') {
             this.app.camera.switchCamera()
         }
+        if (event.key === 'e') {
+            this.app.endExperience()
+            console.log('Experience ended:', this.app.experienceEnded);
+        }
     })
 
     const postProcessingFolder = this.gui.addFolder('Post Processing')
