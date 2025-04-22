@@ -4,12 +4,21 @@ import CanvasSize from "./Core/CanvasSize"
 import Camera from "./Core/Camera"
 import Renderer from "./Core/Renderer"
 import { AnimationLoop } from "./Core/AnimationLoop"
+<<<<<<< Updated upstream
 import { AssetManager } from "./Assets/AssetManager"
 import PostProcessing from "./Core/PostProcessing" 
 import Debug from "./Utils/Debug"
 import Ocean from './Assets/Ocean.js';
 import SkyManager from './Assets/SkyManager.js'
 import EventsManager from './Utils/EventsManager';
+=======
+import { AssetManager } from "./Assets/Managers/AssetManager.js"
+import PostProcessingManager from "./Core/Managers/PostProcessingManager.js" 
+import Debug from "./Utils/Debug"
+import Ocean from './Assets/Ocean.js'
+import SkyManager from './Assets/Managers/SkyManager.js'
+import EventsManager from './Core/Managers/EventsManager'
+>>>>>>> Stashed changes
 
 let myAppInstance = null
 

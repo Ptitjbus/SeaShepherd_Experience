@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 
-import EventEmitter from "../Utils/EventEmitter"
+import EventEmitter from "../../Utils/EventEmitter"
 
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
@@ -10,9 +10,9 @@ import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 import { RGBELoader } from 'three/examples/jsm/Addons.js'
 import { EXRLoader } from 'three/examples/jsm/loaders/EXRLoader.js'
 
-import assets from "./assets"
+import assets from "../assets"
 
-import App from '../App';
+import App from '../../App';
 
 import gsap from 'gsap'
 
