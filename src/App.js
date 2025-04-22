@@ -1,4 +1,4 @@
-import { Scene, AmbientLight, AnimationMixer, MeshStandardMaterial, Color, Vector3, BufferGeometry, LineBasicMaterial, Line } from "three"
+import { Scene, AmbientLight, AnimationMixer, MeshStandardMaterial, Color, Vector3, BufferGeometry, LineBasicMaterial, Line, Fog } from "three"
 import EventEmitter from "./Utils/EventEmitter"
 import CanvasSize from "./Core/CanvasSize"
 import Camera from "./Core/Camera"
@@ -50,6 +50,7 @@ export default class App extends EventEmitter {
         this.cube = null
         this.fishesMixer = null
         this.museumMixer = null
+        this.playMuseumAnimation = false
 
         this.init()
     }
@@ -68,6 +69,14 @@ export default class App extends EventEmitter {
         this.assetManager.load()
     }
 
+    assetsLoadCompleteHandler() {
+        this.initScene()
+        this.postProcessing = new PostProcessing(this.renderer.instance, this.scene, this.camera.mainCamera)
+        this.animationLoop.start()
+        this.debug = new Debug()
+        this.debug.showAnimationClipLine(this.assetManager.getItem('Museum'), 'animation_0')
+    }
+
     initScene() {
         this.scene = new Scene()
         // this.scene.fog = new Fog(0xcccccc, 100, 150)
@@ -78,7 +87,6 @@ export default class App extends EventEmitter {
         this.scene.add(ambientLight)
 
         // const scan = this.assetManager.getItem('Scan')
-        const piano = this.assetManager.getItem('Old piano')
         const fishes = this.assetManager.getItem('Fishes')
         const museum = this.assetManager.getItem('Museum')
 
@@ -97,9 +105,6 @@ export default class App extends EventEmitter {
 
         // scan.scene.rotation.y = Math.PI / 2
 
-        piano.scene.position.set(0, 5, 22)
-        piano.scene.rotation.y = 3 * (Math.PI / 2)
-
         fishes.scene.position.set(0, 1, 14)
         this.fishesMixer = new AnimationMixer(fishes.scene)
         fishes.animations.forEach((clip) => {
@@ -114,25 +119,20 @@ export default class App extends EventEmitter {
             }
         })
                 
-        // this.scene.add(scan.scene)
         this.scene.add(fishes.scene)
         this.scene.add(museum.scene)
         
     }
 
-    assetsLoadCompleteHandler() {
-        this.initScene()
-        this.postProcessing = new PostProcessing(this.renderer.instance, this.scene, this.camera.mainCamera)
-        this.animationLoop.start()
-        this.debug = new Debug()
-        this.debug.showAnimationClipLine(this.assetManager.getItem('Museum'), 'animation_0')
-    }
-
     update(time) {
         this.fishesMixer.update(time.delta)
-        this.museumMixer.update(time.delta)
+        if(this.playMuseumAnimation){
+            this.museumMixer.update(time.delta)
+        }
         this.skyManager.update()
-        this.ocean.update(time.delta);
+        this.ocean.update(time.delta)
+
+        this.camera.applyLookAroundOffset()
 
         if (this.enablePostProcessing) {
             this.postProcessing.render(this.camera.mainCamera)
@@ -141,7 +141,6 @@ export default class App extends EventEmitter {
         }
 
         this.debug.updateStats()
-
     }
 
     destroy() {

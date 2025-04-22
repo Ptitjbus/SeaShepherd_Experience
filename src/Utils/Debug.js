@@ -32,14 +32,22 @@ export default class Debug extends EventEmitter {
     cameraFolder.add(this.app.camera, 'breathingSpeed', 0, 0.005).name('Vitesse')
     cameraFolder.add({ 
         trigger: () => {
-            this.app.camera.cameraManager.playSequence()
+            this.app.playMuseumAnimation = !this.app.playMuseumAnimation
         }
-    }, 'trigger').name('Play Animation')
+    }, 'trigger').name('Play/Pause Animation')
     cameraFolder.add(this.app.camera, 'switchCamera').name('Switch Camera')
     cameraFolder.add(this.app.museumMixer, 'timeScale', 0, 3).name('Anim speed')
 
     cameraFolder.open()
 
+    window.addEventListener('keydown', (event) => {
+        if (event.key === ' ') {
+            this.app.playMuseumAnimation = !this.app.playMuseumAnimation
+        }
+        if (event.key === 's') {
+            this.app.camera.switchCamera()
+        }
+    })
 
     const postProcessingFolder = this.gui.addFolder('Post Processing')
 

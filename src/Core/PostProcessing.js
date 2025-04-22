@@ -21,7 +21,7 @@ export default class PostProcessing {
         this.renderPixelatedPass.depthEdgeStrength = 0.1
         this.fisheyePass = new ShaderPass(FisheyeShader)
         this.glitchPass = new GlitchPass()
-        this.fxaaPass = new ShaderPass( FXAAShader );
+        this.fxaaPass = new ShaderPass( FXAAShader )
         this.fxaaPass.enabled = false
 
         // this.fxaaPass.material.uniforms[ 'resolution' ].value.x = 1 / ( this.app.canvas.width * renderer.pixelRatio );
