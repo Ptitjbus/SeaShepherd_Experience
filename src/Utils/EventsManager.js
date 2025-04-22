@@ -15,7 +15,7 @@ export default class EventsManager extends EventEmitter {
      * @param {string} title - Titre optionnel
      * @returns {boolean} - Toujours true
      */
-    displayPopin(message = null, title = null) {
+    displayAlert(message = null, title = null) {
         const displayMessage = message || 'Information';
         const fullMessage = title ? `${title}\n\n${displayMessage}` : displayMessage;
         
