@@ -4,13 +4,13 @@ import CanvasSize from "./Core/CanvasSize"
 import Camera from "./Core/Camera"
 import Renderer from "./Core/Renderer"
 import { AnimationLoop } from "./Core/AnimationLoop"
-import { AssetManager } from "./Assets/AssetManager"
-import PostProcessing from "./Core/PostProcessing" 
+import ObjectManager from './Core/Managers/ObjectManager.js'
+import AssetManager from "./Assets/AssetManager.js"
+import PostProcessing from "./Core/PostProcessing.js" 
 import Debug from "./Utils/Debug"
-import Ocean from './Assets/Ocean.js';
-import SkyManager from './Assets/SkyManager.js'
-import EventsManager from './Utils/EventsManager';
-import ObjectManager from './Core/ObjectManager.js'
+import Ocean from './World/Ocean.js'
+import Sky from './World/Sky.js'
+import EventsManager from './Core/Managers/EventsManager'
 
 let myAppInstance = null
 
@@ -41,6 +41,7 @@ export default class App extends EventEmitter {
         this.scene = null
         this.camera = null
         this.renderer = null
+        this.sky = null
 
         this.debug = null
 
@@ -48,9 +49,6 @@ export default class App extends EventEmitter {
 
         this.postProcessing = null
         this.enablePostProcessing = true
-
-        this.bloomLayer = 1
-
 
         this.startOverlay = null;
         this.startButton = null;
@@ -146,7 +144,7 @@ export default class App extends EventEmitter {
 
     initScene() {
         this.scene = new Scene()
-        this.skyManager = new SkyManager(this.scene, this.renderer.instance)
+        this.sky = new Sky(this.scene, this.renderer.instance)
         this.ocean = new Ocean(this.scene, this.renderer.instance)
         this.objectManager = new ObjectManager()
 
@@ -218,8 +216,8 @@ export default class App extends EventEmitter {
         this.renderer = null
 
         this.scene = null
-        this.skyManager.destroy()
-        this.skyManager = null
+        this.sky.destroy()
+        this.sky = null
         this.ocean.destroy()
         this.ocean = null
         this.objectManager.destroy()

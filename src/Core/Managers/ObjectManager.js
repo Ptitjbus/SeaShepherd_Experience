@@ -1,5 +1,5 @@
 import { FrontSide, AnimationMixer, Object3D } from "three";
-import App from "../App";
+import App from "../../App";
 
 export default class ObjectManager {
     constructor() {

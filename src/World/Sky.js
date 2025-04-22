@@ -1,12 +1,12 @@
 import * as THREE from 'three'
-import { Sky } from 'three/examples/jsm/objects/Sky.js'
+import { Sky as SkyObject } from 'three/examples/jsm/objects/Sky.js'
 
-export default class SkyManager {
+export default class Sky {
   constructor(scene, renderer) {
     this.scene = scene
     this.renderer = renderer
 
-    this.sky = new Sky()
+    this.sky = new SkyObject()
     this.sky.scale.setScalar(10000)
     this.scene.add(this.sky)
 
