@@ -57,10 +57,6 @@ export default class SkyManager {
     this.updateSky()
   }
 
-  update() {
-    // Pour animations si besoin
-  }
-
   destroy() {
     this.pmremGenerator.dispose()
   }

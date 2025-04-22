@@ -50,7 +50,7 @@ export class AssetManager extends EventEmitter {
         this.loaders.gltf = new GLTFLoader(this.loadingManager)
         
         const dracoLoader = new DRACOLoader()
-        dracoLoader.setDecoderPath('./lib/draco/');
+        dracoLoader.setDecoderPath('/draco/');
         this.loaders.gltf.setDRACOLoader(dracoLoader);
     }
 
