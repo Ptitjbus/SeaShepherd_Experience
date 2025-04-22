@@ -1,24 +1,16 @@
-import { Scene, AmbientLight, AnimationMixer, MeshStandardMaterial, Color, Vector3, BufferGeometry, LineBasicMaterial, Line, Fog } from "three"
+import { Scene, MeshStandardMaterial, Color, Vector3 } from "three"
 import EventEmitter from "./Utils/EventEmitter"
 import CanvasSize from "./Core/CanvasSize"
 import Camera from "./Core/Camera"
 import Renderer from "./Core/Renderer"
 import { AnimationLoop } from "./Core/AnimationLoop"
-<<<<<<< Updated upstream
-import { AssetManager } from "./Assets/AssetManager"
-import PostProcessing from "./Core/PostProcessing" 
+import ObjectManager from './Core/Managers/ObjectManager.js'
+import AssetManager from "./Assets/AssetManager.js"
+import PostProcessing from "./Core/PostProcessing.js" 
 import Debug from "./Utils/Debug"
-import Ocean from './Assets/Ocean.js';
-import SkyManager from './Assets/SkyManager.js'
-import EventsManager from './Utils/EventsManager';
-=======
-import { AssetManager } from "./Assets/Managers/AssetManager.js"
-import PostProcessingManager from "./Core/Managers/PostProcessingManager.js" 
-import Debug from "./Utils/Debug"
-import Ocean from './Assets/Ocean.js'
-import SkyManager from './Assets/Managers/SkyManager.js'
+import Ocean from './World/Ocean.js'
+import Sky from './World/Sky.js'
 import EventsManager from './Core/Managers/EventsManager'
->>>>>>> Stashed changes
 
 let myAppInstance = null
 
@@ -49,6 +41,7 @@ export default class App extends EventEmitter {
         this.scene = null
         this.camera = null
         this.renderer = null
+        this.sky = null
 
         this.debug = null
 
@@ -56,11 +49,6 @@ export default class App extends EventEmitter {
 
         this.postProcessing = null
         this.enablePostProcessing = true
-
-        this.cube = null
-        this.fishesMixer = null
-        this.museumMixer = null
-        this.playMuseumAnimation = false
 
         this.startOverlay = null;
         this.startButton = null;
@@ -151,67 +139,34 @@ export default class App extends EventEmitter {
         this.postProcessing = new PostProcessing(this.renderer.instance, this.scene, this.camera.mainCamera)
         this.animationLoop.start()
         this.debug = new Debug()
-        this.debug.showAnimationClipLine(this.assetManager.getItem('Museum'), 'animation_0')
+        this.debug.showAnimationClipLine(this.assetManager.getItem('Museum'))
     }
 
     initScene() {
         this.scene = new Scene()
-        this.skyManager = new SkyManager(this.scene, this.renderer.instance)
-        this.ocean = new Ocean(this.scene, this.renderer.instance);
+        this.sky = new Sky(this.scene, this.renderer.instance)
+        this.ocean = new Ocean(this.scene, this.renderer.instance)
+        this.objectManager = new ObjectManager()
 
-        const ambientLight = new AmbientLight(0xffffff, 1)
-        this.scene.add(ambientLight)
 
-        const fishes = this.assetManager.getItem('Fishes')
-        const museum = this.assetManager.getItem('Museum')
-
-        museum.scene.position.set(0, 0, 0)
+        let museum = this.objectManager.add("Museum", new Vector3(0, 0, 0))
+        this.objectManager.add("Fishes", new Vector3(0, 1, 14), {
+            material: goldMaterial,
+            castShadow: true,
+            receiveShadow: true
+        })
         
-        museum.scene.traverse((child) => {
-            if (child.isCamera) {
-                this.camera.allCameras.push(child)
-            }
-        })
-
-        this.museumMixer = new AnimationMixer(museum.scene)
-        museum.animations.forEach((clip) => {
-            const action = this.museumMixer.clipAction(clip);
-            action.paused = true;
-            action.play();
-        })
-
-        fishes.scene.position.set(0, 1, 14)
-        this.fishesMixer = new AnimationMixer(fishes.scene)
-        fishes.animations.forEach((clip) => {
-            this.fishesMixer.clipAction(clip).play()
-        })
-
-        fishes.scene.traverse((child) => {
-            if (child.isMesh) {
-                child.material = goldMaterial
-                child.castShadow = true
-                child.receiveShadow = true
-            }
-        })
-                
-        this.scene.add(fishes.scene)
-        this.scene.add(museum.scene)
+        const glowingObject = this.objectManager.getItemFromObject(museum.object.scene, "Cube046_1");
         
     }
 
     update(time) {
-        this.fishesMixer.update(time.delta);
-        
-        if (this.experienceStarted && this.museumMixer) {
-            if(this.playMuseumAnimation){
-            this.museumMixer.update(time.delta);
+        if(this.playMuseumAnimation){
+            this.objectManager.update(time.delta)
         }
-
-        }
-        this.skyManager.update()
         this.ocean.update(time.delta)
+        this.debug.update()
 
-        this.camera.applyLookAroundOffset()
 
         if (this.enablePostProcessing) {
             this.postProcessing.render(this.camera.mainCamera)
@@ -232,9 +187,21 @@ export default class App extends EventEmitter {
             this.eventsManager = null;
         }
 
-        this.scene.remove(this.cube)
-        this.cube.destroy()
-        this.cube = null
+        this.scene.traverse((object) => {
+            if (object.geometry) {
+                object.geometry.dispose()
+            }
+            if (object.material) {
+                if (Array.isArray(object.material)) {
+                    object.material.forEach((material) => {
+                        material.dispose()
+                    })
+                } else {
+                    object.material.dispose()
+                }
+            }
+        })
+        
 
         this.postProcessing = null  
 
@@ -247,6 +214,16 @@ export default class App extends EventEmitter {
 
         this.renderer.destroy()
         this.renderer = null
+
+        this.scene = null
+        this.sky.destroy()
+        this.sky = null
+        this.ocean.destroy()
+        this.ocean = null
+        this.objectManager.destroy()
+        this.objectManager = null
+        this.debug.destroy()
+        this.debug = null
 
         this.animationLoop.off('update')
         this.animationLoop = null
