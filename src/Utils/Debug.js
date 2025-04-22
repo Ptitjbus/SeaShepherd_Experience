@@ -53,21 +53,24 @@ export default class Debug extends EventEmitter {
         if (event.key === 'p') {
             this.app.eventsManager.displayAlert("Ceci est une popin d'information",'information');
         }
+        if (event.key === 'g') {
+            this.app.postProcessingManager.triggerGlitch();
+        }
     })
 
     const postProcessingFolder = this.gui.addFolder('Post Processing')
 
     postProcessingFolder.add(this.app, 'enablePostProcessing', true).name('Enable Post Processing')
-    postProcessingFolder.add(this.app.postProcessing.fisheyePass, 'enabled', true).name('Enable Fisheye Pass')
-    postProcessingFolder.add(this.app.postProcessing.renderPixelatedPass, 'enabled', true).name('Enable Pixelated Pass')
-    postProcessingFolder.add(this.app.postProcessing.fxaaPass, 'enabled', true).name('Enable Fxaa Pass')
-    postProcessingFolder.add(this.app.postProcessing.renderPixelatedPass, 'normalEdgeStrength', 0, 1).name('Normal Edge Strength')
-    postProcessingFolder.add(this.app.postProcessing.renderPixelatedPass, 'depthEdgeStrength', 0, 1).name('Depth Edge Strength')
-    postProcessingFolder.add( this.app.postProcessing, 'pixelSize', 1, 50 ).onChange( () => {
-        this.app.postProcessing.renderPixelatedPass.setPixelSize( this.app.postProcessing.pixelSize );
+    postProcessingFolder.add(this.app.postProcessingManager.fisheyePass, 'enabled', true).name('Enable Fisheye Pass')
+    postProcessingFolder.add(this.app.postProcessingManager.renderPixelatedPass, 'enabled', true).name('Enable Pixelated Pass')
+    postProcessingFolder.add(this.app.postProcessingManager.fxaaPass, 'enabled', true).name('Enable Fxaa Pass')
+    postProcessingFolder.add(this.app.postProcessingManager.renderPixelatedPass, 'normalEdgeStrength', 0, 1).name('Normal Edge Strength')
+    postProcessingFolder.add(this.app.postProcessingManager.renderPixelatedPass, 'depthEdgeStrength', 0, 1).name('Depth Edge Strength')
+    postProcessingFolder.add( this.app.postProcessingManager, 'pixelSize', 1, 50 ).onChange( () => {
+        this.app.postProcessingManager.renderPixelatedPass.setPixelSize( this.app.postProcessingManager.pixelSize );
     } );        
-    postProcessingFolder.add(this.app.postProcessing, 'triggerGlitch').name('Trigger Glitch')
-    postProcessingFolder.add(this.app.postProcessing, 'triggerBigGlitch').name('Trigger Big glitch')
+    postProcessingFolder.add(this.app.postProcessingManager, 'triggerGlitch').name('Trigger Glitch')
+    postProcessingFolder.add(this.app.postProcessingManager, 'triggerBigGlitch').name('Trigger Big glitch')
     postProcessingFolder.open()
 
     const skyFolder = this.gui.addFolder('Sky')
@@ -87,15 +90,15 @@ export default class Debug extends EventEmitter {
 
     skyFolder.close()
 
-    const popinsFolder = this.gui.addFolder('Popins');
+    const eventsFolder = this.gui.addFolder('Events');
     
-    popinsFolder.add({
+    eventsFolder.add({
         showInfoPopin: () => {
            this.app.eventsManager.displayAlert("Ceci est une popin d'information",'information');
         }
     }, 'showInfoPopin').name('Afficher Info Popin');
     
-    popinsFolder.add({
+    eventsFolder.add({
         showWarningPopin: () => {
             this.app.eventsManager.displayAlert("Ceci est une popin de warning", 'Attention');
         }

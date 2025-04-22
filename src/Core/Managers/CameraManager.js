@@ -1,7 +1,7 @@
 import * as core from '@theatre/core'
 // import studio from '@theatre/studio'
 
-import state from '../../static/cameraAnimations/aquarium.json'
+import state from '../../../static/cameraAnimations/aquarium.json'
 
 export default class CameraManager {
     constructor(camera) {

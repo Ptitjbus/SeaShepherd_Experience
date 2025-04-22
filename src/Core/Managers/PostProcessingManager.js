@@ -3,11 +3,11 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
 import { GlitchPass } from 'three/examples/jsm/postprocessing/GlitchPass.js'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { RenderPixelatedPass } from 'three/addons/postprocessing/RenderPixelatedPass.js';
-import { FisheyeShader } from '../Shaders/FisheyeShader.js'
+import { FisheyeShader } from '../../Shaders/FisheyeShader.js'
 import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
-import App from '../App.js'
+import App from '../../App.js'
 
-export default class PostProcessing {
+export default class PostProcessingManager {
     constructor(renderer, scene, camera) {
         this.composer = new EffectComposer(renderer)
         this.scene = scene

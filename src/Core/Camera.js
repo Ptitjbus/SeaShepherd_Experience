@@ -2,7 +2,7 @@ import { PerspectiveCamera, Vector3, Euler, Quaternion } from "three";
 import EventEmitter from "../Utils/EventEmitter";
 import App from "../App";
 import { OrbitControls } from "three/examples/jsm/Addons.js";
-import CameraManager from "./CameraManager";
+import CameraManager from "./Managers/CameraManager";
 
 export default class Camera extends EventEmitter {
     constructor() {

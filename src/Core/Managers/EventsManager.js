@@ -1,4 +1,4 @@
-import EventEmitter from './EventEmitter';
+import EventEmitter from '../../Utils/EventEmitter';
 
 /**
  * Classe gérant les alertes du système via window.alert()

@@ -5,11 +5,11 @@ import Camera from "./Core/Camera"
 import Renderer from "./Core/Renderer"
 import { AnimationLoop } from "./Core/AnimationLoop"
 import { AssetManager } from "./Assets/AssetManager"
-import PostProcessing from "./Core/PostProcessing" 
+import PostProcessingManager from "./Core/Managers/PostProcessingManager.js" 
 import Debug from "./Utils/Debug"
-import Ocean from './Assets/Ocean.js';
+import Ocean from './Assets/Ocean.js'
 import SkyManager from './Assets/SkyManager.js'
-import EventsManager from './Utils/EventsManager';
+import EventsManager from './Core/Managers/EventsManager'
 
 let myAppInstance = null
 
@@ -45,7 +45,7 @@ export default class App extends EventEmitter {
 
         this.assetManager = null
 
-        this.postProcessing = null
+        this.postProcessingManager = null
         this.enablePostProcessing = true
 
         this.cube = null
@@ -53,14 +53,13 @@ export default class App extends EventEmitter {
         this.museumMixer = null
         this.playMuseumAnimation = false
 
-        this.startOverlay = null;
-        this.startButton = null;
-        this.endOverlay = null;
-        this.experienceStarted = false;
-        this.experienceEnded = false;
+        this.startOverlay = null
+        this.startButton = null
+        this.endOverlay = null
+        this.experienceStarted = false
+        this.experienceEnded = false
 
-        this.popins = {};
-        this.eventsManager = null;
+        this.eventsManager = null
 
         this.init()
     }
@@ -77,69 +76,68 @@ export default class App extends EventEmitter {
         this.assetsLoadCompleteHandlerBound = this.assetsLoadCompleteHandler.bind(this)
         this.assetManager.on('ready', this.assetsLoadCompleteHandlerBound)
         this.assetManager.load()
-        this.setupUI();
 
-        // Initialiser le gestionnaire de popins APRÈS setupUI() pour éviter les conflits
-        this.eventsManager = new EventsManager();
+        this.eventsManager = new EventsManager()
 
-        // Exemple d'écoute des événements du gestionnaire de popins
         this.eventsManager.on('popinShown', (popinId) => {
-            console.log(`Popin "${popinId}" affichée`);
-        });
+            console.log(`Popin "${popinId}" affichée`)
+        })
+
+        this.setupUI()
     }
 
     setupUI() {
-        this.startOverlay = document.querySelector('.start-overlay');
-        this.startButton = document.querySelector('.start-button');
-        this.endOverlay = document.querySelector('.end-overlay');
+        this.startOverlay = document.querySelector('.start-overlay')
+        this.startButton = document.querySelector('.start-button')
+        this.endOverlay = document.querySelector('.end-overlay')
         
-        console.log('End overlay element:', this.endOverlay);
+        console.log('End overlay element:', this.endOverlay)
         
-        this.startButton.addEventListener('click', () => this.startExperience());
+        this.startButton.addEventListener('click', () => this.startExperience())
     }
 
     startExperience() {
-        if (this.experienceStarted) return;
+        if (this.experienceStarted) return
         
-        this.experienceStarted = true;
+        this.experienceStarted = true
         
-        this.startOverlay.classList.add('hidden');
+        this.startOverlay.classList.add('hidden')
         
-        this.canvas.style.opacity = '1';
-        this.camera.switchCamera();
+        this.canvas.style.opacity = '1'
+        this.camera.switchCamera()
 
         if (this.museumMixer) {
-            this.museumMixer.stopAllAction();
+            this.museumMixer.stopAllAction()
             
-            const museum = this.assetManager.getItem('Museum');
+            const museum = this.assetManager.getItem('Museum')
             museum.animations.forEach((clip) => {
-                this.museumMixer.clipAction(clip).reset().play();
-            });
+                this.museumMixer.clipAction(clip).reset().play()
+            })
         }
     
         setTimeout(() => {
             this.playMuseumAnimation = !this.playMuseumAnimation
-        }, 1500);
+        }, 1500)
     }
 
     endExperience() {
-        if (this.experienceEnded) return;
-        this.experienceEnded = true;
+        if (this.experienceEnded) return
+        this.experienceEnded = true
         
-        this.endOverlay.classList.remove('hidden');
+        this.endOverlay.classList.remove('hidden')
         
-        void this.endOverlay.offsetWidth;
+        void this.endOverlay.offsetWidth
         
-        this.canvas.style.opacity = '0';
+        this.canvas.style.opacity = '0'
         
         setTimeout(() => {
-            this.endOverlay.classList.add('visible');
-        }, 100);
+            this.endOverlay.classList.add('visible')
+        }, 100)
     }
 
     assetsLoadCompleteHandler() {
         this.initScene()
-        this.postProcessing = new PostProcessing(this.renderer.instance, this.scene, this.camera.mainCamera)
+        this.postProcessingManager = new PostProcessingManager(this.renderer.instance, this.scene, this.camera.mainCamera)
         this.animationLoop.start()
         this.debug = new Debug()
         this.debug.showAnimationClipLine(this.assetManager.getItem('Museum'), 'animation_0')
@@ -148,7 +146,7 @@ export default class App extends EventEmitter {
     initScene() {
         this.scene = new Scene()
         this.skyManager = new SkyManager(this.scene, this.renderer.instance)
-        this.ocean = new Ocean(this.scene, this.renderer.instance);
+        this.ocean = new Ocean(this.scene, this.renderer.instance)
 
         const ambientLight = new AmbientLight(0xffffff, 1)
         this.scene.add(ambientLight)
@@ -166,9 +164,9 @@ export default class App extends EventEmitter {
 
         this.museumMixer = new AnimationMixer(museum.scene)
         museum.animations.forEach((clip) => {
-            const action = this.museumMixer.clipAction(clip);
-            action.paused = true;
-            action.play();
+            const action = this.museumMixer.clipAction(clip)
+            action.paused = true
+            action.play()
         })
 
         fishes.scene.position.set(0, 1, 14)
@@ -191,11 +189,11 @@ export default class App extends EventEmitter {
     }
 
     update(time) {
-        this.fishesMixer.update(time.delta);
+        this.fishesMixer.update(time.delta)
         
         if (this.experienceStarted && this.museumMixer) {
             if(this.playMuseumAnimation){
-            this.museumMixer.update(time.delta);
+            this.museumMixer.update(time.delta)
         }
 
         }
@@ -205,7 +203,7 @@ export default class App extends EventEmitter {
         this.camera.applyLookAroundOffset()
 
         if (this.enablePostProcessing) {
-            this.postProcessing.render(this.camera.mainCamera)
+            this.postProcessingManager.render(this.camera.mainCamera)
         } else {
             this.renderer.instance.render(this.scene, this.camera.mainCamera)
         }
@@ -214,20 +212,16 @@ export default class App extends EventEmitter {
     }
 
     destroy() {
-        if (this.startButton) {
-            this.startButton.removeEventListener('click', this.startExperience);
-        }
+        this.startButton.removeEventListener('click', this.startExperience)
 
-        if (this.eventsManager) {
-            this.eventsManager.destroy();
-            this.eventsManager = null;
-        }
+        this.eventsManager.destroy()
+        this.eventsManager = null
 
         this.scene.remove(this.cube)
         this.cube.destroy()
         this.cube = null
 
-        this.postProcessing = null  
+        this.postProcessingManager = null  
 
         this.gui = null
         
@@ -248,9 +242,12 @@ export default class App extends EventEmitter {
         this.assetManager.destroy()
         this.assetManager = null
 
-        this.startOverlay = null;
-        this.startButton = null;
-        this.endOverlay = null;
+        this.popinManager.destroy()
+        this.popinManager = null
+
+        this.startOverlay = null
+        this.startButton = null
+        this.endOverlay = null
 
         this.canvas = null
 
