@@ -54,7 +54,9 @@ export default class App extends EventEmitter {
 
         this.startOverlay = null;
         this.startButton = null;
+        this.endOverlay = null;
         this.experienceStarted = false;
+        this.experienceEnded = false;
 
         this.init()
     }
@@ -77,6 +79,9 @@ export default class App extends EventEmitter {
     setupUI() {
         this.startOverlay = document.querySelector('.start-overlay');
         this.startButton = document.querySelector('.start-button');
+        this.endOverlay = document.querySelector('.end-overlay');
+        
+        console.log('End overlay element:', this.endOverlay); // Vérifiez que ce n'est pas null
         
         this.startButton.addEventListener('click', () => this.startExperience());
     }
@@ -103,6 +108,26 @@ export default class App extends EventEmitter {
         setTimeout(() => {
             this.playMuseumAnimation = !this.playMuseumAnimation
         }, 1500);
+    }
+
+    endExperience() {
+        if (this.experienceEnded) return;
+        this.experienceEnded = true;
+        
+        // Affiche d'abord l'overlay mais avec opacité 0
+        this.endOverlay.classList.remove('hidden');
+        
+        // Force un reflow pour que la transition fonctionne correctement
+        void this.endOverlay.offsetWidth;
+        
+        // Cacher le canvas
+        this.canvas.style.opacity = '0';
+        
+        // Attendre un court instant, puis lancer la transition de l'overlay
+        setTimeout(() => {
+            // Afficher la page de fin
+            this.endOverlay.classList.add('visible');
+        }, 100);
     }
 
     assetsLoadCompleteHandler() {
@@ -229,6 +254,7 @@ export default class App extends EventEmitter {
 
         this.startOverlay = null;
         this.startButton = null;
+        this.endOverlay = null;
 
         this.canvas = null
 
