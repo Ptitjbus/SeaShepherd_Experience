@@ -58,7 +58,19 @@ export default class App extends EventEmitter {
         this.experienceStarted = false;
         this.experienceEnded = false;
 
+        this.popins = {};
+        this.currentOS = this.detectOS();
+
         this.init()
+    }
+
+    detectOS() {
+        const userAgent = window.navigator.userAgent.toLowerCase();
+        if (userAgent.includes('mac')) {
+            return 'mac';
+        } else {
+            return 'windows'; // On considère tout ce qui n'est pas Mac comme Windows pour simplifier
+        }
     }
 
     async init() {
@@ -74,6 +86,8 @@ export default class App extends EventEmitter {
         this.assetManager.on('ready', this.assetsLoadCompleteHandlerBound)
         this.assetManager.load()
         this.setupUI();
+
+        document.body.classList.add(this.currentOS);
     }
 
     setupUI() {
@@ -84,6 +98,45 @@ export default class App extends EventEmitter {
         console.log('End overlay element:', this.endOverlay); // Vérifiez que ce n'est pas null
         
         this.startButton.addEventListener('click', () => this.startExperience());
+
+        this.setupPopins();
+    }
+
+    setupPopins() {
+        const popinElements = document.querySelectorAll('.popin');
+        
+        popinElements.forEach(popin => {
+            const id = popin.id;
+            this.popins[id] = popin;
+            
+            const closeButton = popin.querySelector('.close-button');
+            if (closeButton) {
+                closeButton.addEventListener('click', () => this.hidePopin(id));
+            }
+        });
+        
+        window.showPopin = this.showPopin.bind(this);
+        window.hidePopin = this.hidePopin.bind(this);
+    }
+
+    showPopin(popinId) {
+        const popin = this.popins[popinId];
+        if (popin) {
+            popin.classList.remove('hidden');
+            return true;
+        }
+        console.warn(`Popin avec l'ID "${popinId}" non trouvée.`);
+        return false;
+    }
+
+    hidePopin(popinId) {
+        const popin = this.popins[popinId];
+        if (popin) {
+            popin.classList.add('hidden');
+            return true;
+        }
+        console.warn(`Popin avec l'ID "${popinId}" non trouvée.`);
+        return false;
     }
 
     startExperience() {
@@ -114,18 +167,13 @@ export default class App extends EventEmitter {
         if (this.experienceEnded) return;
         this.experienceEnded = true;
         
-        // Affiche d'abord l'overlay mais avec opacité 0
         this.endOverlay.classList.remove('hidden');
         
-        // Force un reflow pour que la transition fonctionne correctement
         void this.endOverlay.offsetWidth;
         
-        // Cacher le canvas
         this.canvas.style.opacity = '0';
         
-        // Attendre un court instant, puis lancer la transition de l'overlay
         setTimeout(() => {
-            // Afficher la page de fin
             this.endOverlay.classList.add('visible');
         }, 100);
     }
@@ -138,24 +186,14 @@ export default class App extends EventEmitter {
         this.debug.showAnimationClipLine(this.assetManager.getItem('Museum'), 'animation_0')
     }
 
-    assetsLoadCompleteHandler() {
-        this.initScene()
-        this.postProcessing = new PostProcessing(this.renderer.instance, this.scene, this.camera.mainCamera)
-        this.animationLoop.start()
-        this.debug = new Debug()
-        this.debug.showAnimationClipLine(this.assetManager.getItem('Museum'), 'animation_0')
-    }
-
     initScene() {
         this.scene = new Scene()
-        // this.scene.fog = new Fog(0xcccccc, 100, 150)
         this.skyManager = new SkyManager(this.scene, this.renderer.instance)
         this.ocean = new Ocean(this.scene, this.renderer.instance);
 
         const ambientLight = new AmbientLight(0xffffff, 1)
         this.scene.add(ambientLight)
 
-        // const scan = this.assetManager.getItem('Scan')
         const fishes = this.assetManager.getItem('Fishes')
         const museum = this.assetManager.getItem('Museum')
 
@@ -169,13 +207,10 @@ export default class App extends EventEmitter {
 
         this.museumMixer = new AnimationMixer(museum.scene)
         museum.animations.forEach((clip) => {
-            // Create the action but don't play it yet - we'll start it when user clicks button
             const action = this.museumMixer.clipAction(clip);
             action.paused = true;
             action.play();
         })
-
-        // scan.scene.rotation.y = Math.PI / 2
 
         fishes.scene.position.set(0, 1, 14)
         this.fishesMixer = new AnimationMixer(fishes.scene)
@@ -197,10 +232,8 @@ export default class App extends EventEmitter {
     }
 
     update(time) {
-        // Always update fishes for ambient movement
         this.fishesMixer.update(time.delta);
         
-        // Only update museum animation if experience has started
         if (this.experienceStarted && this.museumMixer) {
             if(this.playMuseumAnimation){
             this.museumMixer.update(time.delta);
@@ -226,7 +259,19 @@ export default class App extends EventEmitter {
             this.startButton.removeEventListener('click', this.startExperience);
         }
 
-        // Release memory of the scene
+        Object.keys(this.popins).forEach(id => {
+            const popin = this.popins[id];
+            const closeButton = popin.querySelector('.close-button');
+            if (closeButton) {
+                closeButton.removeEventListener('click', () => this.hidePopin(id));
+            }
+        });
+
+        this.popins = null;
+
+        window.showPopin = null;
+        window.hidePopin = null;
+
         this.scene.remove(this.cube)
         this.cube.destroy()
         this.cube = null
