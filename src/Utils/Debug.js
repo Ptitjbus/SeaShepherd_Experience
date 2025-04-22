@@ -82,17 +82,17 @@ export default class Debug extends EventEmitter {
 
     const skyFolder = this.gui.addFolder('Sky')
 
-    const skyController = this.app.skyManager.effectController
+    const skyController = this.app.sky.effectController
 
-    skyFolder.add(skyController, 'turbidity', 0.0, 20.0).onChange(() => this.app.skyManager.updateSky())
-    skyFolder.add(skyController, 'rayleigh', 0.0, 4.0).onChange(() => this.app.skyManager.updateSky())
-    skyFolder.add(skyController, 'mieCoefficient', 0.0, 0.1).onChange(() => this.app.skyManager.updateSky())
-    skyFolder.add(skyController, 'mieDirectionalG', 0.0, 1.0).onChange(() => this.app.skyManager.updateSky())
-    skyFolder.add(skyController, 'elevation', 0.0, 90.0).onChange(() => this.app.skyManager.updateSky())
-    skyFolder.add(skyController, 'azimuth', -180.0, 180.0).onChange(() => this.app.skyManager.updateSky())
+    skyFolder.add(skyController, 'turbidity', 0.0, 20.0).onChange(() => this.app.sky.updateSky())
+    skyFolder.add(skyController, 'rayleigh', 0.0, 4.0).onChange(() => this.app.sky.updateSky())
+    skyFolder.add(skyController, 'mieCoefficient', 0.0, 0.1).onChange(() => this.app.sky.updateSky())
+    skyFolder.add(skyController, 'mieDirectionalG', 0.0, 1.0).onChange(() => this.app.sky.updateSky())
+    skyFolder.add(skyController, 'elevation', 0.0, 90.0).onChange(() => this.app.sky.updateSky())
+    skyFolder.add(skyController, 'azimuth', -180.0, 180.0).onChange(() => this.app.sky.updateSky())
     skyFolder.add(skyController, 'exposure', 0.0, 2.0).onChange((v) => {
         this.app.renderer.instance.toneMappingExposure = v
-        this.app.skyManager.updateSky()
+        this.app.sky.updateSky()
     })
 
     skyFolder.close()

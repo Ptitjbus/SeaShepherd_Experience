@@ -10,13 +10,13 @@ import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 import { RGBELoader } from 'three/examples/jsm/Addons.js'
 import { EXRLoader } from 'three/examples/jsm/loaders/EXRLoader.js'
 
-import assets from "./assets"
+import assets from "./assets.js"
 
 import App from '../App';
 
 import gsap from 'gsap'
 
-export class AssetManager extends EventEmitter {
+export default class AssetManager extends EventEmitter {
     constructor() {
         super()
 
