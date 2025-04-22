@@ -52,6 +52,10 @@ export default class App extends EventEmitter {
         this.museumMixer = null
         this.playMuseumAnimation = false
 
+        this.startOverlay = null;
+        this.startButton = null;
+        this.experienceStarted = false;
+
         this.init()
     }
 
@@ -67,6 +71,46 @@ export default class App extends EventEmitter {
         this.assetsLoadCompleteHandlerBound = this.assetsLoadCompleteHandler.bind(this)
         this.assetManager.on('ready', this.assetsLoadCompleteHandlerBound)
         this.assetManager.load()
+        this.setupUI();
+    }
+
+    setupUI() {
+        this.startOverlay = document.querySelector('.start-overlay');
+        this.startButton = document.querySelector('.start-button');
+        
+        this.startButton.addEventListener('click', () => this.startExperience());
+    }
+
+    startExperience() {
+        if (this.experienceStarted) return;
+        
+        this.experienceStarted = true;
+        
+        this.startOverlay.classList.add('hidden');
+        
+        this.canvas.style.opacity = '1';
+        this.camera.switchCamera();
+
+        if (this.museumMixer) {
+            this.museumMixer.stopAllAction();
+            
+            const museum = this.assetManager.getItem('Museum');
+            museum.animations.forEach((clip) => {
+                this.museumMixer.clipAction(clip).reset().play();
+            });
+        }
+    
+        setTimeout(() => {
+            this.playMuseumAnimation = !this.playMuseumAnimation
+        }, 1500);
+    }
+
+    assetsLoadCompleteHandler() {
+        this.initScene()
+        this.postProcessing = new PostProcessing(this.renderer.instance, this.scene, this.camera.mainCamera)
+        this.animationLoop.start()
+        this.debug = new Debug()
+        this.debug.showAnimationClipLine(this.assetManager.getItem('Museum'), 'animation_0')
     }
 
     assetsLoadCompleteHandler() {
@@ -100,7 +144,10 @@ export default class App extends EventEmitter {
 
         this.museumMixer = new AnimationMixer(museum.scene)
         museum.animations.forEach((clip) => {
-            this.museumMixer.clipAction(clip).play()
+            // Create the action but don't play it yet - we'll start it when user clicks button
+            const action = this.museumMixer.clipAction(clip);
+            action.paused = true;
+            action.play();
         })
 
         // scan.scene.rotation.y = Math.PI / 2
@@ -125,9 +172,15 @@ export default class App extends EventEmitter {
     }
 
     update(time) {
-        this.fishesMixer.update(time.delta)
-        if(this.playMuseumAnimation){
-            this.museumMixer.update(time.delta)
+        // Always update fishes for ambient movement
+        this.fishesMixer.update(time.delta);
+        
+        // Only update museum animation if experience has started
+        if (this.experienceStarted && this.museumMixer) {
+            if(this.playMuseumAnimation){
+            this.museumMixer.update(time.delta);
+        }
+
         }
         this.skyManager.update()
         this.ocean.update(time.delta)
@@ -144,6 +197,10 @@ export default class App extends EventEmitter {
     }
 
     destroy() {
+        if (this.startButton) {
+            this.startButton.removeEventListener('click', this.startExperience);
+        }
+
         // Release memory of the scene
         this.scene.remove(this.cube)
         this.cube.destroy()
@@ -170,8 +227,11 @@ export default class App extends EventEmitter {
         this.assetManager.destroy()
         this.assetManager = null
 
+        this.startOverlay = null;
+        this.startButton = null;
+
         this.canvas = null
 
         myAppInstance = null
     }
-} 
+}
