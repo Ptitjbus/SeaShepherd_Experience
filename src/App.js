@@ -9,6 +9,7 @@ import PostProcessing from "./Core/PostProcessing"
 import Debug from "./Utils/Debug"
 import Ocean from './Assets/Ocean.js';
 import SkyManager from './Assets/SkyManager.js'
+import EventsManager from './Utils/EventsManager';
 
 let myAppInstance = null
 
@@ -59,18 +60,9 @@ export default class App extends EventEmitter {
         this.experienceEnded = false;
 
         this.popins = {};
-        this.currentOS = this.detectOS();
+        this.eventsManager = null;
 
         this.init()
-    }
-
-    detectOS() {
-        const userAgent = window.navigator.userAgent.toLowerCase();
-        if (userAgent.includes('mac')) {
-            return 'mac';
-        } else {
-            return 'windows'; // On considère tout ce qui n'est pas Mac comme Windows pour simplifier
-        }
     }
 
     async init() {
@@ -87,7 +79,13 @@ export default class App extends EventEmitter {
         this.assetManager.load()
         this.setupUI();
 
-        document.body.classList.add(this.currentOS);
+        // Initialiser le gestionnaire de popins APRÈS setupUI() pour éviter les conflits
+        this.eventsManager = new EventsManager();
+
+        // Exemple d'écoute des événements du gestionnaire de popins
+        this.eventsManager.on('popinShown', (popinId) => {
+            console.log(`Popin "${popinId}" affichée`);
+        });
     }
 
     setupUI() {
@@ -95,48 +93,9 @@ export default class App extends EventEmitter {
         this.startButton = document.querySelector('.start-button');
         this.endOverlay = document.querySelector('.end-overlay');
         
-        console.log('End overlay element:', this.endOverlay); // Vérifiez que ce n'est pas null
+        console.log('End overlay element:', this.endOverlay);
         
         this.startButton.addEventListener('click', () => this.startExperience());
-
-        this.setupPopins();
-    }
-
-    setupPopins() {
-        const popinElements = document.querySelectorAll('.popin');
-        
-        popinElements.forEach(popin => {
-            const id = popin.id;
-            this.popins[id] = popin;
-            
-            const closeButton = popin.querySelector('.close-button');
-            if (closeButton) {
-                closeButton.addEventListener('click', () => this.hidePopin(id));
-            }
-        });
-        
-        window.showPopin = this.showPopin.bind(this);
-        window.hidePopin = this.hidePopin.bind(this);
-    }
-
-    showPopin(popinId) {
-        const popin = this.popins[popinId];
-        if (popin) {
-            popin.classList.remove('hidden');
-            return true;
-        }
-        console.warn(`Popin avec l'ID "${popinId}" non trouvée.`);
-        return false;
-    }
-
-    hidePopin(popinId) {
-        const popin = this.popins[popinId];
-        if (popin) {
-            popin.classList.add('hidden');
-            return true;
-        }
-        console.warn(`Popin avec l'ID "${popinId}" non trouvée.`);
-        return false;
     }
 
     startExperience() {
@@ -259,18 +218,10 @@ export default class App extends EventEmitter {
             this.startButton.removeEventListener('click', this.startExperience);
         }
 
-        Object.keys(this.popins).forEach(id => {
-            const popin = this.popins[id];
-            const closeButton = popin.querySelector('.close-button');
-            if (closeButton) {
-                closeButton.removeEventListener('click', () => this.hidePopin(id));
-            }
-        });
-
-        this.popins = null;
-
-        window.showPopin = null;
-        window.hidePopin = null;
+        if (this.eventsManager) {
+            this.eventsManager.destroy();
+            this.eventsManager = null;
+        }
 
         this.scene.remove(this.cube)
         this.cube.destroy()

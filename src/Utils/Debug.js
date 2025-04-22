@@ -51,7 +51,7 @@ export default class Debug extends EventEmitter {
             this.app.endExperience()
         }
         if (event.key === 'p') {
-            this.app.showPopin('systemPopin');
+            this.app.eventsManager.displayAlert("Ceci est une popin d'information",'information');
         }
     })
 
@@ -86,7 +86,28 @@ export default class Debug extends EventEmitter {
     })
 
     skyFolder.close()
+
+    const popinsFolder = this.gui.addFolder('Popins');
     
+    popinsFolder.add({
+        showInfoPopin: () => {
+           this.app.eventsManager.displayAlert("Ceci est une popin d'information",'information');
+        }
+    }, 'showInfoPopin').name('Afficher Info Popin');
+    
+    popinsFolder.add({
+        showWarningPopin: () => {
+            this.app.eventsManager.displayAlert("Ceci est une popin de warning", 'Attention');
+        }
+    }, 'showWarningPopin').name('Afficher Warning Popin');
+
+    const windowFolder = this.gui.addFolder('Window');
+
+    windowFolder.add({
+        openWindow: () => {
+            this.app.eventsManager.openWindow('http://localhost:5173/confidential-documents');
+        }
+    }, 'openWindow').name('Ouvrir une nouvelle fenêtre');
   }
 
   updateStats() {

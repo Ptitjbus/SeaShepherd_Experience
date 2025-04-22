@@ -1,0 +1,57 @@
+body {
+    background-color: #ffffff;
+    font-family: 'Sans serif', monospace;
+}
+
+.confidential-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.header {
+    text-align: center;
+    border-bottom: 1px solid #33ff33;
+    padding-bottom: 20px;
+    margin-bottom: 30px;
+}
+
+.confidential-stamp {
+    font-size: 24px;
+    font-weight: bold;
+    color: #ff3333;
+    border: 2px solid #ff3333;
+    display: inline-block;
+    padding: 5px 20px;
+    transform: rotate(-5deg);
+    position: absolute;
+    top: 30px;
+    right: 50px;
+}
+
+.document {
+    background-color: #ffffff;
+    border: 1px solid #33ff33;
+    padding: 20px;
+    margin-bottom: 30px;
+    position: relative;
+}
+
+.document-title {
+    font-size: 18px;
+    color: #ffffff;
+    margin-bottom: 15px;
+}
+
+.document-content {
+    line-height: 1.6;
+}
+
+.back-link {
+    display: inline-block;
+    margin-top: 30px;
+    color: #33ff33;
+    text-decoration: none;
+    border: 1px solid #33ff33;
+    padding: 8px 16px;
+}
