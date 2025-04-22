@@ -5,7 +5,9 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { RenderPixelatedPass } from 'three/addons/postprocessing/RenderPixelatedPass.js';
 import { FisheyeShader } from '../Shaders/FisheyeShader.js'
 import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import App from '../App.js'
+import { Vector2 } from 'three'
 
 export default class PostProcessing {
     constructor(renderer, scene, camera) {
@@ -21,17 +23,28 @@ export default class PostProcessing {
         this.renderPixelatedPass.depthEdgeStrength = 0.1
         this.fisheyePass = new ShaderPass(FisheyeShader)
         this.glitchPass = new GlitchPass()
+
+        const bloomParams = {
+            strength: 0.5,
+            radius: 0.4,
+            threshold: 0.9
+        }
+        this.bloomPass = new UnrealBloomPass(
+            new Vector2(window.innerWidth, window.innerHeight),
+            bloomParams.strength,
+            bloomParams.radius,
+            bloomParams.threshold
+        )
+
         this.fxaaPass = new ShaderPass( FXAAShader )
         this.fxaaPass.enabled = false
-
-        // this.fxaaPass.material.uniforms[ 'resolution' ].value.x = 1 / ( this.app.canvas.width * renderer.pixelRatio );
-        // this.fxaaPass.material.uniforms[ 'resolution' ].value.y = 1 / ( this.app.canvas.height * renderer.pixelRatio );
 
         this.glitchPass.goWild = false
         this.glitchPass.randX = 0
 
         this.composer.addPass(this.renderPass)
         this.composer.addPass(this.renderPixelatedPass)
+        this.composer.addPass(this.bloomPass)
         this.composer.addPass(this.glitchPass)
         this.composer.addPass(this.fisheyePass)
         this.composer.addPass(this.fxaaPass)
@@ -62,10 +75,14 @@ export default class PostProcessing {
     }
 
     resize(width, height) {
-        this.composer.setSize(width, height)
+        const scaleFactor = 0.8;
+        this.composer.setSize(width * scaleFactor, height * scaleFactor);
     }
 
     destroy() {
+        this.composer.passes.forEach(pass => {
+            if (pass.dispose) pass.dispose(); // Libérer les ressources des passes
+        })
         this.composer = null
         this.scene = null
         this.camera = null

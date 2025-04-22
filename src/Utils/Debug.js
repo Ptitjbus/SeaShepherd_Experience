@@ -2,7 +2,7 @@ import EventEmitter from './EventEmitter'
 import App from '../App'
 import GUI from 'lil-gui'
 import Stats from 'three/addons/libs/stats.module.js';
-import { Vector3, BufferGeometry, LineBasicMaterial, Line } from 'three'
+import { Vector3, BufferGeometry, LineBasicMaterial, Line, AxesHelper,ArrowHelper, Quaternion } from 'three'
 
 export default class Debug extends EventEmitter {
   constructor() {
@@ -13,6 +13,8 @@ export default class Debug extends EventEmitter {
     this.gui = null
     this.app = null
 
+    this.cameraHelpers = []
+
     if(this.active) {
         this.init()
     }
@@ -21,8 +23,10 @@ export default class Debug extends EventEmitter {
   init() {
     this.app = new App()
     this.gui = new GUI()
-    this.stats = new Stats();
-    document.body.appendChild( this.stats.dom );
+    const axesHelper = new AxesHelper( 1 )
+    this.app.scene.add( axesHelper )
+    this.stats = new Stats()
+    document.body.appendChild( this.stats.dom )
 
     const cameraFolder = this.gui.addFolder('Camera')
 
@@ -32,17 +36,19 @@ export default class Debug extends EventEmitter {
     cameraFolder.add(this.app.camera, 'breathingSpeed', 0, 0.005).name('Vitesse')
     cameraFolder.add({ 
         trigger: () => {
-            this.app.playMuseumAnimation = !this.app.playMuseumAnimation
+            const museum = this.app.objectManager.get("Museum")
+            museum.playAnimations = !museum.playAnimations
         }
     }, 'trigger').name('Play/Pause Animation')
     cameraFolder.add(this.app.camera, 'switchCamera').name('Switch Camera')
-    cameraFolder.add(this.app.museumMixer, 'timeScale', 0, 3).name('Anim speed')
+    cameraFolder.add(this.app.objectManager.get("Museum").mixer, 'timeScale', 0, 3).name('Anim speed')
 
     cameraFolder.open()
 
     window.addEventListener('keydown', (event) => {
         if (event.key === ' ') {
-            this.app.playMuseumAnimation = !this.app.playMuseumAnimation
+            const museum = this.app.objectManager.get("Museum")
+            museum.playAnimations = !museum.playAnimations
         }
         if (event.key === 's') {
             this.app.camera.switchCamera()
@@ -60,6 +66,10 @@ export default class Debug extends EventEmitter {
     postProcessingFolder.add(this.app, 'enablePostProcessing', true).name('Enable Post Processing')
     postProcessingFolder.add(this.app.postProcessing.fisheyePass, 'enabled', true).name('Enable Fisheye Pass')
     postProcessingFolder.add(this.app.postProcessing.renderPixelatedPass, 'enabled', true).name('Enable Pixelated Pass')
+    postProcessingFolder.add(this.app.postProcessing.bloomPass, 'enabled', true).name('Enable Bloom Pass')
+    postProcessingFolder.add(this.app.postProcessing.bloomPass, 'threshold', 0.0, 1.0).name('Threshold')
+    postProcessingFolder.add(this.app.postProcessing.bloomPass, 'strength', 0.0, 3.0).name('Strength')
+    postProcessingFolder.add(this.app.postProcessing.bloomPass, 'radius', 0.0, 1.0).name('Radius')
     postProcessingFolder.add(this.app.postProcessing.fxaaPass, 'enabled', true).name('Enable Fxaa Pass')
     postProcessingFolder.add(this.app.postProcessing.renderPixelatedPass, 'normalEdgeStrength', 0, 1).name('Normal Edge Strength')
     postProcessingFolder.add(this.app.postProcessing.renderPixelatedPass, 'depthEdgeStrength', 0, 1).name('Depth Edge Strength')
@@ -110,46 +120,106 @@ export default class Debug extends EventEmitter {
     }, 'openWindow').name('Ouvrir une nouvelle fenêtre');
   }
 
-  updateStats() {
-    if(this.active) {
-        this.stats.update();
+    updateStats() {
+        if(this.active) {
+            this.stats.update();
+        }
     }
-  }
 
-  showAnimationClipLine(object, animationName){
-    const cameraAnimationClip = object.animations.find(clip => clip.name === animationName); 
+    showAnimationClipLine(object) {
+        if (!this.active) return;
+
+        this.showCameraHelper(object)
+
+        const clips = object.animations
+        console.log(clips);
+        if (!clips) return;
+
+        clips.forEach(clip => {
+            const tracksByType = {};
     
-    if (cameraAnimationClip) {
-        const positions = [];
-        const tempVector = new Vector3();
+            clip.tracks.forEach(track => {
+                const [nodeName, type] = track.name.split('.');
+                tracksByType[nodeName] = tracksByType[nodeName] || {};
+                tracksByType[nodeName][type] = track;
+            });
+    
+            Object.entries(tracksByType).forEach(([nodeName, types], index) => {
+                const positionTrack = types['position']
+                const quaternionTrack = types['quaternion']
+    
+                if (!positionTrack || !quaternionTrack) return
+    
+                const times = Array.from(new Set([...positionTrack.times, ...quaternionTrack.times])).sort((a, b) => a - b)
+    
+                const positionInterpolant = positionTrack.createInterpolant()
+                const quaternionInterpolant = quaternionTrack.createInterpolant()
+    
+                const positions = []
+    
+                for (let t of times) {
+                    const posArray = positionInterpolant.evaluate(t)
+                    const quatArray = quaternionInterpolant.evaluate(t)
+    
+                    const pos = new Vector3().fromArray(posArray)
+                    const quat = new Quaternion().fromArray(quatArray)
+    
+                    positions.push(pos.clone())
+    
+                    const dir = new Vector3(0, 0, 1).applyQuaternion(quat).normalize()
+                    const arrow = new ArrowHelper(dir, pos, 0.5, this.getColorForTrack(index))
+                    this.app.scene.add(arrow)
+                }
+    
+                const geometry = new BufferGeometry().setFromPoints(positions);
+                const material = new LineBasicMaterial({ color: this.getColorForTrack(index) })
+                const line = new Line(geometry, material)
+                this.app.scene.add(line)
+            })
+        })
 
-        cameraAnimationClip.tracks.forEach((track) => {
-            if (track.name.endsWith('.position')) {
-                track.values.forEach((value, index) => {
-                    if (index % 3 === 0) {
-                        tempVector.set(
-                            track.values[index],
-                            track.values[index + 1],
-                            track.values[index + 2]
-                        );
-                        positions.push(tempVector.clone());
-                    }
-                });
-            }
-        });
-
-        const geometry = new BufferGeometry().setFromPoints(positions);
-        const material = new LineBasicMaterial({ color: 0xff0000 });
-        const line = new Line(geometry, material);
-
-        this.app.scene.add(line);
     }
-  }
 
-  destroy() {
-      this.gui.destroy()
-      this.gui = null
+    showCameraHelper(object) {
+        object.scene.traverse((child) => {
+            if (child.isCamera) {
+        
+                const helper = new AxesHelper(0.5)
+                helper.name = `camera-helper-${child.name}`
+                this.cameraHelpers.push({ camera: child, helper })
+                this.app.scene.add(helper)
+            }
+        })
+    }
 
-      this.app = null    
-  }
+
+
+    getColorForTrack(index) {
+        const colors = [
+            0xff0000,
+            0x00ff00,
+            0x0000ff,
+            0xffff00,
+            0xff00ff,
+            0x00ffff 
+        ];
+        return colors[index % colors.length]
+    }
+
+    update() {
+        if (!this.active) return;
+
+        this.cameraHelpers.forEach(({ camera, helper }) => {
+            camera.updateMatrixWorld(true)
+            helper.position.copy(camera.getWorldPosition(new Vector3()))
+            helper.quaternion.copy(camera.getWorldQuaternion(new Quaternion()))
+        })
+    }
+
+    destroy() {
+        this.gui.destroy()
+        this.gui = null
+
+        this.app = null    
+    }
 }
