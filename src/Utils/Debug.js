@@ -49,7 +49,9 @@ export default class Debug extends EventEmitter {
         }
         if (event.key === 'e') {
             this.app.endExperience()
-            console.log('Experience ended:', this.app.experienceEnded);
+        }
+        if (event.key === 'p') {
+            this.app.showPopin('systemPopin');
         }
     })
 
