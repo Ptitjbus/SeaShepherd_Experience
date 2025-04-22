@@ -51,7 +51,7 @@ export default class Debug extends EventEmitter {
             this.app.endExperience()
         }
         if (event.key === 'p') {
-            this.app.popinManager.displayPopin("Ceci est une popin d'information",'information');
+            this.app.EventsManager.displayPopin("Ceci est une popin d'information",'information');
         }
     })
 
@@ -91,13 +91,13 @@ export default class Debug extends EventEmitter {
     
     popinsFolder.add({
         showInfoPopin: () => {
-           this.app.popinManager.displayPopin("Ceci est une popin d'information",'information');
+           this.app.eventsManager.displayPopin("Ceci est une popin d'information",'information');
         }
     }, 'showInfoPopin').name('Afficher Info Popin');
     
     popinsFolder.add({
         showWarningPopin: () => {
-            this.app.popinManager.displayPopin("Ceci est une popin de warning", 'Attention');
+            this.app.eventsManager.displayPopin("Ceci est une popin de warning", 'Attention');
         }
     }, 'showWarningPopin').name('Afficher Warning Popin');
 
@@ -105,7 +105,7 @@ export default class Debug extends EventEmitter {
 
     windowFolder.add({
         openWindow: () => {
-            this.app.popinManager.openWindow('http://localhost:5173/confidential-documents');
+            this.app.eventsManager.openWindow('http://localhost:5173/confidential-documents');
         }
     }, 'openWindow').name('Ouvrir une nouvelle fenêtre');
   }

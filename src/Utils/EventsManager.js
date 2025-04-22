@@ -3,7 +3,7 @@ import EventEmitter from './EventEmitter';
 /**
  * Classe gérant les alertes du système via window.alert()
  */
-export default class PopinManager extends EventEmitter {
+export default class EventsManager extends EventEmitter {
 
     constructor() {
         super();

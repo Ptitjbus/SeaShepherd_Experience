@@ -9,7 +9,7 @@ import PostProcessing from "./Core/PostProcessing"
 import Debug from "./Utils/Debug"
 import Ocean from './Assets/Ocean.js';
 import SkyManager from './Assets/SkyManager.js'
-import PopinManager from './Utils/PopinManager';
+import EventsManager from './Utils/EventsManager';
 
 let myAppInstance = null
 
@@ -60,7 +60,7 @@ export default class App extends EventEmitter {
         this.experienceEnded = false;
 
         this.popins = {};
-        this.popinManager = null;
+        this.eventsManager = null;
 
         this.init()
     }
@@ -80,10 +80,10 @@ export default class App extends EventEmitter {
         this.setupUI();
 
         // Initialiser le gestionnaire de popins APRÈS setupUI() pour éviter les conflits
-        this.popinManager = new PopinManager();
+        this.eventsManager = new EventsManager();
 
         // Exemple d'écoute des événements du gestionnaire de popins
-        this.popinManager.on('popinShown', (popinId) => {
+        this.eventsManager.on('popinShown', (popinId) => {
             console.log(`Popin "${popinId}" affichée`);
         });
     }
@@ -218,9 +218,9 @@ export default class App extends EventEmitter {
             this.startButton.removeEventListener('click', this.startExperience);
         }
 
-        if (this.popinManager) {
-            this.popinManager.destroy();
-            this.popinManager = null;
+        if (this.eventsManager) {
+            this.eventsManager.destroy();
+            this.eventsManager = null;
         }
 
         this.scene.remove(this.cube)
