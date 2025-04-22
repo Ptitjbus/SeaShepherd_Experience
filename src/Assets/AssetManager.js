@@ -215,13 +215,13 @@ export class AssetManager extends EventEmitter {
 
     getItem(name) {
         // Check if it's a gltf material
-        if (this.items[name].scene
+        if (this.items[name]?.scene
             && this.items[name].scene.getObjectByName('pbr_node')
             && this.items[name].scene.getObjectByName('pbr_node').material) {
-                return this.items[name].scene.getObjectByName('pbr_node').material
+                return this.items[name].scene.getObjectByName('pbr_node').material;
         }
 
-        return this.items[name]
+        return this.items[name];
     }
 
     destroy() {
