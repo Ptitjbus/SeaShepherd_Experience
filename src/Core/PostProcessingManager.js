@@ -9,7 +9,7 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import App from '../App.js'
 import { Vector2 } from 'three'
 
-export default class PostProcessing {
+export default class PostProcessingManager {
     constructor(renderer, scene, camera) {
         this.composer = new EffectComposer(renderer)
         this.scene = scene

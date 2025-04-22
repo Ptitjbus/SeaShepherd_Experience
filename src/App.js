@@ -6,7 +6,7 @@ import Renderer from "./Core/Renderer"
 import { AnimationLoop } from "./Core/AnimationLoop"
 import ObjectManager from './Core/Managers/ObjectManager.js'
 import AssetManager from "./Assets/AssetManager.js"
-import PostProcessing from "./Core/PostProcessing.js" 
+import PostProcessingManager from "./Core/PostProcessingManager.js" 
 import Debug from "./Utils/Debug"
 import Ocean from './World/Ocean.js'
 import Sky from './World/Sky.js'
@@ -136,7 +136,7 @@ export default class App extends EventEmitter {
 
     assetsLoadCompleteHandler() {
         this.initScene()
-        this.postProcessing = new PostProcessing(this.renderer.instance, this.scene, this.camera.mainCamera)
+        this.postProcessing = new PostProcessingManager(this.renderer.instance, this.scene, this.camera.mainCamera)
         this.animationLoop.start()
         this.debug = new Debug()
         this.debug.showAnimationClipLine(this.assetManager.getItem('Museum'))
