@@ -6,7 +6,7 @@ export default {
     server:
     {
         host: true, // Open to local network and display URL
-        open: !('SANDBOX_URL' in process.env || 'CODESANDBOX_HOST' in process.env) // Open if it's not a CodeSandbox
+        open: true, // Open browser automatically
     },
     build:
     {
@@ -16,6 +16,18 @@ export default {
     },
     plugins:
     [
-        restart({ restart: [ '../static/**', ] }) // Restart server on static file change
+        restart({ restart: [ '../static/**', ] }), // Restart server on static file change
+        {
+            name: 'confidential-documents-html',
+            configureServer(server) {
+                server.middlewares.use((req, res, next) => {
+                    if (req.url === '/confidential-documents') {
+                        // Rediriger vers la page des documents confidentiels
+                        req.url = '/Pages/ConfidentialDocuments/ConfidentialDocuments.html';
+                    }
+                    next();
+                });
+            }
+        }
     ],
 }
