@@ -1,5 +1,5 @@
 import EventEmitter from '../../Utils/EventEmitter'
-import PopinManager from '../../Utils/PopinManager'
+import EventsManager from '../../Utils/EventsManager'
 
 export default class ConfidentialDocuments extends EventEmitter {
   constructor() {
@@ -8,7 +8,7 @@ export default class ConfidentialDocuments extends EventEmitter {
     // Vérifie si nous sommes sur la page des documents confidentiels
     this.active = window.location.pathname === "http://localhost:5173/confidential-documents";
 
-    this.popinManager = new PopinManager();
+    this.eventsManager = new EventsManager();
 
     if(this.active) {
       this.init();
@@ -72,7 +72,7 @@ export default class ConfidentialDocuments extends EventEmitter {
   }
 
   destroy() {
-    this.popinManager = null;
+    this.eventsManager = null;
     console.log('Page de documents confidentiels détruite');
   }
 }
