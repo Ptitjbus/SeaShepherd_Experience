@@ -1,10 +1,10 @@
-import { FrontSide, AnimationMixer, Object3D } from "three";
-import App from "../../App";
+import { FrontSide, AnimationMixer, Object3D } from "three"
+import App from "../../App"
 
 export default class ObjectManager {
     constructor() {
-        this.objects = new Map();
-        this.app = new App();
+        this.objects = new Map()
+        this.app = new App()
     }
 
     /**
@@ -35,7 +35,7 @@ export default class ObjectManager {
                 cameras.push(child)
             }
             if (child.isMesh && child.material) {
-                child.material.side = FrontSide;
+                child.material.side = FrontSide
             }
             if (child.isMesh && material) {
                 child.material = material
@@ -58,7 +58,7 @@ export default class ObjectManager {
             cameras,
             animations: object.animations ? object.animations : [],
         }
-        this.objects.set(name, storedObject);
+        this.objects.set(name, storedObject)
         return storedObject
     }
 
@@ -77,7 +77,7 @@ export default class ObjectManager {
      * @param {String} name
      * @returns {Object | undefined}
      */
-    getItemFromObject(object, name){
+    getItemFromObject(name, object = this.app.scene ){
         let found = null
         object.traverse((child) => {
             if (child.name === name) {

@@ -1,5 +1,5 @@
-import App from "../App";
-import EventEmitter from "../Utils/EventEmitter";
+import App from "../App"
+import EventEmitter from "../Utils/EventEmitter"
 
 /*
 Le CanvasSize gère la taille du canvas à tout instant et notifie les classes qui ont besoin des infos

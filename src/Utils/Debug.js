@@ -1,8 +1,8 @@
 import EventEmitter from './EventEmitter'
 import App from '../App'
 import GUI from 'lil-gui'
-import Stats from 'three/addons/libs/stats.module.js';
-import { Vector3, BufferGeometry, LineBasicMaterial, Line, AxesHelper,ArrowHelper, Quaternion } from 'three'
+import Stats from 'three/addons/libs/stats.module.js'
+import { Vector3, BufferGeometry, LineBasicMaterial, Line, AxesHelper,ArrowHelper, Quaternion, SphereGeometry, MeshBasicMaterial, Mesh } from 'three'
 
 export default class Debug extends EventEmitter {
   constructor() {
@@ -57,7 +57,7 @@ export default class Debug extends EventEmitter {
             this.app.endExperience()
         }
         if (event.key === 'p') {
-            this.app.eventsManager.displayAlert("Ceci est une popin d'information",'information');
+            this.app.eventsManager.displayAlert("Ceci est une popin d'information",'information')
         }
     })
 
@@ -74,8 +74,8 @@ export default class Debug extends EventEmitter {
     postProcessingFolder.add(this.app.postProcessing.renderPixelatedPass, 'normalEdgeStrength', 0, 1).name('Normal Edge Strength')
     postProcessingFolder.add(this.app.postProcessing.renderPixelatedPass, 'depthEdgeStrength', 0, 1).name('Depth Edge Strength')
     postProcessingFolder.add( this.app.postProcessing, 'pixelSize', 1, 50 ).onChange( () => {
-        this.app.postProcessing.renderPixelatedPass.setPixelSize( this.app.postProcessing.pixelSize );
-    } );        
+        this.app.postProcessing.renderPixelatedPass.setPixelSize( this.app.postProcessing.pixelSize )
+    } )        
     postProcessingFolder.add(this.app.postProcessing, 'triggerGlitch').name('Trigger Glitch')
     postProcessingFolder.add(this.app.postProcessing, 'triggerBigGlitch').name('Trigger Big glitch')
     postProcessingFolder.open()
@@ -97,52 +97,52 @@ export default class Debug extends EventEmitter {
 
     skyFolder.close()
 
-    const popinsFolder = this.gui.addFolder('Popins');
+    const popinsFolder = this.gui.addFolder('Popins')
     
     popinsFolder.add({
         showInfoPopin: () => {
-           this.app.eventsManager.displayAlert("Ceci est une popin d'information",'information');
+           this.app.eventsManager.displayAlert("Ceci est une popin d'information",'information')
         }
-    }, 'showInfoPopin').name('Afficher Info Popin');
+    }, 'showInfoPopin').name('Afficher Info Popin')
     
     popinsFolder.add({
         showWarningPopin: () => {
-            this.app.eventsManager.displayAlert("Ceci est une popin de warning", 'Attention');
+            this.app.eventsManager.displayAlert("Ceci est une popin de warning", 'Attention')
         }
-    }, 'showWarningPopin').name('Afficher Warning Popin');
+    }, 'showWarningPopin').name('Afficher Warning Popin')
 
-    const windowFolder = this.gui.addFolder('Window');
+    const windowFolder = this.gui.addFolder('Window')
 
     windowFolder.add({
         openWindow: () => {
-            this.app.eventsManager.openWindow('http://localhost:5173/confidential-documents');
+            this.app.eventsManager.openWindow('http://localhost:5173/confidential-documents')
         }
-    }, 'openWindow').name('Ouvrir une nouvelle fenêtre');
+    }, 'openWindow').name('Ouvrir une nouvelle fenêtre')
   }
 
     updateStats() {
         if(this.active) {
-            this.stats.update();
+            this.stats.update()
         }
     }
 
     showAnimationClipLine(object) {
-        if (!this.active) return;
+        if (!this.active) return
 
         this.showCameraHelper(object)
 
         const clips = object.animations
-        console.log(clips);
-        if (!clips) return;
+
+        if (!clips) return
 
         clips.forEach(clip => {
-            const tracksByType = {};
+            const tracksByType = {}
     
             clip.tracks.forEach(track => {
-                const [nodeName, type] = track.name.split('.');
-                tracksByType[nodeName] = tracksByType[nodeName] || {};
-                tracksByType[nodeName][type] = track;
-            });
+                const [nodeName, type] = track.name.split('.')
+                tracksByType[nodeName] = tracksByType[nodeName] || {}
+                tracksByType[nodeName][type] = track
+            })
     
             Object.entries(tracksByType).forEach(([nodeName, types], index) => {
                 const positionTrack = types['position']
@@ -171,7 +171,7 @@ export default class Debug extends EventEmitter {
                     this.app.scene.add(arrow)
                 }
     
-                const geometry = new BufferGeometry().setFromPoints(positions);
+                const geometry = new BufferGeometry().setFromPoints(positions)
                 const material = new LineBasicMaterial({ color: this.getColorForTrack(index) })
                 const line = new Line(geometry, material)
                 this.app.scene.add(line)
@@ -192,7 +192,20 @@ export default class Debug extends EventEmitter {
         })
     }
 
+    createHelper(object, scene = this.app.scene){
+        const sphere = new Mesh(
+            new SphereGeometry(0.2, 16, 16),
+            new MeshBasicMaterial({ color: 0xffffff })
+        )
+        sphere.position.copy(object.position)
+        
+        const direction = new Vector3(0, 0, 1)
+        direction.applyQuaternion(object.quaternion) // utilise l'orientation de l'objet
+        const arrow = new ArrowHelper(direction, object.position, 1, 0x00ff00)
+        scene.add(sphere)
+        scene.add(arrow)
 
+    }
 
     getColorForTrack(index) {
         const colors = [
@@ -202,12 +215,12 @@ export default class Debug extends EventEmitter {
             0xffff00,
             0xff00ff,
             0x00ffff 
-        ];
+        ]
         return colors[index % colors.length]
     }
 
     update() {
-        if (!this.active) return;
+        if (!this.active) return
 
         this.cameraHelpers.forEach(({ camera, helper }) => {
             camera.updateMatrixWorld(true)
