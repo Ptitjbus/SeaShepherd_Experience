@@ -1,7 +1,8 @@
     import { PerspectiveCamera, Vector3, Euler, Quaternion } from "three"
     import EventEmitter from "../Utils/EventEmitter"
     import App from "../App"
-    import { OrbitControls } from "three/examples/jsm/Addons.js"
+    import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js'
+
 
     export default class Camera extends EventEmitter {
         constructor() {
@@ -26,6 +27,11 @@
 
             this.allCameras = []
 
+            this.isPointerLocked = false
+            this.moveSpeed = 0.1
+            this.sprintMultiplier = 4.0
+            this.keysPressed = new Set()
+
             this.init()
         }
 
@@ -34,17 +40,43 @@
             this.perspective.position.set(2, 1, 12)
 
             this.mainCamera = this.perspective
-
             this.allCameras.push(this.perspective)
-
-            this.controls = new OrbitControls(this.perspective, this.app.canvas)
-            // set the center of the orbit to the center of the scene
-            this.controls.target.set(0, 1, 14)
-
             this.app.canvasSize.on('resize', this.resizeHandlerBound)
 
             this.animate()
         }
+
+        initControls() {
+            this.controls = new PointerLockControls(this.perspective, this.app.canvas)
+        
+            document.addEventListener('pointerlockchange', () => {
+                this.isPointerLocked = document.pointerLockElement === this.app.canvas
+            })
+                
+            this.app.canvas.addEventListener('mousedown', (e) => {
+                if (!this.isPointerLocked) {
+                    this.app.canvas.requestPointerLock()
+                }
+            })
+        
+            document.addEventListener('mouseup', () => {
+                if (this.isPointerLocked) {
+                    document.exitPointerLock()
+                }
+            })
+
+            document.addEventListener('keydown', (e) => {
+                this.keysPressed.add(e.key.toLowerCase())
+            })
+            
+            document.addEventListener('keyup', (e) => {
+                this.keysPressed.delete(e.key.toLowerCase())
+            })
+        
+            // Optionnel : bloquer le clic droit
+            this.app.canvas.addEventListener('contextmenu', (e) => e.preventDefault())
+        }
+        
 
         resizeHandler(data) {
             const {aspect} = data
@@ -67,6 +99,31 @@
                 this.time = Date.now() * this.breathingSpeed 
                 const breathingOffset = Math.sin(this.time) * (this.breathingAmplitude * 0.001)
                 this.mainCamera.position.y += breathingOffset
+            }
+
+            if (this.isPointerLocked) {
+                const direction = new Vector3()
+                const velocity = new Vector3()
+            
+                this.controls.getDirection(direction)
+            
+                // Déplacement horizontal
+                if (this.keysPressed.has('z')) velocity.add(direction)
+                if (this.keysPressed.has('s')) velocity.sub(direction)
+            
+                const right = new Vector3().crossVectors(this.mainCamera.up, direction).normalize()
+                if (this.keysPressed.has('q')) velocity.add(right)
+                if (this.keysPressed.has('d')) velocity.sub(right)
+            
+                // Déplacement vertical
+                if (this.keysPressed.has('e')) velocity.y += 1
+                if (this.keysPressed.has('a')) velocity.y -= 1
+
+                const isSprinting = this.keysPressed.has('shift')
+                const speed = this.moveSpeed * (isSprinting ? this.sprintMultiplier : 1)
+
+                velocity.normalize().multiplyScalar(speed)
+                this.perspective.position.add(velocity)
             }
 
             requestAnimationFrame(this.animation)
