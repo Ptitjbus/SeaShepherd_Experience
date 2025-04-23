@@ -6,7 +6,7 @@ import Renderer from "./Core/Renderer"
 import { AnimationLoop } from "./Core/AnimationLoop"
 import ObjectManager from './Core/Managers/ObjectManager.js'
 import AssetManager from "./Assets/AssetManager.js"
-import PostProcessingManager from "./Core/PostProcessingManager.js" 
+import PostProcessingManager from "./Core/Managers/PostProcessingManager.js" 
 import Debug from "./Utils/Debug"
 import Ocean from './World/Ocean.js'
 import Sky from './World/Sky.js'
