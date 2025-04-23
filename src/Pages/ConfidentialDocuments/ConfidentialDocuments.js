@@ -1,5 +1,4 @@
 import EventEmitter from '../../Utils/EventEmitter'
-import EventsManager from '../../Utils/EventsManager'
 
 export default class ConfidentialDocuments extends EventEmitter {
   constructor() {
