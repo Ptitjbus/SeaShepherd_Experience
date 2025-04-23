@@ -43,3 +43,6 @@ static/**/*.cache
 # Temporary files
 *.tmp
 *.temp
+
+# repomix
+repomix-output.xml

@@ -1,7 +1,7 @@
-    import { PerspectiveCamera, Vector3, Euler, Quaternion } from "three";
-    import EventEmitter from "../Utils/EventEmitter";
-    import App from "../App";
-    import { OrbitControls } from "three/examples/jsm/Addons.js";
+    import { PerspectiveCamera, Vector3, Euler, Quaternion } from "three"
+    import EventEmitter from "../Utils/EventEmitter"
+    import App from "../App"
+    import { OrbitControls } from "three/examples/jsm/Addons.js"
 
     export default class Camera extends EventEmitter {
         constructor() {
@@ -54,11 +54,11 @@
         }
 
         switchCamera() {
-            const index = (this.allCameras.indexOf(this.mainCamera) + 1) % this.allCameras.length;
-            this.mainCamera = this.allCameras[index];
+            const index = (this.allCameras.indexOf(this.mainCamera) + 1) % this.allCameras.length
+            this.mainCamera = this.allCameras[index]
 
             // Si la caméra vient d'un modèle et a une matrice appliquée, force l'update
-            this.mainCamera.updateMatrixWorld(true);
+            this.mainCamera.updateMatrixWorld(true)
         }
 
         animate() {

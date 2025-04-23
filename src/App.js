@@ -11,6 +11,7 @@ import Debug from "./Utils/Debug"
 import Ocean from './World/Ocean.js'
 import Sky from './World/Sky.js'
 import EventsManager from './Core/Managers/EventsManager'
+import SoundManager from './Core/Managers/SoundManager.js'
 
 let myAppInstance = null
 
@@ -50,14 +51,16 @@ export default class App extends EventEmitter {
         this.postProcessing = null
         this.enablePostProcessing = true
 
-        this.startOverlay = null;
-        this.startButton = null;
-        this.endOverlay = null;
-        this.experienceStarted = false;
-        this.experienceEnded = false;
+        this.startOverlay = null
+        this.startButton = null
+        this.endOverlay = null
+        this.experienceStarted = false
+        this.experienceEnded = false
 
-        this.popins = {};
-        this.eventsManager = null;
+        this.popins = {}
+        this.eventsManager = null
+
+        this.soundManager = null
 
         this.init()
     }
@@ -74,64 +77,64 @@ export default class App extends EventEmitter {
         this.assetsLoadCompleteHandlerBound = this.assetsLoadCompleteHandler.bind(this)
         this.assetManager.on('ready', this.assetsLoadCompleteHandlerBound)
         this.assetManager.load()
-        this.setupUI();
+        this.setupUI()
 
         // Initialiser le gestionnaire de popins APRÈS setupUI() pour éviter les conflits
-        this.eventsManager = new EventsManager();
+        this.eventsManager = new EventsManager()
 
         // Exemple d'écoute des événements du gestionnaire de popins
         this.eventsManager.on('popinShown', (popinId) => {
-            console.log(`Popin "${popinId}" affichée`);
-        });
+            console.log(`Popin "${popinId}" affichée`)
+        })
     }
 
     setupUI() {
-        this.startOverlay = document.querySelector('.start-overlay');
-        this.startButton = document.querySelector('.start-button');
-        this.endOverlay = document.querySelector('.end-overlay');
+        this.startOverlay = document.querySelector('.start-overlay')
+        this.startButton = document.querySelector('.start-button')
+        this.endOverlay = document.querySelector('.end-overlay')
         
-        console.log('End overlay element:', this.endOverlay);
+        console.log('End overlay element:', this.endOverlay)
         
-        this.startButton.addEventListener('click', () => this.startExperience());
+        this.startButton.addEventListener('click', () => this.startExperience())
     }
 
     startExperience() {
-        if (this.experienceStarted) return;
+        if (this.experienceStarted) return
         
-        this.experienceStarted = true;
+        this.experienceStarted = true
         
-        this.startOverlay.classList.add('hidden');
+        this.startOverlay.classList.add('hidden')
         
-        this.canvas.style.opacity = '1';
-        this.camera.switchCamera();
+        this.canvas.style.opacity = '1'
+        this.camera.switchCamera()
 
         if (this.museumMixer) {
-            this.museumMixer.stopAllAction();
+            this.museumMixer.stopAllAction()
             
-            const museum = this.assetManager.getItem('Museum');
+            const museum = this.assetManager.getItem('Museum')
             museum.animations.forEach((clip) => {
-                this.museumMixer.clipAction(clip).reset().play();
-            });
+                this.museumMixer.clipAction(clip).reset().play()
+            })
         }
     
         setTimeout(() => {
             this.playMuseumAnimation = !this.playMuseumAnimation
-        }, 1500);
+        }, 1500)
     }
 
     endExperience() {
-        if (this.experienceEnded) return;
-        this.experienceEnded = true;
+        if (this.experienceEnded) return
+        this.experienceEnded = true
         
-        this.endOverlay.classList.remove('hidden');
+        this.endOverlay.classList.remove('hidden')
         
-        void this.endOverlay.offsetWidth;
+        void this.endOverlay.offsetWidth
         
-        this.canvas.style.opacity = '0';
+        this.canvas.style.opacity = '0'
         
         setTimeout(() => {
-            this.endOverlay.classList.add('visible');
-        }, 100);
+            this.endOverlay.classList.add('visible')
+        }, 100)
     }
 
     assetsLoadCompleteHandler() {
@@ -147,17 +150,16 @@ export default class App extends EventEmitter {
         this.sky = new Sky(this.scene, this.renderer.instance)
         this.ocean = new Ocean(this.scene, this.renderer.instance)
         this.objectManager = new ObjectManager()
+        this.soundManager = new SoundManager()
+        this.soundManager.initSound()
 
 
-        let museum = this.objectManager.add("Museum", new Vector3(0, 0, 0))
+        this.objectManager.add("Museum", new Vector3(0, 0, 0))
         this.objectManager.add("Fishes", new Vector3(0, 1, 14), {
             material: goldMaterial,
             castShadow: true,
             receiveShadow: true
-        })
-        
-        const glowingObject = this.objectManager.getItemFromObject(museum.object.scene, "Cube046_1");
-        
+        })        
     }
 
     update(time) {
@@ -166,7 +168,7 @@ export default class App extends EventEmitter {
         }
         this.ocean.update(time.delta)
         this.debug.update()
-
+        this.soundManager.updateListener()
 
         if (this.enablePostProcessing) {
             this.postProcessing.render(this.camera.mainCamera)
@@ -179,12 +181,12 @@ export default class App extends EventEmitter {
 
     destroy() {
         if (this.startButton) {
-            this.startButton.removeEventListener('click', this.startExperience);
+            this.startButton.removeEventListener('click', this.startExperience)
         }
 
         if (this.eventsManager) {
-            this.eventsManager.destroy();
-            this.eventsManager = null;
+            this.eventsManager.destroy()
+            this.eventsManager = null
         }
 
         this.scene.traverse((object) => {
@@ -225,6 +227,8 @@ export default class App extends EventEmitter {
         this.debug.destroy()
         this.debug = null
 
+        this.soundManager.destroy()
+
         this.animationLoop.off('update')
         this.animationLoop = null
         this.updateBound = null
@@ -234,9 +238,9 @@ export default class App extends EventEmitter {
         this.assetManager.destroy()
         this.assetManager = null
 
-        this.startOverlay = null;
-        this.startButton = null;
-        this.endOverlay = null;
+        this.startOverlay = null
+        this.startButton = null
+        this.endOverlay = null
 
         this.canvas = null
 

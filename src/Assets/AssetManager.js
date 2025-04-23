@@ -12,7 +12,7 @@ import { EXRLoader } from 'three/examples/jsm/loaders/EXRLoader.js'
 
 import assets from "./assets.js"
 
-import App from '../App';
+import App from '../App'
 
 import gsap from 'gsap'
 
@@ -50,8 +50,8 @@ export default class AssetManager extends EventEmitter {
         this.loaders.gltf = new GLTFLoader(this.loadingManager)
         
         const dracoLoader = new DRACOLoader()
-        dracoLoader.setDecoderPath('/draco/');
-        this.loaders.gltf.setDRACOLoader(dracoLoader);
+        dracoLoader.setDecoderPath('/draco/')
+        this.loaders.gltf.setDRACOLoader(dracoLoader)
     }
 
     initProgressBar() {

@@ -1,5 +1,5 @@
-import * as THREE from 'three';
-import { Water } from 'three/examples/jsm/objects/Water.js';
+import * as THREE from 'three'
+import { Water } from 'three/examples/jsm/objects/Water.js'
 
 export default class Ocean {
   constructor(scene, renderer) {
@@ -16,12 +16,12 @@ export default class Ocean {
       waterColor: 0x001e0f,
       distortionScale: 3.7,
       fog: scene.fog !== undefined
-    });
+    })
 
     this.water.rotation.x = -Math.PI / 2
     this.water.position.y = -0.5
     this.water.material.uniforms.size.value = 5
-    scene.add(this.water);
+    scene.add(this.water)
   }
 
   update(delta) {
