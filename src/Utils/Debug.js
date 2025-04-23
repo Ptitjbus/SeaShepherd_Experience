@@ -118,6 +118,14 @@ export default class Debug extends EventEmitter {
             this.app.eventsManager.openWindow('http://localhost:5173/confidential-documents')
         }
     }, 'openWindow').name('Ouvrir une nouvelle fenêtre')
+
+    const videoFolder = this.gui.addFolder('Video')
+
+    videoFolder.add({
+        playVideo: () => {
+            this.app.mediaManager.playMediaWithGlitch('error1');
+        }
+    }, 'playVideo').name('Jouer une vidéo')
   }
 
     updateStats() {
