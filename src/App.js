@@ -147,6 +147,7 @@ export default class App extends EventEmitter {
 
     initScene() {
         this.scene = new Scene()
+        this.camera.initControls()
         this.sky = new Sky(this.scene, this.renderer.instance)
         this.ocean = new Ocean(this.scene, this.renderer.instance)
         this.objectManager = new ObjectManager()
