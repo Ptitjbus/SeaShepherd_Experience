@@ -12,3 +12,6 @@ static/textures/**/*.hdr filter=lfs diff=lfs merge=lfs -text
 static/textures/**/*.exr filter=lfs diff=lfs merge=lfs -text
 static/hdr/**/*.hdr filter=lfs diff=lfs merge=lfs -text
 static/hdr/**/*.exr filter=lfs diff=lfs merge=lfs -text
+static/models/**/* filter=lfs diff=lfs merge=lfs -text
+static/textures/**/* filter=lfs diff=lfs merge=lfs -text
+static/hdri/**/* filter=lfs diff=lfs merge=lfs -text
