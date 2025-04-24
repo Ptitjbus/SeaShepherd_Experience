@@ -8,6 +8,8 @@ export default class SoundManager {
         this.sound = null
         this.soundIds = []
 
+        this.isPaused = true
+
         this.speakers = []
     }
 
@@ -22,11 +24,11 @@ export default class SoundManager {
 
     attachToSpeakers() {
         this.app.scene.traverse((child) => {
-            if (child.name === 'HAUT-PARLEUR002') {
+            if (child.name.startsWith('HAUT-PARLEUR')) {
                 const position = new Vector3()
-                child.getWorldPosition(position)
+                const worldPosition = child.getWorldPosition(position)
 
-                this.app.debug.createHelper(child, this.app.scene)
+                this.app.debug.createHelper(child, this.app.scene, worldPosition)
 
                 const id = this.sound.play()
                 
@@ -35,13 +37,17 @@ export default class SoundManager {
                     panningModel: 'HRTF',
                     distanceModel: 'inverse',
                     refDistance: 1,
-                    maxDistance: 100,
+                    maxDistance: 5,
                     rolloffFactor: 1
                 }, id)
 
                 this.soundIds.push(id)
             }
         })
+
+        if (this.isPaused){
+            this.pauseAll()
+        }
     }
 
     updateListener() {
@@ -62,8 +68,22 @@ export default class SoundManager {
             orientation.x, orientation.y, orientation.z        )
     }
 
-    stopAll() {
-        if (this.sound) this.sound.stop()
+    pauseAll() {
+        if (this.sound && this.soundIds.length > 0) {
+            this.soundIds.forEach((id) => {
+                this.sound.pause(id)
+            })
+            this.isPaused = true
+        }
+    }
+
+    resumeAll() {
+        if (this.sound && this.soundIds.length > 0 && this.isPaused) {
+            this.soundIds.forEach((id) => {
+                this.sound.play(id)
+            })
+            this.isPaused = false
+        }
     }
 
     destroy() {

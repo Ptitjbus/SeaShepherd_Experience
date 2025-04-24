@@ -19,7 +19,7 @@ export default class Ocean {
     })
 
     this.water.rotation.x = -Math.PI / 2
-    this.water.position.y = -0.5
+    this.water.position.y = -1
     this.water.material.uniforms.size.value = 5
     scene.add(this.water)
   }

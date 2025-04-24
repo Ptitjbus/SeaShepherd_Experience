@@ -37,7 +37,8 @@
 
         async init() {
             this.perspective = new PerspectiveCamera(70, this.app.canvasSize.aspect, 0.1, 1000)
-            this.perspective.position.set(2, 1, 12)
+            this.perspective.position.set(-20, 2, 0)
+            this.perspective.rotation.set(0, 90, 0)
 
             this.mainCamera = this.perspective
             this.allCameras.push(this.perspective)
@@ -59,11 +60,11 @@
                 }
             })
         
-            document.addEventListener('mouseup', () => {
-                if (this.isPointerLocked) {
-                    document.exitPointerLock()
-                }
-            })
+            // document.addEventListener('mouseup', () => {
+            //     if (this.isPointerLocked) {
+            //         document.exitPointerLock()
+            //     }
+            // })
 
             document.addEventListener('keydown', (e) => {
                 this.keysPressed.add(e.key.toLowerCase())
