@@ -1,11 +1,13 @@
 # Three.js Journey
 
 ## Git clone
-To check if new LFS files are available, run:
-`git lfs ls-files`  
+```bash
+# To check if new LFS files are available
+git lfs ls-files
 
-To clone project without downloading immediatly LFS files:
-`git lfs clone --depth=1 [URL_REPO]`
+# To clone project without downloading immediatly LFS files
+git lfs clone --depth=1 [URL_REPO]
+```
 
 ## Setup
 Download [Node.js](https://nodejs.org/en/download/).
