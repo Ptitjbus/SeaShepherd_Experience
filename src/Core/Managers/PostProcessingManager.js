@@ -21,6 +21,8 @@ export default class PostProcessingManager {
         this.renderPixelatedPass = new RenderPixelatedPass( this.pixelSize, scene, camera )
         this.renderPixelatedPass.normalEdgeStrength = 0.1
         this.renderPixelatedPass.depthEdgeStrength = 0.1
+        this.renderPixelatedPass.enabled = false
+
         this.fisheyePass = new ShaderPass(FisheyeShader)
         this.glitchPass = new GlitchPass()
 
