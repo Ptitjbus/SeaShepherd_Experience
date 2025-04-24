@@ -199,6 +199,19 @@ export default class Debug extends EventEmitter {
             })
         
             glassFolder.open()
+
+            const soundPlayerFolder = this.gui.addFolder('Sound Player')
+            soundPlayerFolder.add({
+                playSoundOnSpeakers: () => {
+                    this.app.soundManager.playSoundOnSpeakers('voiceLine 1', 'audio/voices/voice_test.m4a', {
+                        volume: 0.8,
+                        loop: true,
+                        maxDistance: 8
+                    })
+                }
+            }, 'playSoundOnSpeakers').name('Play Sound on speakers')
+
+            soundPlayerFolder.add(this.app.soundManager, 'stopAll').name('Stop All Sounds')
         }
 
     }
