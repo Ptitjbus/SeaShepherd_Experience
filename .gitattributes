@@ -1,0 +1,14 @@
+static/audio/**/*.m4a filter=lfs diff=lfs merge=lfs -text
+static/audio/**/*.mp3 filter=lfs diff=lfs merge=lfs -text
+static/audio/**/*.wav filter=lfs diff=lfs merge=lfs -text
+static/audio/**/*.vtt filter=lfs diff=lfs merge=lfs -text
+static/models/**/*.glb filter=lfs diff=lfs merge=lfs -text
+static/models/**/*.gltf filter=lfs diff=lfs merge=lfs -text
+static/models/**/*.fbx filter=lfs diff=lfs merge=lfs -text
+static/models/**/*.obj filter=lfs diff=lfs merge=lfs -text
+static/textures/**/*.jpg filter=lfs diff=lfs merge=lfs -text
+static/textures/**/*.png filter=lfs diff=lfs merge=lfs -text
+static/textures/**/*.hdr filter=lfs diff=lfs merge=lfs -text
+static/textures/**/*.exr filter=lfs diff=lfs merge=lfs -text
+static/hdr/**/*.hdr filter=lfs diff=lfs merge=lfs -text
+static/hdr/**/*.exr filter=lfs diff=lfs merge=lfs -text
