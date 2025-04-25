@@ -36,7 +36,7 @@
         }
 
         async init() {
-            this.perspective = new PerspectiveCamera(70, this.app.canvasSize.aspect, 0.1, 1000)
+            this.perspective = new PerspectiveCamera(70, this.app.canvasSize.aspect, 0.1, 500)
             this.perspective.position.set(-20, 2, 0)
             this.perspective.rotation.set(0, 90, 0)
 

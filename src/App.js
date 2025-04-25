@@ -11,6 +11,7 @@ import Debug from "./Utils/Debug"
 import Ocean from './World/Ocean.js'
 import EventsManager from './Core/Managers/EventsManager'
 import SoundManager from './Core/Managers/SoundManager.js'
+import MediaManager from './Core/Managers/MediaManager.js'
 import CustomEnvironment from './World/CustomEnvironment.js'
 
 let myAppInstance = null
@@ -61,31 +62,42 @@ export default class App extends EventEmitter {
         this.eventsManager = null
 
         this.soundManager = null
+        this.mediaManager = null
 
         this.init()
     }
 
     async init() {
-        this.renderer = new Renderer()
-        this.camera = new Camera()
+        this.renderer = new Renderer();
+        this.camera = new Camera();
 
-        this.animationLoop = new AnimationLoop()
-        this.updateBound = this.update.bind(this)
-        this.animationLoop.on('update', this.updateBound)
+        // Créer la scène dès le début
+        this.scene = new Scene();
+        
+        this.animationLoop = new AnimationLoop();
+        this.updateBound = this.update.bind(this);
+        this.animationLoop.on('update', this.updateBound);
 
-        this.assetManager = new AssetManager()
-        this.assetsLoadCompleteHandlerBound = this.assetsLoadCompleteHandler.bind(this)
-        this.assetManager.on('ready', this.assetsLoadCompleteHandlerBound)
-        this.assetManager.load()
-        this.setupUI()
+        this.assetManager = new AssetManager();
+        this.assetsLoadCompleteHandlerBound = this.assetsLoadCompleteHandler.bind(this);
+        this.assetManager.on('ready', this.assetsLoadCompleteHandlerBound);
+        this.assetManager.load();
 
-        // Initialiser le gestionnaire de popins APRÈS setupUI() pour éviter les conflits
-        this.eventsManager = new EventsManager()
+        this.eventsManager = new EventsManager();
 
-        // Exemple d'écoute des événements du gestionnaire de popins
         this.eventsManager.on('popinShown', (popinId) => {
-            console.log(`Popin "${popinId}" affichée`)
-        })
+            console.log(`Popin "${popinId}" affichée`);
+        });
+
+        this.mediaManager = new MediaManager();
+        
+        // Initialiser le MediaManager avec la scène AVANT de précharger les médias
+        this.mediaManager.init(this.scene);
+        
+        // Précharger les médias après avoir initialisé le MediaManager
+        await this.preloadMedias();
+        
+        this.setupUI();
     }
 
     setupUI() {
@@ -93,7 +105,10 @@ export default class App extends EventEmitter {
         this.startButton = document.querySelector('.start-button')
         this.endOverlay = document.querySelector('.end-overlay')
                 
-        this.startButton.addEventListener('click', () => this.startExperience())
+        this.startButton.addEventListener('click', (e) => {
+            e.preventDefault()
+            this.startExperience()
+        })
     }
 
     startExperience() {
@@ -140,6 +155,10 @@ export default class App extends EventEmitter {
     assetsLoadCompleteHandler() {
         this.initScene()
         this.postProcessing = new PostProcessingManager(this.renderer.instance, this.scene, this.camera.mainCamera)
+        
+        this.mediaManager.init(this.scene)
+        this.mediaManager.connectToPostProcessingManager(this.postProcessing)
+
         this.animationLoop.start()
         this.debug = new Debug()
         this.debug.showAnimationClipLine(this.assetManager.getItem('Museum'))
@@ -154,15 +173,17 @@ export default class App extends EventEmitter {
         this.soundManager = new SoundManager()
         this.soundManager.initSound()
 
-
         const museum = this.objectManager.add("Museum", new Vector3(0, 0, 0), {
             applyCaustics: true
         })
-        this.objectManager.add("Fishes", new Vector3(0, 1, 14), {
+        this.objectManager.add("Fishes", new Vector3(-20, 2, 6), {
             material: goldMaterial,
             castShadow: true,
             receiveShadow: true
-        })        
+        })
+
+        this.objectManager.addPointLight(new Vector3(-20, 6, 8), 0xf7c164, 30.0)
+        this.objectManager.addPointLight(new Vector3(-15, 3, 0), 0xf7c164, 30.0)
     }
 
     update(time) {
@@ -170,6 +191,11 @@ export default class App extends EventEmitter {
             this.objectManager.update(time.delta)
         }
         this.ocean.update(time.delta)
+        
+        if (this.mediaManager) {
+            this.mediaManager.update(this.camera.mainCamera)
+        }
+        
         this.debug.update()
         this.soundManager.updateListener()
 
@@ -246,7 +272,23 @@ export default class App extends EventEmitter {
         this.endOverlay = null
 
         this.canvas = null
+        this.soundManager = null
+        this.mediaManager = null
 
         myAppInstance = null
+    }
+
+    async preloadMedias()
+    {
+        this.mediaManager.preloadMedia({
+            'error1': { 
+                type: 'video', 
+                src: '/videos/massacre_dauphin.mp4', 
+                glitchType: 'big',
+                loop: false,
+                muted: false,
+                duration: 2000 // en ms
+            }
+        });
     }
 }
