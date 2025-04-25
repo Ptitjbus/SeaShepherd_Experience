@@ -294,8 +294,7 @@ export default class Debug extends EventEmitter {
             playVideo: () => {
                 this.app.mediaManager.playMediaWithGlitch('error1');
             }
-        }, 'playVideo').name('Jouer une vidéo')}
-
+        }, 'playVideo').name('Jouer une vidéo')
     }
 
     displayLightsHelpers() {
