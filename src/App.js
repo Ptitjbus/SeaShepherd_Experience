@@ -9,10 +9,10 @@ import AssetManager from "./Assets/AssetManager.js"
 import PostProcessingManager from "./Core/Managers/PostProcessingManager.js" 
 import Debug from "./Utils/Debug"
 import Ocean from './World/Ocean.js'
-import Sky from './World/Sky.js'
 import EventsManager from './Core/Managers/EventsManager'
 import SoundManager from './Core/Managers/SoundManager.js'
 import MediaManager from './Core/Managers/MediaManager.js'
+import CustomEnvironment from './World/CustomEnvironment.js'
 
 let myAppInstance = null
 
@@ -104,9 +104,7 @@ export default class App extends EventEmitter {
         this.startOverlay = document.querySelector('.start-overlay')
         this.startButton = document.querySelector('.start-button')
         this.endOverlay = document.querySelector('.end-overlay')
-        
-        console.log('End overlay element:', this.endOverlay)
-        
+                
         this.startButton.addEventListener('click', () => this.startExperience())
     }
 
@@ -118,7 +116,9 @@ export default class App extends EventEmitter {
         this.startOverlay.classList.add('hidden')
         
         this.canvas.style.opacity = '1'
-        this.camera.switchCamera()
+        // this.camera.switchCamera()
+
+        // this.soundManager.resumeAll()
 
         if (this.museumMixer) {
             this.museumMixer.stopAllAction()
@@ -163,14 +163,17 @@ export default class App extends EventEmitter {
 
     initScene() {
         this.scene = new Scene()
-        this.sky = new Sky(this.scene, this.renderer.instance)
+        this.camera.initControls()
+        this.environment = new CustomEnvironment(this.scene, this.renderer.instance, '/hdri/ocan_sky.exr')
         this.ocean = new Ocean(this.scene, this.renderer.instance)
         this.objectManager = new ObjectManager()
         this.soundManager = new SoundManager()
         this.soundManager.initSound()
 
 
-        this.objectManager.add("Museum", new Vector3(0, 0, 0))
+        const museum = this.objectManager.add("Museum", new Vector3(0, 0, 0), {
+            applyCaustics: true
+        })
         this.objectManager.add("Fishes", new Vector3(0, 1, 14), {
             material: goldMaterial,
             castShadow: true,

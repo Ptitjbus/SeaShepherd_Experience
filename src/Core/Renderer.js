@@ -9,6 +9,7 @@ export default class Renderer extends EventEmitter {
         this.app = new App()
 
         this.instance = null
+        this.maxPixelRatio = 1
 
         this.resizeHandlerBound = this.resizeHandler.bind(this)
 
@@ -22,7 +23,7 @@ export default class Renderer extends EventEmitter {
         })
 
         this.instance.setSize(this.app.canvasSize.width, this.app.canvasSize.height)
-        this.instance.setPixelRatio(this.app.canvasSize.pixelRatio)
+        this.instance.setPixelRatio(Math.min(this.app.canvasSize.pixelRatio, this.maxPixelRatio))
 
         this.app.canvasSize.on('resize', this.resizeHandlerBound)
     }
