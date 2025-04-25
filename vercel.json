@@ -22,6 +22,12 @@
       "headers": [
         { "key": "Content-Type", "value": "model/gltf+json" }
       ]
+    },
+    {
+      "source": "/(.*)\\.exr",
+      "headers": [
+        { "key": "Content-Type", "value": "application/x-exr" }
+      ]
     }
   ],
   "rewrites": [
