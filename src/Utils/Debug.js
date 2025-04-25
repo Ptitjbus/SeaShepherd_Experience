@@ -4,6 +4,7 @@ import GUI from 'lil-gui'
 import Stats from 'three/addons/libs/stats.module.js'
 import { Vector3, BufferGeometry, LineBasicMaterial, Line, AxesHelper,ArrowHelper, Quaternion, SphereGeometry, MeshBasicMaterial, Mesh, CanvasTexture, LinearFilter, SpriteMaterial, Sprite, PointLightHelper } from 'three'
 
+
 export default class Debug extends EventEmitter {
     constructor() {
         super()
@@ -289,12 +290,40 @@ export default class Debug extends EventEmitter {
         soundPlayerFolder.add(this.app.soundManager, 'stopAll').name('Stop All Sounds')
 
         const videoFolder = this.gui.addFolder('Video')
-
         videoFolder.add({
             playVideo: () => {
                 this.app.mediaManager.playMediaWithGlitch('error1');
             }
         }, 'playVideo').name('Jouer une vidéo')
+
+        const choicesFolder = this.gui.addFolder('Choices')
+        choicesFolder.add({
+            showChoice1: () => {
+                this.app.choicesManager.showChoices(
+                    {
+                        choice1: "Option A",
+                        choice2: "Option B"
+                    },
+                    (choiceIndex) => {
+                        if (choiceIndex === 1) {
+                            this.app.eventsManager.displayAlert("Vous avez choisi l'option A", 'information')
+
+                            this.app.mediaManager.playMediaWithGlitch('error1')
+                        } else {
+                            this.app.eventsManager.displayAlert("Vous avez choisi l'option B", 'information')
+                            // Your logic for option B
+
+                            this.app.soundManager.playSoundOnSpeakers('voiceLine 1', 'audio/voices/voice_test.m4a', {
+                                volume: 0.8,
+                                loop: false,
+                                maxDistance: 8,
+                                vttSrc: 'audio/subtitles/voice_test.vtt'
+                            })
+                        }
+                    }
+                );
+            }
+        }, 'showChoice1').name('Afficher choix 1')
     }
 
     displayLightsHelpers() {
