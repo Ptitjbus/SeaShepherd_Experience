@@ -19,6 +19,8 @@
     "gsap": "^3.12.7",
     "howler": "^2.2.4",
     "lil-gui": "^0.20.0",
-    "three": "^0.174.0"
+    "react": "^19.1.0",
+    "three": "^0.174.0",
+    "three-custom-shader-material": "^6.3.5"
   }
 }

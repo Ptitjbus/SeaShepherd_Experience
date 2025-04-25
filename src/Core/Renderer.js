@@ -17,6 +17,7 @@ export default class Renderer extends EventEmitter {
     }
 
     init() {
+        // TODO : rendre les ombres : https://threejs.org/docs/#api/en/renderers/WebGLRenderer PCFShadowMap
         this.instance = new WebGLRenderer({
             canvas : this.app.canvas,
             antialias : true

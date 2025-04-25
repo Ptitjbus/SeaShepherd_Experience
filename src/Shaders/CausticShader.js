@@ -11,7 +11,7 @@ export const CausticShader = {
     fogColor: { value: new THREE.Color(0xe0e0e0) },
     fogNear: { value: 10 },
     fogFar: { value: 50 },
-    cameraPosition: { value: new THREE.Vector3() }
+    cameraPos: { value: new THREE.Vector3() }
   },
 
   vertexShader: `
@@ -19,10 +19,10 @@ export const CausticShader = {
     varying vec2 vUv;
 
     void main() {
-      vec4 worldPosition = modelMatrix * vec4(position, 1.0);
-      vWorldPosition = worldPosition.xyz;
+      vec4 worldPos = modelMatrix * vec4(position, 1.0);
+      vWorldPosition = worldPos.xyz;
       vUv = uv;
-      gl_Position = projectionMatrix * viewMatrix * worldPosition;
+      gl_Position = projectionMatrix * viewMatrix * worldPos;
     }
   `,
 
@@ -33,6 +33,7 @@ export const CausticShader = {
     uniform float scale;
     uniform float intensity;
     uniform vec3 causticTint;
+    uniform vec3 cameraPos;
 
     uniform vec3 fogColor;
     uniform float fogNear;
@@ -48,11 +49,12 @@ export const CausticShader = {
 
       vec3 finalColor = baseColor + causticTint * c * intensity;
 
-      float fogDistance = length(vWorldPosition - cameraPosition);
+      float fogDistance = length(vWorldPosition - cameraPos);
       float fogFactor = smoothstep(fogNear, fogFar, fogDistance);
       finalColor = mix(finalColor, fogColor, fogFactor);
 
-      gl_FragColor = vec4(finalColor, 1.0);
+      csm_DiffuseColor = vec4(finalColor, 1.0);
+      // gl_FragColor = vec4(finalColor, 1.0);
     }
   `
 }
