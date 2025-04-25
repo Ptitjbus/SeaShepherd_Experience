@@ -1,4 +1,4 @@
-export const CausticShader = {
+export const CausticShaderBuggy = {
     uniforms: {
       causticsMap: { value: null },
       time: { value: 0.0 },

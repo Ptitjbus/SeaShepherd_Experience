@@ -2,7 +2,7 @@ import EventEmitter from './EventEmitter'
 import App from '../App'
 import GUI from 'lil-gui'
 import Stats from 'three/addons/libs/stats.module.js'
-import { Vector3, BufferGeometry, LineBasicMaterial, Line, AxesHelper,ArrowHelper, Quaternion, SphereGeometry, MeshBasicMaterial, Mesh, CanvasTexture, LinearFilter, SpriteMaterial, Sprite } from 'three'
+import { Vector3, BufferGeometry, LineBasicMaterial, Line, AxesHelper,ArrowHelper, Quaternion, SphereGeometry, MeshBasicMaterial, Mesh, CanvasTexture, LinearFilter, SpriteMaterial, Sprite, PointLightHelper } from 'three'
 
 export default class Debug extends EventEmitter {
     constructor() {
@@ -31,6 +31,7 @@ export default class Debug extends EventEmitter {
         const axesHelper = new AxesHelper( 1 )
         this.app.scene.add( axesHelper )
         const museum = this.app.objectManager.get("Museum")
+        this.displayLightsHelpers()
 
         const cameraFolder = this.gui.addFolder('Camera')
 
@@ -54,6 +55,8 @@ export default class Debug extends EventEmitter {
         cameraFolder.close()
 
         window.addEventListener('keydown', (event) => {
+            event.preventDefault()
+
             if (event.key === ' ') {
                 if (museum) {
                     museum.playAnimations = !museum.playAnimations
@@ -121,8 +124,9 @@ export default class Debug extends EventEmitter {
                 this.app.eventsManager.openWindow('http://localhost:5173/confidential-documents')
             }
         }, 'openWindow').name('Ouvrir une nouvelle fenêtre')
+        windowFolder.close()
 
-
+        // Tunnel glass debug
         const glassFolder = this.gui.addFolder('Glass Material')
         const glassObjects = []
         this.app.scene.traverse((child) => {
@@ -199,22 +203,109 @@ export default class Debug extends EventEmitter {
             })
         
             glassFolder.open()
+        }
+        glassFolder.close()
 
-            const soundPlayerFolder = this.gui.addFolder('Sound Player')
-            soundPlayerFolder.add({
-                playSoundOnSpeakers: () => {
-                    this.app.soundManager.playSoundOnSpeakers('voiceLine 1', 'audio/voices/voice_test.m4a', {
-                        volume: 0.8,
-                        loop: false,
-                        maxDistance: 8,
-                        vttSrc: 'audio/subtitles/voice_test.vtt',
+        const causticFolder = this.gui.addFolder('Caustic Materials')
+        const causticMaterials = []
+        this.app.scene.traverse((child) => {
+            if (child.isMesh && child.material?.uniforms?.causticsMap) {
+                causticMaterials.push(child)
+            }
+        })
+        if (causticMaterials.length > 0) {
+            const mat = causticMaterials[0].material
+            const causticParams = {
+                metalness: mat.metalness,
+                roughness: mat.roughness,
+                scale: mat.uniforms.scale.value,
+                intensity: mat.uniforms.intensity.value,
+                causticTint: `#${mat.uniforms.causticTint.value.getHexString()}`,
+                fogColor: `#${mat.uniforms.fogColor.value.getHexString()}`,
+                fogNear: mat.uniforms.fogNear.value,
+                fogFar: mat.uniforms.fogFar.value
+            }
+            causticFolder.add(causticParams, 'metalness', 0, 1).onChange(value => {
+                causticMaterials.forEach(obj => obj.material.metalness = value)
+            })
+            causticFolder.add(causticParams, 'roughness', 0, 1).onChange(value => {
+                causticMaterials.forEach(obj => obj.material.roughness = value)
+            })
+            causticFolder.add(causticParams, 'scale', 0, 0.2).onChange(value => {
+                causticMaterials.forEach(obj => obj.material.uniforms.scale.value = value)
+            })
+            causticFolder.add(causticParams, 'intensity', 0, 1).onChange(value => {
+                causticMaterials.forEach(obj => obj.material.uniforms.intensity.value = value)
+            })
+            causticFolder.addColor(causticParams, 'causticTint').onChange(value => {
+                causticMaterials.forEach(obj => obj.material.uniforms.causticTint.value.set(value))
+            })
+            causticFolder.addColor(causticParams, 'fogColor').onChange(value => {
+                causticMaterials.forEach(obj => obj.material.uniforms.fogColor.value.set(value))
+            })
+            causticFolder.add(causticParams, 'fogNear', 0, 100).onChange(value => {
+                causticMaterials.forEach(obj => obj.material.uniforms.fogNear.value = value)
+            })
+            causticFolder.add(causticParams, 'fogFar', 0, 200).onChange(value => {
+                causticMaterials.forEach(obj => obj.material.uniforms.fogFar.value = value)
+            })
+            const defaultParams = JSON.parse(JSON.stringify(causticParams))
+            causticFolder.add({
+                reset: () => {
+                    Object.assign(causticParams, defaultParams)
+                    causticMaterials.forEach(obj => {
+                        obj.material.metalness = defaultParams.metalness
+                        obj.material.roughness = defaultParams.roughness
+                        obj.material.uniforms.scale.value = defaultParams.scale
+                        obj.material.uniforms.intensity.value = defaultParams.intensity
+                        obj.material.uniforms.causticTint.value.set(defaultParams.causticTint)
+                        obj.material.uniforms.fogColor.value.set(defaultParams.fogColor)
+                        obj.material.uniforms.fogNear.value = defaultParams.fogNear
+                        obj.material.uniforms.fogFar.value = defaultParams.fogFar
                     })
-                }
-            }, 'playSoundOnSpeakers').name('Play Sound on speakers')
 
-            soundPlayerFolder.add(this.app.soundManager, 'stopAll').name('Stop All Sounds')
+                    // Update GUI controllers
+                    for (let controller of causticFolder.controllers) {
+                        controller.updateDisplay()
+                    }
+                }
+            }, 'reset').name('Reset Parameters')
+
+            causticFolder.open()
         }
 
+        const soundPlayerFolder = this.gui.addFolder('Sound Player')
+        soundPlayerFolder.add({
+            playSoundOnSpeakers: () => {
+                this.app.soundManager.playSoundOnSpeakers('voiceLine 1', 'audio/voices/voice_test.m4a', {
+                    volume: 0.8,
+                    loop: true,
+                    maxDistance: 8,
+                    vttSrc: 'audio/subtitles/voice_test.vtt'
+                })
+            }
+        }, 'playSoundOnSpeakers').name('Play Sound on speakers')
+
+        soundPlayerFolder.add(this.app.soundManager, 'stopAll').name('Stop All Sounds')
+
+        const videoFolder = this.gui.addFolder('Video')
+
+        videoFolder.add({
+            playVideo: () => {
+                this.app.mediaManager.playMediaWithGlitch('error1');
+            }
+        }, 'playVideo').name('Jouer une vidéo')
+    }
+
+    displayLightsHelpers() {
+        if (!this.active) return
+        this.app.scene.traverse((child) => {
+            if (child.isLight) {
+                const helper = new PointLightHelper(child, 0.5)
+                helper.name = `light-helper-${child.name}`
+                this.app.scene.add(helper)
+            }
+        })
     }
 
     initStats() {

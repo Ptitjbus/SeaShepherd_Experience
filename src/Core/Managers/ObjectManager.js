@@ -2,6 +2,7 @@ import * as THREE from "three"
 import App from "../../App"
 import { CausticShader } from '../../Shaders/CausticShader.js'
 import { BlackWhiteShader } from '../../Shaders/BlackWhiteShader.js'
+import CustomShaderMaterial from 'three-custom-shader-material/vanilla';
 
 export default class ObjectManager {
     constructor() {
@@ -44,10 +45,15 @@ export default class ObjectManager {
     
             if (child.isMesh) {
                 if (child.material) {
-                    child.material.side = THREE.FrontSide
                     if (applyCaustics && child.material && child.material.map && (child.name.toLowerCase().includes('rock') || child.name.toLowerCase().includes('sand'))) {
-                        child.material = this.createCausticShaderMaterial(child.material.map)
-                        //  child.material = this.createBlackWhiteShaderMaterial(child)
+                        const baseMap = child.material.map
+                        child.material.dispose()
+                        // TODO : dispose toutes les textures du material s'il y en a (méthode d'itération)
+                        child.material = this.createCustomShaderMaterial(baseMap)
+                        child.material.castShadow = true
+                        child.material.receiveShadow = true
+                        child.material.side = THREE.FrontSide
+                        // activer le renderer
                     }
                 }
 
@@ -98,47 +104,42 @@ export default class ObjectManager {
         return storedObject
     }
 
-    createBlackWhiteShaderMaterial(child) {
-        const baseMapTexture = child.material.map || new THREE.Texture()
-    
-        return new THREE.ShaderMaterial({
-            uniforms: {
-                baseMap: { value: baseMapTexture },
-                scale: { value: 0.1 }
-            },
-            vertexShader: BlackWhiteShader.vertexShader,
-            fragmentShader: BlackWhiteShader.fragmentShader,
-            transparent: false,
-            depthWrite: true,
-            depthTest: true
-        })
+    addPointLight(position, color = 0xffffff, intensity = 1.0, distance = 100, decay = 2) {
+        const light = new THREE.PointLight(color, intensity, distance, decay)
+        light.position.set(position.x, position.y, position.z)
+        light.castShadow = true
+        light.shadow.mapSize.width = 512
+        light.shadow.mapSize.height = 512
+        light.shadow.camera.near = 0.5
+        light.shadow.camera.far = 50
+        this.app.scene.add(light)
+        return light
     }
 
-    createCausticShaderMaterial(baseMap) {
+    createCustomShaderMaterial(baseMap){
         const causticsTexture = new THREE.TextureLoader().load('/textures/caustic/caustic_detailled.jpg')
         causticsTexture.wrapS = causticsTexture.wrapT = THREE.RepeatWrapping
-      
-        const material = new THREE.ShaderMaterial({
-          uniforms: {
-            baseMap: { value: baseMap },
-            causticsMap: { value: causticsTexture },
-            time: { value: 0 },
-            scale: { value: 0.05 },
-            intensity: { value: 0.1 },
-            causticTint: { value: new THREE.Color(0.2, 0.5, 1.0) },
-            fogColor: { value: new THREE.Color(0x081346) }, // ou n'importe quelle couleur
-            fogNear: { value: 5 },
-            fogFar: { value: 70 },
-            cameraPosition: { value: new THREE.Vector3() }
-          },
-          vertexShader: CausticShader.vertexShader,
-          fragmentShader: CausticShader.fragmentShader,
-          transparent: false,
-          depthWrite: true,
-          depthTest: true
+
+        return new CustomShaderMaterial({
+            baseMaterial: THREE.MeshPhysicalMaterial,
+            metalness: 0,
+            roughness: 0.2,
+            uniforms: {
+                baseMap: { value: baseMap },
+                causticsMap: { value: causticsTexture },
+                time: { value: 0 },
+                scale: { value: 0.05 },
+                intensity: { value: 0.5 },
+                causticTint: { value: new THREE.Color(0.2, 0.5, 1.0) },
+                fogColor: { value: new THREE.Color(0x081346) },
+                fogNear: { value: 5 },
+                fogFar: { value: 70 },
+                cameraPos: { value: this.app.camera.mainCamera.position },
+            },
+            vertexShader: CausticShader.vertexShader,
+            fragmentShader: CausticShader.fragmentShader,
+
         })
-      
-        return material
     }
     
 
@@ -169,22 +170,25 @@ export default class ObjectManager {
 
     update(delta) {
         this.objects.forEach((object) => {
-          if (object.mixer && object.playAnimations) object.mixer.update(delta)
-      
-            this.objects.forEach(({ object }) => {
-                object.scene.traverse((child) => {
-                    if (child.isMesh && child.material?.uniforms?.cameraPosition) {
-                        child.material.uniforms.cameraPosition.value.copy(this.app.camera.mainCamera.position)
-                        child.material.uniforms.time.value += delta * 0.4
-                    }
-                })
+            // Mise à jour des animations (GLTF)
+            if (object.mixer && object.playAnimations) {
+                object.mixer.update(delta)
+            }
+    
+            // Mise à jour des shaders
+            object.object.scene.traverse((child) => {
+                if (child.isMesh && child.material?.uniforms?.cameraPos) {
+                    child.material.uniforms.cameraPos.value.copy(this.app.camera.mainCamera.position)
+                    child.material.uniforms.time.value += delta * 0.4
+                }
             })
-            
         })
-      }
+    }
+    
 
     destroy() {
         this.objects.forEach(({ object }) => {
+            // TODO : libérer mieux la référence
             this.scene.remove(object)
         })
         this.objects.clear()
