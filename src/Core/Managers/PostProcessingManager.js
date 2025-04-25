@@ -24,6 +24,7 @@ export default class PostProcessingManager {
         this.renderPixelatedPass.enabled = false
 
         this.fisheyePass = new ShaderPass(FisheyeShader)
+        this.fisheyePass.uniforms['strength'].value = 0.5
         this.glitchPass = new GlitchPass()
 
         const bloomParams = {
@@ -45,11 +46,11 @@ export default class PostProcessingManager {
         this.glitchPass.randX = 0
 
         this.composer.addPass(this.renderPass)
-        this.composer.addPass(this.renderPixelatedPass)
-        this.composer.addPass(this.bloomPass)
-        this.composer.addPass(this.glitchPass)
+        // this.composer.addPass(this.renderPixelatedPass)
         this.composer.addPass(this.fisheyePass)
-        this.composer.addPass(this.fxaaPass)
+        this.composer.addPass(this.glitchPass)
+        this.composer.addPass(this.bloomPass)
+        // this.composer.addPass(this.fxaaPass)
     }
 
     triggerGlitch() {

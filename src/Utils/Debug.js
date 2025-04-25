@@ -77,6 +77,7 @@ export default class Debug extends EventEmitter {
         const postProcessingFolder = this.gui.addFolder('Post Processing')
         postProcessingFolder.add(this.app, 'enablePostProcessing', true).name('Enable Post Processing')
         postProcessingFolder.add(this.app.postProcessing.fisheyePass, 'enabled', true).name('Enable Fisheye Pass')
+        postProcessingFolder.add(this.app.postProcessing.fisheyePass.uniforms['strength'], 'value', 0.0, 4.0).name('Fisheye Strength')
         postProcessingFolder.add(this.app.postProcessing.renderPixelatedPass, 'enabled', true).name('Enable Pixelated Pass')
         postProcessingFolder.add(this.app.postProcessing.bloomPass, 'enabled', true).name('Enable Bloom Pass')
         postProcessingFolder.add(this.app.postProcessing.bloomPass, 'threshold', 0.0, 1.0).name('Threshold')
