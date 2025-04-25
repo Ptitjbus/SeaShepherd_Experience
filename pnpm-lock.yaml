@@ -26,9 +26,15 @@ importers:
       lil-gui:
         specifier: ^0.20.0
         version: 0.20.0
+      react:
+        specifier: ^19.1.0
+        version: 19.1.0
       three:
         specifier: ^0.174.0
         version: 0.174.0
+      three-custom-shader-material:
+        specifier: ^6.3.5
+        version: 6.3.5(react@19.1.0)(three@0.174.0)
     devDependencies:
       vite:
         specifier: ^6.2.2
@@ -651,6 +657,10 @@ packages:
     resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
     engines: {node: '>=6'}
 
+  react@19.1.0:
+    resolution: {integrity: sha512-FS+XFBNvn3GTAWq26joslQgWNoFu08F4kl0J4CgdNKADkdSGXQyTCnKteIAJy96Br6YbpEU1LSzV5dYtjMkMDg==}
+    engines: {node: '>=0.10.0'}
+
   resolve-from@4.0.0:
     resolution: {integrity: sha512-pb/MYmXstAkysRFx8piNI1tGFNQIFA3vkE3Gq4EuA1dF6gHp/+vgZqsCGJapvy8N3Q+4o7FwvquPJcnZ7RYy4g==}
     engines: {node: '>=4'}
@@ -679,6 +689,18 @@ packages:
   supports-color@7.2.0:
     resolution: {integrity: sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw==}
     engines: {node: '>=8'}
+
+  three-custom-shader-material@6.3.5:
+    resolution: {integrity: sha512-L9bd3NsN3tJWUUaqDDGe0vFgZdZuLf4JQR87b9IaeZ0FsGLYy2KJhoKw52IrgQ7kS+E3DAGLayYshCCRt/ZUbw==}
+    peerDependencies:
+      '@react-three/fiber': '>=8.0'
+      react: '>=18.0'
+      three: '>=0.159'
+    peerDependenciesMeta:
+      '@react-three/fiber':
+        optional: true
+      react:
+        optional: true
 
   three@0.174.0:
     resolution: {integrity: sha512-p+WG3W6Ov74alh3geCMkGK9NWuT62ee21cV3jEnun201zodVF4tCE5aZa2U122/mkLRmhJJUQmLLW1BH00uQJQ==}
@@ -1260,6 +1282,8 @@ snapshots:
 
   punycode@2.3.1: {}
 
+  react@19.1.0: {}
+
   resolve-from@4.0.0: {}
 
   rollup@4.39.0:
@@ -1301,6 +1325,12 @@ snapshots:
   supports-color@7.2.0:
     dependencies:
       has-flag: 4.0.0
+
+  three-custom-shader-material@6.3.5(react@19.1.0)(three@0.174.0):
+    dependencies:
+      three: 0.174.0
+    optionalDependencies:
+      react: 19.1.0
 
   three@0.174.0: {}
 
