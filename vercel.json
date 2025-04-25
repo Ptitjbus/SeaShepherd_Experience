@@ -2,5 +2,29 @@
   "git": {
     "lfs": true
   },
-  "buildCommand": "npm run build"
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "headers": [
+    {
+      "source": "/(.*)\\.glb",
+      "headers": [
+        { "key": "Content-Type", "value": "model/gltf-binary" }
+      ]
+    },
+    {
+      "source": "/(.*)\\.fbx",
+      "headers": [
+        { "key": "Content-Type", "value": "application/octet-stream" }
+      ]
+    },
+    {
+      "source": "/(.*)\\.gltf",
+      "headers": [
+        { "key": "Content-Type", "value": "model/gltf+json" }
+      ]
+    }
+  ],
+  "rewrites": [
+    { "source": "/confidential-documents", "destination": "/Pages/ConfidentialDocuments/ConfidentialDocuments.html" }
+  ]
 }
