@@ -279,7 +279,7 @@ export default class Debug extends EventEmitter {
             playSoundOnSpeakers: () => {
                 this.app.soundManager.playSoundOnSpeakers('voiceLine 1', 'audio/voices/voice_test.m4a', {
                     volume: 0.8,
-                    loop: true,
+                    loop: false,
                     maxDistance: 8,
                     vttSrc: 'audio/subtitles/voice_test.vtt'
                 })
