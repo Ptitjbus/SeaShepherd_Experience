@@ -214,7 +214,18 @@ export default class Debug extends EventEmitter {
             soundPlayerFolder.add(this.app.soundManager, 'stopAll').name('Stop All Sounds')
         }
 
-    }
+    }, 'openWindow').name('Ouvrir une nouvelle fenêtre')
+
+    const videoFolder = this.gui.addFolder('Video')
+
+    videoFolder.add({
+        playVideo: () => {
+            this.app.mediaManager.playMediaWithGlitch('error1');
+        }
+    }, 'playVideo').name('Jouer une vidéo')
+  }
+
+    
 
     initStats() {
         this.stats = new Stats()
