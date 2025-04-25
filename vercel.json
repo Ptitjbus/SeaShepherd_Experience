@@ -1,0 +1,6 @@
+{
+  "git": {
+    "lfs": true
+  },
+  "buildCommand": "npm run build"
+}
