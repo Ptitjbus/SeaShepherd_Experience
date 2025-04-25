@@ -13,6 +13,7 @@ import EventsManager from './Core/Managers/EventsManager'
 import SoundManager from './Core/Managers/SoundManager.js'
 import MediaManager from './Core/Managers/MediaManager.js'
 import CustomEnvironment from './World/CustomEnvironment.js'
+import { ChoicesManager } from "./Core/Managers/ChoicesManager.js"
 
 let myAppInstance = null
 
@@ -64,6 +65,8 @@ export default class App extends EventEmitter {
         this.soundManager = null
         this.mediaManager = null
 
+        this.choicesManager = null
+
         this.init()
     }
 
@@ -93,6 +96,8 @@ export default class App extends EventEmitter {
         
         // Initialiser le MediaManager avec la scène AVANT de précharger les médias
         this.mediaManager.init(this.scene);
+
+        this.choicesManager = new ChoicesManager();
         
         // Précharger les médias après avoir initialisé le MediaManager
         await this.preloadMedias();
@@ -272,8 +277,12 @@ export default class App extends EventEmitter {
         this.endOverlay = null
 
         this.canvas = null
+        this.soundManager.destroy()
         this.soundManager = null
+        this.mediaManager.destroy()
         this.mediaManager = null
+        this.choicesManager.destroy()
+        this.choicesManager = null
 
         myAppInstance = null
     }
