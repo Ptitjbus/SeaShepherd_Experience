@@ -10,6 +10,35 @@ export default class SoundManager {
         this.customSounds = {}
         this.isPaused = true
         this.speakers = []
+        this.subtitles = {}  // Store active subtitles by sound name
+        this.subtitleElement = null  // Element to display subtitles
+        this.initSubtitleDisplay()
+    }
+
+    initSubtitleDisplay() {
+        // Create subtitle container if it doesn't exist
+        if (!document.getElementById('subtitle-container')) {
+            this.subtitleElement = document.createElement('div')
+            this.subtitleElement.id = 'subtitle-container'
+            this.subtitleElement.style.cssText = `
+                position: absolute;
+                bottom: 10%;
+                left: 50%;
+                transform: translateX(-50%);
+                background-color: rgba(0, 0, 0, 0.5);
+                color: white;
+                padding: 10px 20px;
+                border-radius: 5px;
+                font-family: sans-serif;
+                text-align: center;
+                max-width: 80%;
+                z-index: 1000;
+                display: none;
+            `
+            document.body.appendChild(this.subtitleElement)
+        } else {
+            this.subtitleElement = document.getElementById('subtitle-container')
+        }
     }
 
     initSound() {
@@ -148,34 +177,145 @@ export default class SoundManager {
     }
     
     /**
+     * Charge et parse un fichier WebVTT
+     * @param {string} vttUrl - URL du fichier WebVTT
+     * @returns {Promise<Array>} Tableau d'objets de sous-titres
+     */
+    async loadVTT(vttUrl) {
+        try {
+            const response = await fetch(vttUrl)
+            const text = await response.text()
+            
+            // Parse VTT content
+            const cues = []
+            const lines = text.trim().split('\n')
+            
+            let i = 0
+            // Skip WebVTT header
+            while (i < lines.length && !lines[i].includes('-->')) {
+                i++
+            }
+            
+            while (i < lines.length) {
+                // Find a line with timing information
+                if (lines[i].includes('-->')) {
+                    const timeParts = lines[i].split('-->')
+                    
+                    // Parse start and end times
+                    const startTime = this.parseVttTime(timeParts[0].trim())
+                    const endTime = this.parseVttTime(timeParts[1].trim())
+                    
+                    // Get the cue text (may be multiple lines)
+                    let cueText = ''
+                    i++
+                    while (i < lines.length && lines[i].trim() !== '') {
+                        cueText += (cueText ? '\n' : '') + lines[i]
+                        i++
+                    }
+                    
+                    if (cueText) {
+                        cues.push({
+                            start: startTime,
+                            end: endTime,
+                            text: cueText
+                        })
+                    }
+                } else {
+                    i++
+                }
+            }
+            
+            return cues
+        } catch (error) {
+            console.error('Failed to load VTT file:', error)
+            return []
+        }
+    }
+
+    /**
+     * Convertit le timestamp VTT en secondes
+     * @param {string} timeString - Timestamp au format VTT (00:00:00.000)
+     * @returns {number} Temps en secondes
+     */
+    parseVttTime(timeString) {
+        const parts = timeString.split(':')
+        let seconds = 0
+        
+        if (parts.length === 3) {
+            // Format: 00:00:00.000
+            seconds = parseFloat(parts[0]) * 3600 + parseFloat(parts[1]) * 60 + parseFloat(parts[2])
+        } else if (parts.length === 2) {
+            // Format: 00:00.000
+            seconds = parseFloat(parts[0]) * 60 + parseFloat(parts[1])
+        }
+        
+        return seconds
+    }
+
+    /**
+     * Affiche un sous-titre
+     * @param {string} text - Texte du sous-titre
+     */
+    showSubtitle(text) {
+        if (this.subtitleElement) {
+            this.subtitleElement.textContent = text
+            this.subtitleElement.style.display = 'block'
+        }
+    }
+
+    /**
+     * Cache les sous-titres
+     */
+    hideSubtitle() {
+        if (this.subtitleElement) {
+            this.subtitleElement.style.display = 'none'
+        }
+    }
+
+    /**
      * Joue un son sur tous les haut-parleurs de la scène
      * @param {string} name - Identifiant unique pour ce son
      * @param {string|string[]} src - Chemin(s) vers le(s) fichier(s) audio
      * @param {Object} options - Options supplémentaires pour le son
+     * @param {string} [options.vttSrc] - Chemin vers le fichier de sous-titres WebVTT
      * @returns {Array} IDs des sons joués sur chaque haut-parleur
      */
-    playSoundOnSpeakers(name, src, options = {}) {
+    async playSoundOnSpeakers(name, src, options = {}) {
         const defaultOptions = {
             loop: false,
             volume: 1.0,
             onend: null,
             maxDistance: 5,
             refDistance: 1,
-            rolloffFactor: 1
+            rolloffFactor: 1,
+            vttSrc: null
         }
         
         const finalOptions = { ...defaultOptions, ...options }
         
-        // Si le son existe déjà, on l'arrête et le nettoie
+        // Si le son existe déjà, on l'arrête et on nettoie les sous-titres
         if (this.customSounds[name]) {
             this.customSounds[name].forEach(sound => {
                 sound.stop()
                 sound.unload()
             })
+            
+            // Arrêter les sous-titres actifs
+            if (this.subtitles[name]) {
+                clearTimeout(this.subtitles[name].timer)
+                delete this.subtitles[name]
+                this.hideSubtitle()
+            }
         }
         
         this.customSounds[name] = []
         const ids = []
+        
+        // Charger les sous-titres VTT si spécifiés
+        let subtitleCues = []
+        if (finalOptions.vttSrc) {
+            subtitleCues = await this.loadVTT(finalOptions.vttSrc)
+        }
         
         // Jouer le son sur chaque haut-parleur
         this.speakers.forEach((speaker, index) => {
@@ -183,7 +323,17 @@ export default class SoundManager {
                 src: Array.isArray(src) ? src : [src],
                 loop: finalOptions.loop,
                 volume: finalOptions.volume,
-                onend: finalOptions.onend
+                onend: () => {
+                    // Nettoyer les sous-titres à la fin du son
+                    if (this.subtitles[name]) {
+                        clearTimeout(this.subtitles[name].timer)
+                        delete this.subtitles[name]
+                        this.hideSubtitle()
+                    }
+                    
+                    // Appeler le callback onend original si fourni
+                    if (finalOptions.onend) finalOptions.onend();
+                }
             })
             
             // Ajouter à notre collection
@@ -208,11 +358,85 @@ export default class SoundManager {
                 maxDistance: finalOptions.maxDistance,
                 rolloffFactor: finalOptions.rolloffFactor
             }, id)
+            
+            // Si c'est le premier haut-parleur et qu'on a des sous-titres, initialiser le système de sous-titres
+            if (index === 0 && subtitleCues.length > 0) {
+                this.initSubtitlesForSound(name, sound, id, subtitleCues)
+            }
         })
         
         return ids
     }
-    
+
+    /**
+     * Initialise le système de sous-titres pour un son
+     * @param {string} name - Nom du son
+     * @param {Howl} sound - Instance Howl
+     * @param {number} id - ID du son joué
+     * @param {Array} cues - Sous-titres parsés
+     */
+    initSubtitlesForSound(name, sound, id, cues) {
+        // Stocker les informations de sous-titres
+        this.subtitles[name] = {
+            cues: cues,
+            currentIndex: 0,
+            timer: null,
+            sound: sound,
+            soundId: id
+        }
+        
+        // Démarrer le traitement des sous-titres
+        this.processNextSubtitle(name)
+    }
+
+    /**
+     * Traite le prochain sous-titre pour un son
+     * @param {string} name - Nom du son
+     */
+    processNextSubtitle(name) {
+        if (!this.subtitles[name]) return
+        
+        const subtitle = this.subtitles[name]
+        const cues = subtitle.cues
+        const currentIndex = subtitle.currentIndex
+        
+        if (currentIndex >= cues.length) {
+            // Plus de sous-titres à afficher
+            this.hideSubtitle()
+            return
+        }
+        
+        const currentCue = cues[currentIndex]
+        const sound = subtitle.sound
+        const soundId = subtitle.soundId
+        
+        // Obtenir la position actuelle du son
+        const currentTime = sound.seek(soundId)
+        
+        if (currentTime >= currentCue.start && currentTime < currentCue.end) {
+            // Afficher le sous-titre actuel
+            this.showSubtitle(currentCue.text)
+            
+            // Programmer la fin de ce sous-titre
+            const timeUntilEnd = (currentCue.end - currentTime) * 1000
+            subtitle.timer = setTimeout(() => {
+                this.hideSubtitle()
+                subtitle.currentIndex++
+                this.processNextSubtitle(name)
+            }, timeUntilEnd)
+        } else if (currentTime < currentCue.start) {
+            // Programmer l'affichage de ce sous-titre
+            const timeUntilStart = (currentCue.start - currentTime) * 1000
+            subtitle.timer = setTimeout(() => {
+                this.processNextSubtitle(name)
+            }, timeUntilStart)
+        } else {
+            // Ce sous-titre est déjà passé, passer au suivant
+            subtitle.currentIndex++
+            this.processNextSubtitle(name)
+        }
+    }
+
     /**
      * Arrête un son spécifique
      * @param {string} name - Identifiant du son à arrêter
@@ -225,6 +449,13 @@ export default class SoundManager {
             } else {
                 // Pour les sons joués normalement
                 this.customSounds[name].stop()
+            }
+            
+            // Nettoyer les sous-titres
+            if (this.subtitles[name]) {
+                clearTimeout(this.subtitles[name].timer)
+                delete this.subtitles[name]
+                this.hideSubtitle()
             }
         }
     }
@@ -241,7 +472,16 @@ export default class SoundManager {
                 // Pour les sons joués normalement
                 sound.stop()
             }
+            
+            // Nettoyer les sous-titres
+            if (this.subtitles[name]) {
+                clearTimeout(this.subtitles[name].timer)
+                delete this.subtitles[name]
+            }
         })
+        
+        // Cacher les sous-titres
+        this.hideSubtitle()
     }
 
     /**
