@@ -35,25 +35,29 @@ export default class Debug extends EventEmitter {
 
         const cameraFolder = this.gui.addFolder('Camera')
 
-        cameraFolder.add(this.app.camera.controls, 'enabled', true).name('OrbitControls')
-        cameraFolder.add(this.app.camera, 'breathing', true).name('Breathing')
-        cameraFolder.add(this.app.camera, 'breathingAmplitude', 0, 2).name('Amplitude')
-        cameraFolder.add(this.app.camera, 'breathingSpeed', 0, 0.005).name('Vitesse')
-        cameraFolder.add({ 
-            trigger: () => {
-                if (museum) {
-                    museum.playAnimations = !museum.playAnimations
-                    this.app.soundManager.isPaused ? this.app.soundManager.resumeAll() : this.app.soundManager.pauseAll()
+        // Camera
+        if (this.app.camera)  {
+            cameraFolder.add(this.app.camera.controls, 'enabled', true).name('OrbitControls')
+            cameraFolder.add(this.app.camera, 'breathing', true).name('Breathing')
+            cameraFolder.add(this.app.camera, 'breathingAmplitude', 0, 2).name('Amplitude')
+            cameraFolder.add(this.app.camera, 'breathingSpeed', 0, 0.005).name('Vitesse')
+            cameraFolder.add({ 
+                trigger: () => {
+                    if (museum) {
+                        museum.playAnimations = !museum.playAnimations
+                        this.app.soundManager.isPaused ? this.app.soundManager.resumeAll() : this.app.soundManager.pauseAll()
+                    }
                 }
+            }, 'trigger').name('Play/Pause Animation')
+            cameraFolder.add(this.app.camera, 'switchCamera').name('Switch Camera')
+            if(museum){
+                cameraFolder.add(museum.mixer, 'timeScale', 0, 3).name('Anim speed')
             }
-        }, 'trigger').name('Play/Pause Animation')
-        cameraFolder.add(this.app.camera, 'switchCamera').name('Switch Camera')
-        if(museum){
-            cameraFolder.add(museum.mixer, 'timeScale', 0, 3).name('Anim speed')
+    
+            cameraFolder.close()
         }
 
-        cameraFolder.close()
-
+        // Shortcuts
         window.addEventListener('keydown', (event) => {
             event.preventDefault()
 
@@ -74,58 +78,55 @@ export default class Debug extends EventEmitter {
             }
         })
 
-        const postProcessingFolder = this.gui.addFolder('Post Processing')
-        postProcessingFolder.add(this.app, 'enablePostProcessing', true).name('Enable Post Processing')
-        postProcessingFolder.add(this.app.postProcessing.fisheyePass, 'enabled', true).name('Enable Fisheye Pass')
-        postProcessingFolder.add(this.app.postProcessing.fisheyePass.uniforms['strength'], 'value', 0.0, 4.0).name('Fisheye Strength')
-        postProcessingFolder.add(this.app.postProcessing.renderPixelatedPass, 'enabled', true).name('Enable Pixelated Pass')
-        postProcessingFolder.add(this.app.postProcessing.bloomPass, 'enabled', true).name('Enable Bloom Pass')
-        postProcessingFolder.add(this.app.postProcessing.bloomPass, 'threshold', 0.0, 1.0).name('Threshold')
-        postProcessingFolder.add(this.app.postProcessing.bloomPass, 'strength', 0.0, 3.0).name('Strength')
-        postProcessingFolder.add(this.app.postProcessing.bloomPass, 'radius', 0.0, 1.0).name('Radius')
-        postProcessingFolder.add(this.app.postProcessing.fxaaPass, 'enabled', true).name('Enable Fxaa Pass')
-        postProcessingFolder.add(this.app.postProcessing.renderPixelatedPass, 'normalEdgeStrength', 0, 1).name('Normal Edge Strength')
-        postProcessingFolder.add(this.app.postProcessing.renderPixelatedPass, 'depthEdgeStrength', 0, 1).name('Depth Edge Strength')
-        postProcessingFolder.add( this.app.postProcessing, 'pixelSize', 1, 50 ).onChange( () => {
-            this.app.postProcessing.renderPixelatedPass.setPixelSize( this.app.postProcessing.pixelSize )
-        })        
-        postProcessingFolder.add(this.app.postProcessing, 'triggerGlitch').name('Trigger Glitch')
-        postProcessingFolder.add(this.app.postProcessing, 'triggerBigGlitch').name('Trigger Big glitch')
-        postProcessingFolder.open()
+        // Post Processing
+        if (this.app.postProcessing) {
+            const postProcessingFolder = this.gui.addFolder('Post Processing')
+            postProcessingFolder.add(this.app, 'enablePostProcessing', true).name('Enable Post Processing')
+            postProcessingFolder.add(this.app.postProcessing.fisheyePass, 'enabled', true).name('Enable Fisheye Pass')
+            postProcessingFolder.add(this.app.postProcessing.fisheyePass.uniforms['strength'], 'value', 0.0, 4.0).name('Fisheye Strength')
+            postProcessingFolder.add(this.app.postProcessing.renderPixelatedPass, 'enabled', true).name('Enable Pixelated Pass')
+            postProcessingFolder.add(this.app.postProcessing.bloomPass, 'enabled', true).name('Enable Bloom Pass')
+            postProcessingFolder.add(this.app.postProcessing.bloomPass, 'threshold', 0.0, 1.0).name('Threshold')
+            postProcessingFolder.add(this.app.postProcessing.bloomPass, 'strength', 0.0, 3.0).name('Strength')
+            postProcessingFolder.add(this.app.postProcessing.bloomPass, 'radius', 0.0, 1.0).name('Radius')
+            postProcessingFolder.add(this.app.postProcessing.fxaaPass, 'enabled', true).name('Enable Fxaa Pass')
+            postProcessingFolder.add(this.app.postProcessing.renderPixelatedPass, 'normalEdgeStrength', 0, 1).name('Normal Edge Strength')
+            postProcessingFolder.add(this.app.postProcessing.renderPixelatedPass, 'depthEdgeStrength', 0, 1).name('Depth Edge Strength')
+            postProcessingFolder.add( this.app.postProcessing, 'pixelSize', 1, 50 ).onChange( () => {
+                this.app.postProcessing.renderPixelatedPass.setPixelSize( this.app.postProcessing.pixelSize )
+            })        
+            postProcessingFolder.add(this.app.postProcessing, 'triggerGlitch').name('Trigger Glitch')
+            postProcessingFolder.add(this.app.postProcessing, 'triggerBigGlitch').name('Trigger Big glitch')
+            postProcessingFolder.open()
+            postProcessingFolder.close()
+        }
 
-        // const skyFolder = this.gui.addFolder('Sky')
-        // const skyController = this.app.sky.effectController
-        // skyFolder.add(skyController, 'turbidity', 0.0, 20.0).onChange(() => this.app.sky.updateSky())
-        // skyFolder.add(skyController, 'rayleigh', 0.0, 4.0).onChange(() => this.app.sky.updateSky())
-        // skyFolder.add(skyController, 'mieCoefficient', 0.0, 0.1).onChange(() => this.app.sky.updateSky())
-        // skyFolder.add(skyController, 'mieDirectionalG', 0.0, 1.0).onChange(() => this.app.sky.updateSky())
-        // skyFolder.add(skyController, 'elevation', 0.0, 90.0).onChange(() => this.app.sky.updateSky())
-        // skyFolder.add(skyController, 'azimuth', -180.0, 180.0).onChange(() => this.app.sky.updateSky())
-        // skyFolder.add(skyController, 'exposure', 0.0, 2.0).onChange((v) => {
-        //     this.app.renderer.instance.toneMappingExposure = v
-        //     this.app.sky.updateSky()
-        // })
-        // skyFolder.close()
+        // Popins
+        if (this.app.eventsManager) {
+            const popinsFolder = this.gui.addFolder('Popins')
+            popinsFolder.add({
+                showInfoPopin: () => {
+                this.app.eventsManager.displayAlert("Ceci est une popin d'information",'information')
+                }
+            }, 'showInfoPopin').name('Afficher Info Popin')
+            popinsFolder.add({
+                showWarningPopin: () => {
+                    this.app.eventsManager.displayAlert("Ceci est une popin de warning", 'Attention')
+                }
+            }, 'showWarningPopin').name('Afficher Warning Popin')
+            popinsFolder.close()
+        }
 
-        const popinsFolder = this.gui.addFolder('Popins')
-        popinsFolder.add({
-            showInfoPopin: () => {
-            this.app.eventsManager.displayAlert("Ceci est une popin d'information",'information')
-            }
-        }, 'showInfoPopin').name('Afficher Info Popin')
-        popinsFolder.add({
-            showWarningPopin: () => {
-                this.app.eventsManager.displayAlert("Ceci est une popin de warning", 'Attention')
-            }
-        }, 'showWarningPopin').name('Afficher Warning Popin')
-
-        const windowFolder = this.gui.addFolder('Window')
-        windowFolder.add({
-            openWindow: () => {
-                this.app.eventsManager.openWindow('http://localhost:5173/confidential-documents')
-            }
-        }, 'openWindow').name('Ouvrir une nouvelle fenêtre')
-        windowFolder.close()
+        //Window folder
+        if (this.app.eventsManager) {
+            const windowFolder = this.gui.addFolder('Window')
+            windowFolder.add({
+                openWindow: () => {
+                    this.app.eventsManager.openWindow('http://localhost:5173/confidential-documents')
+                }
+            }, 'openWindow').name('Ouvrir une nouvelle fenêtre')
+            windowFolder.close()
+        }
 
         // Tunnel glass debug
         const glassFolder = this.gui.addFolder('Glass Material')
@@ -202,11 +203,38 @@ export default class Debug extends EventEmitter {
             glassFolder.add(glassParams, 'transparent').onChange((value) => {
                 glassObjects.forEach(obj => obj.material.transparent = value)
             })
+
+            const defaultGlassParams = JSON.parse(JSON.stringify(glassParams))
+            glassFolder.add({
+                reset: () => {
+                    Object.assign(glassParams, defaultGlassParams)
+                    glassObjects.forEach(obj => {
+                        obj.material.color.set(defaultGlassParams.color)
+                        obj.material.transmission = defaultGlassParams.transmission
+                        obj.material.thickness = defaultGlassParams.thickness
+                        obj.material.roughness = defaultGlassParams.roughness
+                        obj.material.metalness = defaultGlassParams.metalness
+                        obj.material.ior = defaultGlassParams.ior
+                        obj.material.clearcoat = defaultGlassParams.clearcoat
+                        obj.material.clearcoatRoughness = defaultGlassParams.clearcoatRoughness
+                        obj.material.specularIntensity = defaultGlassParams.specularIntensity
+                        obj.material.specularColor.set(defaultGlassParams.specularColor)
+                        obj.material.opacity = defaultGlassParams.opacity
+                        obj.material.transparent = defaultGlassParams.transparent
+                    })
+
+                    // Update GUI controllers
+                    for (let controller of glassFolder.controllers) {
+                        controller.updateDisplay()
+                    }
+                }
+            }, 'reset').name('Reset Parameters')
         
             glassFolder.open()
         }
         glassFolder.close()
 
+        // Caustic
         const causticFolder = this.gui.addFolder('Caustic Materials')
         const causticMaterials = []
         this.app.scene.traverse((child) => {
@@ -272,30 +300,36 @@ export default class Debug extends EventEmitter {
                 }
             }, 'reset').name('Reset Parameters')
 
-            causticFolder.open()
+        }
+        causticFolder.close()
+
+        // Sound Player
+        if (this.app.soundManager) {
+            const soundPlayerFolder = this.gui.addFolder('Sound Player')
+            soundPlayerFolder.add({
+                playSoundOnSpeakers: () => {
+                    this.app.soundManager.playSoundOnSpeakers('voiceLine 1', 'audio/voices/voice_test.m4a', {
+                        volume: 0.8,
+                        loop: false,
+                        maxDistance: 8,
+                        vttSrc: 'audio/subtitles/voice_test.vtt'
+                    })
+                }
+            }, 'playSoundOnSpeakers').name('Play Sound on speakers')
+            soundPlayerFolder.add(this.app.soundManager, 'stopAll').name('Stop All Sounds')
+            soundPlayerFolder.close()
         }
 
-        const soundPlayerFolder = this.gui.addFolder('Sound Player')
-        soundPlayerFolder.add({
-            playSoundOnSpeakers: () => {
-                this.app.soundManager.playSoundOnSpeakers('voiceLine 1', 'audio/voices/voice_test.m4a', {
-                    volume: 0.8,
-                    loop: false,
-                    maxDistance: 8,
-                    vttSrc: 'audio/subtitles/voice_test.vtt'
-                })
-            }
-        }, 'playSoundOnSpeakers').name('Play Sound on speakers')
-
-        soundPlayerFolder.add(this.app.soundManager, 'stopAll').name('Stop All Sounds')
-
-        const videoFolder = this.gui.addFolder('Video')
-
-        videoFolder.add({
-            playVideo: () => {
-                this.app.mediaManager.playMediaWithGlitch('error1');
-            }
-        }, 'playVideo').name('Jouer une vidéo')
+        if (this.app.mediaManager) {
+            const videoFolder = this.gui.addFolder('Video')
+    
+            videoFolder.add({
+                playVideo: () => {
+                    this.app.mediaManager.playMediaWithGlitch('error1');
+                }
+            }, 'playVideo').name('Jouer une vidéo')
+            videoFolder.close()
+        }
     }
 
     displayLightsHelpers() {

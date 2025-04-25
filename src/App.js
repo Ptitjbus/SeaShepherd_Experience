@@ -183,7 +183,6 @@ export default class App extends EventEmitter {
         })
 
         this.objectManager.addPointLight(new Vector3(-20, 6, 8), 0xf7c164, 30.0)
-        this.objectManager.addPointLight(new Vector3(-15, 3, 0), 0xf7c164, 30.0)
     }
 
     update(time) {

@@ -47,12 +47,9 @@ export default class ObjectManager {
                 if (child.material) {
                     if (applyCaustics && child.material && child.material.map && (child.name.toLowerCase().includes('rock') || child.name.toLowerCase().includes('sand'))) {
                         const baseMap = child.material.map
-                        child.material.dispose()
+                        // child.material.dispose()
                         // TODO : dispose toutes les textures du material s'il y en a (méthode d'itération)
                         child.material = this.createCustomShaderMaterial(baseMap)
-                        child.material.castShadow = true
-                        child.material.receiveShadow = true
-                        child.material.side = THREE.FrontSide
                         // activer le renderer
                     }
                 }
@@ -123,7 +120,7 @@ export default class ObjectManager {
         return new CustomShaderMaterial({
             baseMaterial: THREE.MeshPhysicalMaterial,
             metalness: 0,
-            roughness: 0.2,
+            roughness: 0.7,
             uniforms: {
                 baseMap: { value: baseMap },
                 causticsMap: { value: causticsTexture },
