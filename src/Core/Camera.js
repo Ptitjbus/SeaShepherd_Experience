@@ -111,8 +111,13 @@
                 this.controls.getDirection(direction)
             
                 // Déplacement horizontal
-                if (this.keysPressed.has('z')) velocity.add(new Vector3(direction.x, 0, direction.z))
-                if (this.keysPressed.has('s')) velocity.sub(new Vector3(direction.x, 0, direction.z))
+                if (this.app.debug.active){
+                    if (this.keysPressed.has('z')) velocity.add(direction)
+                    if (this.keysPressed.has('s')) velocity.sub(direction)
+                } else {
+                    if (this.keysPressed.has('z')) velocity.add(new Vector3(direction.x, 0, direction.z))
+                    if (this.keysPressed.has('s')) velocity.sub(new Vector3(direction.x, 0, direction.z))
+                }
             
                 const right = new Vector3().crossVectors(this.mainCamera.up, direction).normalize()
                 if (this.keysPressed.has('q')) velocity.add(right)
@@ -122,15 +127,17 @@
                 const objectsArray = Array.from(this.app.objectManager.objects.values()).map(storedObject => storedObject.object.scene);
                 const intersections = this.raycaster.intersectObjects(objectsArray, true);
 
-                if (intersections.length > 0 && intersections[0].distance < 1.5) {
+                if (intersections.length > 0 && intersections[0].distance < 1.5 && !this.app.debug.active) {
                     console.log('Collision détectée !')
                     velocity.set(0, 0, 0)
                 }
                     
             
                 // Déplacement vertical
-                // if (this.keysPressed.has('e')) velocity.y += 1
-                // if (this.keysPressed.has('a')) velocity.y -= 1
+                if (this.app.debug.active){
+                    if (this.keysPressed.has('e')) velocity.y += 1
+                    if (this.keysPressed.has('a')) velocity.y -= 1
+                }
 
                 const isSprinting = this.keysPressed.has('shift')
                 const speed = this.moveSpeed * (isSprinting ? this.sprintMultiplier : 1)

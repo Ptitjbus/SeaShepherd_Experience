@@ -90,6 +90,25 @@ body
     pointer-events: none !important;
 }
 
+#info {
+    color: white ;
+    font-family: monospace;
+    line-height: 24px;
+    font-size: 13px;
+    position: absolute;
+    top: 0px;
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    text-align: center;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    pointer-events: none;
+    z-index: 1;
+}
+
 /* Glitch texte homepage */
 
 .layers {

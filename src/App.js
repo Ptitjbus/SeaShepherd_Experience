@@ -192,7 +192,7 @@ export default class App extends EventEmitter {
 
     update(time) {
         if(this.playMuseumAnimation){
-            this.objectManager.update(time.delta)
+            this.objectManager.update(time)
         }
         this.ocean.update(time.delta)
         
