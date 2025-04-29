@@ -193,20 +193,22 @@ export default class App extends EventEmitter {
         this.objectManager.addPointLight(new Vector3(-20, 6, 8), 0xf7c164, 30.0)
 
         this.doorManager = new DoorManager(this.scene);
+        this.doorManager.addDoorPair(new Vector3(-2, 0, -2)); // Porte 1
+        this.doorManager.addDoorPair(new Vector3(2, 0, -2), 2, 4, 0x0000ff, 0xffff00); // Porte 2, couleurs différentes
 
         // Ouvre les portes au clic
         window.addEventListener('click', () => {
             this.doorManager.openDoors();
         });
 
-        // Ouvre les portes à la touche 'c'
+        // Interaction : ouvrir/fermer la porte la plus proche du joueur
         window.addEventListener('keydown', (event) => {
+            const playerPos = this.camera.mainCamera.position; // ou la position de ton contrôleur joueur
             if (event.key.toLowerCase() === 'v') {
-                this.doorManager.openDoorsAnimated();
+                this.doorManager.openNearestPair(playerPos);
             }
-            // Pour fermer avec 'v' par exemple :
             if (event.key.toLowerCase() === 'b') {
-                this.doorManager.closeDoorsAnimated();
+                this.doorManager.closeNearestPair(playerPos);
             }
         });
     }
@@ -224,7 +226,17 @@ export default class App extends EventEmitter {
         this.debug.update()
         this.soundManager.updateListener()
 
-        this.doorManager.update();
+        const playerPos = this.camera.mainCamera.position;
+        this.doorManager.update(playerPos);
+
+        // Affichage de l'aide contextuelle
+        const helpDiv = document.getElementById('door-help');
+        const nearest = this.doorManager.getNearestPairInRange(playerPos, 4);
+        if (nearest) {
+            helpDiv.style.display = 'block';
+        } else {
+            helpDiv.style.display = 'none';
+        }
 
         if (this.enablePostProcessing) {
             this.postProcessing.render(this.camera.mainCamera)
