@@ -73,7 +73,7 @@ export default class Debug extends EventEmitter {
             if (event.key === 'o') {
                 this.app.endExperience()
             }
-            if (event.key === 'p') {
+            if (event.key === 'i') {
                 this.app.eventsManager.displayAlert("Ceci est une popin d'information",'information')
             }
         })

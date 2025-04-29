@@ -14,6 +14,7 @@ import SoundManager from './Core/Managers/SoundManager.js'
 import MediaManager from './Core/Managers/MediaManager.js'
 import CustomEnvironment from './World/CustomEnvironment.js'
 import { ChoicesManager } from "./Core/Managers/ChoicesManager.js"
+import DoorManager from './Core/Managers/DoorManager.js'
 
 let myAppInstance = null
 
@@ -66,6 +67,8 @@ export default class App extends EventEmitter {
         this.mediaManager = null
 
         this.choicesManager = null
+
+        this.doorManager = null
 
         this.init()
     }
@@ -188,6 +191,24 @@ export default class App extends EventEmitter {
         })
 
         this.objectManager.addPointLight(new Vector3(-20, 6, 8), 0xf7c164, 30.0)
+
+        this.doorManager = new DoorManager(this.scene);
+
+        // Ouvre les portes au clic
+        window.addEventListener('click', () => {
+            this.doorManager.openDoors();
+        });
+
+        // Ouvre les portes à la touche 'c'
+        window.addEventListener('keydown', (event) => {
+            if (event.key.toLowerCase() === 'v') {
+                this.doorManager.openDoorsAnimated();
+            }
+            // Pour fermer avec 'v' par exemple :
+            if (event.key.toLowerCase() === 'b') {
+                this.doorManager.closeDoorsAnimated();
+            }
+        });
     }
 
     update(time) {
@@ -202,6 +223,8 @@ export default class App extends EventEmitter {
         
         this.debug.update()
         this.soundManager.updateListener()
+
+        this.doorManager.update();
 
         if (this.enablePostProcessing) {
             this.postProcessing.render(this.camera.mainCamera)
@@ -240,9 +263,6 @@ export default class App extends EventEmitter {
 
         this.postProcessing = null  
 
-        this.gui = null
-        
-        this.scene = null
 
         this.camera.destroy()
         this.camera = null
