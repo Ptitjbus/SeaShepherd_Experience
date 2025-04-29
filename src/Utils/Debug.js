@@ -4,7 +4,6 @@ import GUI from 'lil-gui'
 import Stats from 'three/addons/libs/stats.module.js'
 import { Vector3, BufferGeometry, LineBasicMaterial, Line, AxesHelper,ArrowHelper, Quaternion, SphereGeometry, MeshBasicMaterial, Mesh, CanvasTexture, LinearFilter, SpriteMaterial, Sprite, PointLightHelper } from 'three'
 
-
 export default class Debug extends EventEmitter {
     constructor() {
         super()
@@ -129,111 +128,56 @@ export default class Debug extends EventEmitter {
             windowFolder.close()
         }
 
-        // Tunnel glass debug
-        const glassFolder = this.gui.addFolder('Glass Material')
-        const glassObjects = []
-        this.app.scene.traverse((child) => {
-            if (child.name.toLowerCase().includes('verre')) {
-                    glassObjects.push(child)
+        // Transmission Material (Glass Material Debugging)
+        const transmissionFolder = this.gui.addFolder('Transmission Material')
+
+        if (this.app.objectManager.meshTransmissionMaterial) {
+            const mat = this.app.objectManager.meshTransmissionMaterial
+
+            const defaultParams = {
+                thickness: mat.thickness,
+                _transmission: mat._transmission,
+                roughness: mat.roughness,
+                chromaticAberration: mat.chromaticAberration,
+                anisotropicBlur: mat.anisotropicBlur,
+                color: `#${mat.color.getHexString()}`,
+                specularIntensity: mat.specularIntensity,
             }
-        })
-        if (glassObjects.length > 0) {
-            const material = glassObjects[0].material
-            const glassParams = {
-                color: `#${material.color.getHexString()}`,
-                transmission: material.transmission,
-                thickness: material.thickness,
-                roughness: material.roughness,
-                metalness: material.metalness,
-                ior: material.ior,
-                clearcoat: material.clearcoat,
-                clearcoatRoughness: material.clearcoatRoughness,
-                specularIntensity: material.specularIntensity,
-                specularColor: `#${material.specularColor.getHexString()}`,
-                opacity: material.opacity,
-                transparent: material.transparent
-            }
-        
-            glassFolder.addColor(glassParams, 'color').onChange((value) => {
-                glassObjects.forEach(obj => obj.material.color.set(value))
-            })
-        
-            glassFolder.add(glassParams, 'transmission', 0, 1).onChange((value) => {
-                glassObjects.forEach(obj => obj.material.transmission = value)
-            })
-        
-            glassFolder.add(glassParams, 'thickness', 0, 10).onChange((value) => {
-                glassObjects.forEach(obj => obj.material.thickness = value)
-            })
-        
-            glassFolder.add(glassParams, 'roughness', 0, 1).onChange((value) => {
-                glassObjects.forEach(obj => obj.material.roughness = value)
-            })
-        
-            glassFolder.add(glassParams, 'metalness', 0, 1).onChange((value) => {
-                glassObjects.forEach(obj => obj.material.metalness = value)
-            })
-        
-            glassFolder.add(glassParams, 'ior', 1, 2.5).onChange((value) => {
-                glassObjects.forEach(obj => obj.material.ior = value)
-            })
-        
-            glassFolder.add(glassParams, 'clearcoat', 0, 1).onChange((value) => {
-                glassObjects.forEach(obj => obj.material.clearcoat = value)
-            })
-        
-            glassFolder.add(glassParams, 'clearcoatRoughness', 0, 1).onChange((value) => {
-                glassObjects.forEach(obj => obj.material.clearcoatRoughness = value)
-            })
-        
-            glassFolder.add(glassParams, 'specularIntensity', 0, 1).onChange((value) => {
-                glassObjects.forEach(obj => obj.material.specularIntensity = value)
-            })
-        
-            glassFolder.addColor(glassParams, 'specularColor').onChange((value) => {
-                glassObjects.forEach(obj => obj.material.specularColor.set(value))
-            })
-        
-            glassFolder.add(glassParams, 'opacity', 0, 1).onChange((value) => {
-                glassObjects.forEach(obj => {
-                    obj.material.opacity = value
-                    obj.material.transparent = value < 1
-                })
-            })
-        
-            glassFolder.add(glassParams, 'transparent').onChange((value) => {
-                glassObjects.forEach(obj => obj.material.transparent = value)
+
+            const params = { ...defaultParams }
+
+            transmissionFolder.add(params, 'thickness', 0, 5).onChange(value => mat.thickness = value).name('Thickness')
+            transmissionFolder.add(params, '_transmission', 0, 1).onChange(value => mat._transmission = value).name('Transmission')
+            transmissionFolder.add(params, 'roughness', 0, 1).onChange(value => mat.roughness = value).name('Roughness')
+            transmissionFolder.add(params, 'chromaticAberration', 0, 1).onChange(value => mat.chromaticAberration = value).name('Chromatic Aberration')
+            transmissionFolder.add(params, 'anisotropicBlur', 0, 1).onChange(value => mat.anisotropicBlur = value).name('Anisotropic Blur')
+            transmissionFolder.add(params, 'specularIntensity', 0, 1).onChange(value => mat.specularIntensity = value).name('Specular Intensity')
+            
+            transmissionFolder.addColor(params, 'color').onChange((value) => {
+                mat.color.set(value)
             })
 
-            const defaultGlassParams = JSON.parse(JSON.stringify(glassParams))
-            glassFolder.add({
+            transmissionFolder.add({
                 reset: () => {
-                    Object.assign(glassParams, defaultGlassParams)
-                    glassObjects.forEach(obj => {
-                        obj.material.color.set(defaultGlassParams.color)
-                        obj.material.transmission = defaultGlassParams.transmission
-                        obj.material.thickness = defaultGlassParams.thickness
-                        obj.material.roughness = defaultGlassParams.roughness
-                        obj.material.metalness = defaultGlassParams.metalness
-                        obj.material.ior = defaultGlassParams.ior
-                        obj.material.clearcoat = defaultGlassParams.clearcoat
-                        obj.material.clearcoatRoughness = defaultGlassParams.clearcoatRoughness
-                        obj.material.specularIntensity = defaultGlassParams.specularIntensity
-                        obj.material.specularColor.set(defaultGlassParams.specularColor)
-                        obj.material.opacity = defaultGlassParams.opacity
-                        obj.material.transparent = defaultGlassParams.transparent
-                    })
+                    // Remettre les valeurs par défaut
+                    Object.assign(params, defaultParams)
+                    mat.thickness = defaultParams.thickness
+                    mat._transmission = defaultParams._transmission
+                    mat.roughness = defaultParams.roughness
+                    mat.chromaticAberration = defaultParams.chromaticAberration
+                    mat.anisotropicBlur = defaultParams.anisotropicBlur
+                    mat.color.set(defaultParams.color)
+                    mat.specularIntensity = defaultParams.specularIntensity
 
-                    // Update GUI controllers
-                    for (let controller of glassFolder.controllers) {
+                    // Forcer la mise à jour des contrôleurs
+                    for (let controller of transmissionFolder.controllers) {
                         controller.updateDisplay()
                     }
                 }
             }, 'reset').name('Reset Parameters')
-        
-            glassFolder.open()
         }
-        glassFolder.close()
+
+        transmissionFolder.close()
 
         // Caustic
         const causticFolder = this.gui.addFolder('Caustic Materials')

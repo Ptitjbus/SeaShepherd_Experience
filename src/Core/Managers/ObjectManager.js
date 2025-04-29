@@ -2,12 +2,35 @@ import * as THREE from "three"
 import App from "../../App"
 import { CausticShader } from '../../Shaders/CausticShader.js'
 import { BlackWhiteShader } from '../../Shaders/BlackWhiteShader.js'
-import CustomShaderMaterial from 'three-custom-shader-material/vanilla';
+import CustomShaderMaterial from 'three-custom-shader-material/vanilla'
+import { MeshTransmissionMaterial, useFBO } from "@pmndrs/vanilla"
+import { disposeMaterial, disposeObject } from "../../Utils/Memory.js"
 
 export default class ObjectManager {
     constructor() {
         this.objects = new Map()
         this.app = new App()
+
+        this.meshTransmissionMaterial = new MeshTransmissionMaterial({
+            _transmission: 1,
+            thickness: 0.5,
+            roughness: 0,
+            chromaticAberration: 0.05,
+            anisotropicBlur: 0.1,
+            distortion: 0,
+            distortionScale: 0.5,
+            temporalDistortion: 0.0,
+            side: THREE.FrontSide,
+        })
+        this.meshTransmissionMaterial.specularIntensity = 0.05
+        this.meshTransmissionMaterial.color = new THREE.Color(0x9ec1f0)
+        this.meshTransmissionMaterial.envMap = this.app.environment.envMap
+
+        this.causticsTexture = new THREE.TextureLoader().load('/textures/caustic/caustic_detailled.jpg')
+        this.causticsTexture.wrapS = this.causticsTexture.wrapT = THREE.RepeatWrapping
+
+        this.transmissionMeshes = []
+        this.fboMain = useFBO(1024, 1024)
     }
 
     /**
@@ -24,7 +47,7 @@ export default class ObjectManager {
     add(name, position, options = {}) {
         const object = this.app.assetManager.getItem(name)
         const {
-            material,
+            material= null,
             castShadow = true,
             receiveShadow = true,
             applyCaustics = false
@@ -47,31 +70,18 @@ export default class ObjectManager {
                 if (child.material) {
                     if (applyCaustics && child.material && child.material.map && (child.name.toLowerCase().includes('rock') || child.name.toLowerCase().includes('sand'))) {
                         const baseMap = child.material.map
-                        // child.material.dispose()
-                        // TODO : dispose toutes les textures du material s'il y en a (méthode d'itération)
+                        disposeMaterial(child.material)
                         child.material = this.createCustomShaderMaterial(baseMap)
-                        // activer le renderer
                     }
-                }
 
-                if (child.name.toLowerCase().includes('verre')) {
-                    // changement de material
-                    child.material = new THREE.MeshPhysicalMaterial({
-                        envMap: this.app.environment.envMap,
-                        transmission: 1, // transmission rend le matériau transparent comme du verre
-                        thickness: 2.0, // épaisseur simulée pour la réfraction
-                        roughness: 0.05,
-                        metalness: 0,
-                        clearcoat: 0.05,
-                        clearcoatRoughness: 0,
-                        ior: 1.2, // index de réfraction
-                        specularIntensity: 0.1, // intensité de la réflexion spéculaire
-                        specularColor: new THREE.Color(0.4, 0.4, 1),
-                        color: new THREE.Color( 0x9ec1f0 ), // couleur blanche
-                        side: THREE.FrontSide // en option selon tes besoins
-                    })
-                    child.castShadow = true
-                    child.receiveShadow = true
+                    if (child.name.toLowerCase().includes('verre')) {
+                        disposeMaterial(child.material)
+                        child.material = this.meshTransmissionMaterial
+                        child.castShadow = true
+                        child.receiveShadow = true
+                        child.material.buffer = this.fboMain.texture
+                        this.transmissionMeshes.push(child)
+                    }
                 }
     
                 if (material) {
@@ -114,16 +124,13 @@ export default class ObjectManager {
     }
 
     createCustomShaderMaterial(baseMap){
-        const causticsTexture = new THREE.TextureLoader().load('/textures/caustic/caustic_detailled.jpg')
-        causticsTexture.wrapS = causticsTexture.wrapT = THREE.RepeatWrapping
-
         return new CustomShaderMaterial({
             baseMaterial: THREE.MeshPhysicalMaterial,
             metalness: 0,
             roughness: 0.7,
             uniforms: {
                 baseMap: { value: baseMap },
-                causticsMap: { value: causticsTexture },
+                causticsMap: { value: this.causticsTexture },
                 time: { value: 0 },
                 scale: { value: 0.05 },
                 intensity: { value: 0.5 },
@@ -165,28 +172,37 @@ export default class ObjectManager {
         return found
     }
 
-    update(delta) {
+    update(time) {
+        this.meshTransmissionMaterial.time = time * 0.001
         this.objects.forEach((object) => {
             // Mise à jour des animations (GLTF)
             if (object.mixer && object.playAnimations) {
-                object.mixer.update(delta)
+                object.mixer.update(time.delta)
             }
     
             // Mise à jour des shaders
             object.object.scene.traverse((child) => {
                 if (child.isMesh && child.material?.uniforms?.cameraPos) {
                     child.material.uniforms.cameraPos.value.copy(this.app.camera.mainCamera.position)
-                    child.material.uniforms.time.value += delta * 0.4
+                    child.material.uniforms.time.value += time.delta * 0.4
                 }
             })
         })
+        if (this.transmissionMeshes.length > 0 && this.meshTransmissionMaterial.buffer === this.fboMain.texture) {
+            this.app.renderer.instance.toneMapping = THREE.NoToneMapping
+            this.app.renderer.instance.setRenderTarget(this.fboMain)
+            this.app.renderer.instance.render(this.app.scene, this.app.camera.mainCamera)
+        }
     }
     
 
     destroy() {
         this.objects.forEach(({ object }) => {
-            // TODO : libérer mieux la référence
-            this.scene.remove(object)
+            disposeObject(object.scene)
+            this.app.scene.remove(object.scene)
+            object.mixer.stopAllAction();
+            object.mixer.uncacheRoot(object.scene);
+            object.mixer.uncacheClip(clip);
         })
         this.objects.clear()
     }
