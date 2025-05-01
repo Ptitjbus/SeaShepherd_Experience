@@ -1,0 +1,105 @@
+import * as CANNON from 'cannon-es'
+import App from '../../App'
+import { PointerLockControlsCannon } from '../PointerLockControlsCannon'
+
+let physicsManagerInstance = null
+
+export default class PhysicsManager {
+    constructor() {
+        if (physicsManagerInstance !== null) {
+            return physicsManagerInstance
+        }
+        physicsManagerInstance = this
+        this.app = new App()
+        
+        this.world = null
+        this.physicsMaterial = null
+        this.sphereBody = null
+        this.controls = null
+        this.timeStep = 1 / 60
+
+        this.bodies = []
+
+        this.initCannon()
+        this.initPointerLock()
+    }
+
+    initCannon() {
+        this.world = new CANNON.World()
+
+        // Tweak contact properties.
+        // Contact stiffness - use to make softer/harder contacts
+        this.world.defaultContactMaterial.contactEquationStiffness = 1e9
+
+        // Stabilization time in number of timesteps
+        this.world.defaultContactMaterial.contactEquationRelaxation = 4
+
+        const solver = new CANNON.GSSolver()
+        solver.iterations = 7
+        solver.tolerance = 0.1
+        this.world.solver = new CANNON.SplitSolver(solver)
+        // use this to test non-split solver
+        // world.solver = solver
+
+        this.world.gravity.set(0, -40, 0)
+
+        // Create a slippery material (friction coefficient = 0.0)
+        this.physicsMaterial = new CANNON.Material('physics')
+        const physics_physics = new CANNON.ContactMaterial(this.physicsMaterial, this.physicsMaterial, {
+            friction: 0.0,
+            restitution: 0.3,
+        })
+
+        // We must add the contact materials to the world
+        this.world.addContactMaterial(physics_physics)
+
+        // Create the user collision sphere
+        const radius = 1.3
+        const sphereShape = new CANNON.Sphere(radius)
+        this.sphereBody = new CANNON.Body({ mass: 5, material: this.physicsMaterial })
+        this.sphereBody.addShape(sphereShape)
+        this.sphereBody.position.set(0, 1, 0)
+        this.sphereBody.linearDamping = 0.2
+        this.world.addBody(this.sphereBody)
+
+        // Create the ground plane
+        const groundShape = new CANNON.Plane()
+        const groundBody = new CANNON.Body({ mass: 0, material: this.physicsMaterial })
+        groundBody.addShape(groundShape)
+        groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0)
+        this.world.addBody(groundBody)
+    }
+
+    initPointerLock() {
+        this.controls = new PointerLockControlsCannon(this.app.camera.mainCamera, this.sphereBody)
+        this.controls.canJump = false
+        this.app.scene.add(this.controls.getObject())
+
+        this.app.canvas.addEventListener('click', () => {
+            this.controls.lock()
+        })
+
+        this.controls.addEventListener('lock', () => {
+            this.controls.enabled = true
+        })
+
+        this.controls.addEventListener('unlock', () => {
+            this.controls.enabled = false
+        })
+      }
+
+    addBody(body) {
+        this.world.addBody(body)
+        this.bodies.push(body)
+    }
+
+    removeBody(body) {
+        this.world.removeBody(body)
+        this.bodies = this.bodies.filter(b => b !== body)
+    }
+
+    update(deltaTime) {
+        this.world.step(this.timeStep, deltaTime)
+        this.controls.update(deltaTime)
+    }
+}

@@ -19,7 +19,7 @@ export default [
     {
         name: 'Museum',
         type: 'gltf',
-        path: '/models/glb/Museum_test_v14.glb',
+        path: '/models/glb/Museum_test_v18.glb',
         license: '',
         author: 'Kilian Rizzo',
         url: ''
