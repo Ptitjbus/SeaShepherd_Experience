@@ -38,7 +38,8 @@ export default class EventsManager extends EventEmitter {
                     position: fixed;
                     top: 50%;
                     left: 50%;
-                    transform: translate(-50%, -50%);
+                    /* Centrage + animation */
+                    transform: translate(-50%, -50%) scale(0.95);
                     border: 3px solid #ff2a2a;
                     box-shadow: 0 0 20px rgba(255, 0, 0, 0.5), 0 0 40px rgba(255, 0, 0, 0.2);
                     background-color: rgba(20, 0, 0, 0.9);
@@ -48,6 +49,15 @@ export default class EventsManager extends EventEmitter {
                     max-width: 450px;
                     font-family: 'Sans serif', monospace;
                     margin: 0;
+                    pointer-events: auto;
+                    opacity: 0;
+                    transition: opacity 0.4s cubic-bezier(.4,0,.2,1), transform 0.4s cubic-bezier(.4,0,.2,1);
+                    animation: pulse 2s infinite;
+                }
+                
+                #dialog-container dialog.popin-visible {
+                    opacity: 1;
+                    transform: translate(-50%, -50%) scale(1);
                     pointer-events: auto;
                 }
                 
@@ -102,6 +112,16 @@ export default class EventsManager extends EventEmitter {
                 #dialog-container dialog {
                     animation: pulse 2s infinite;
                 }
+                
+                #dialog-container dialog.popin-visible {
+                    opacity: 1;
+                    transition: opacity 0.4s ease;
+                }
+                
+                #dialog-container dialog:not(.popin-visible) {
+                    opacity: 0;
+                    transition: opacity 0.4s ease;
+                }
             `
             document.head.appendChild(style)
         }
@@ -110,46 +130,55 @@ export default class EventsManager extends EventEmitter {
     /**
      * Affiche une alerte via un élément dialog HTML5
      * @param {string} message - Message à afficher
+     * @param {string} type - Type d'alerte (par défaut 'information')
      * @param {string} title - Titre optionnel
      * @returns {string} - L'ID de la dialog créée
      */
-    displayAlert(message = null, title = null) {
+    displayAlert(message = null, type = 'information', title = null) {
         const displayMessage = message || 'Information'
         const displayTitle = title || 'Message'
-        
+
         // Créer la dialog
         const dialog = document.createElement('dialog')
         const dialogId = `dialog-${++this.dialogCounter}`
         dialog.id = dialogId
-        
+
         // Construire le contenu
         dialog.innerHTML = `
             <h3>${displayTitle}</h3>
             <div class="dialog-content">${displayMessage}</div>
             <button type="button" data-action="close">OK</button>
         `
-        
+
         // Ajouter au conteneur
         this.dialogContainer.appendChild(dialog)
-        
+
+        // Ouvrir la dialog AVANT d'ajouter la classe (pour que la transition fonctionne)
+        dialog.showModal()
+
+        // Forcer le repaint avant d'ajouter la classe pour l'animation d'apparition
+        requestAnimationFrame(() => {
+            dialog.classList.add('popin-visible')
+        })
+
         // Gérer la fermeture
         const closeButton = dialog.querySelector('button[data-action="close"]')
         closeButton.addEventListener('click', () => {
-            dialog.close()
-            dialog.remove()
-            this.activeDialogs = this.activeDialogs.filter(d => d.id !== dialogId)
-            this.trigger('dialogClosed', dialogId)
+            dialog.classList.remove('popin-visible')
+            setTimeout(() => {
+                dialog.close()
+                dialog.remove()
+                this.activeDialogs = this.activeDialogs.filter(d => d.id !== dialogId)
+                this.trigger('dialogClosed', dialogId)
+            }, 400) // doit correspondre à la durée du transition CSS
         })
-        
-        // Ouvrir la dialog
-        dialog.showModal()
-        
+
         // Conserver une référence
         this.activeDialogs.push({
             id: dialogId,
             element: dialog
         })
-        
+
         this.trigger('dialogShown', dialogId)
         return dialogId
     }
