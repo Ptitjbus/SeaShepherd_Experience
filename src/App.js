@@ -15,6 +15,7 @@ import MediaManager from './Core/Managers/MediaManager.js'
 import CustomEnvironment from './World/CustomEnvironment.js'
 import { ChoicesManager } from "./Core/Managers/ChoicesManager.js"
 import DoorManager from './Core/Managers/DoorManager.js'
+import PhysicsManager from "./Core/Managers/PhysicsManager.js"
 
 let myAppInstance = null
 
@@ -70,42 +71,42 @@ export default class App extends EventEmitter {
 
         this.doorManager = null
 
+        this.physicsManager = null
+
         this.init()
     }
 
     async init() {
-        this.renderer = new Renderer();
-        this.camera = new Camera();
-
-        // Créer la scène dès le début
-        this.scene = new Scene();
+        this.renderer = new Renderer()
+        this.camera = new Camera()
+        this.scene = new Scene()
+        this.debug = new Debug()
+        this.physicsManager = new PhysicsManager()
         
-        this.animationLoop = new AnimationLoop();
-        this.updateBound = this.update.bind(this);
-        this.animationLoop.on('update', this.updateBound);
+        this.animationLoop = new AnimationLoop()
+        this.updateBound = this.update.bind(this)
+        this.animationLoop.on('update', this.updateBound)
 
-        this.assetManager = new AssetManager();
-        this.assetsLoadCompleteHandlerBound = this.assetsLoadCompleteHandler.bind(this);
-        this.assetManager.on('ready', this.assetsLoadCompleteHandlerBound);
-        this.assetManager.load();
+        this.assetManager = new AssetManager()
+        this.assetsLoadCompleteHandlerBound = this.assetsLoadCompleteHandler.bind(this)
+        this.assetManager.on('ready', this.assetsLoadCompleteHandlerBound)
+        this.assetManager.load()
 
-        this.eventsManager = new EventsManager();
+        this.eventsManager = new EventsManager()
 
         this.eventsManager.on('popinShown', (popinId) => {
-            console.log(`Popin "${popinId}" affichée`);
-        });
+            console.log(`Popin "${popinId}" affichée`)
+        })
 
-        this.mediaManager = new MediaManager();
-        
-        // Initialiser le MediaManager avec la scène AVANT de précharger les médias
-        this.mediaManager.init(this.scene);
+        this.mediaManager = new MediaManager()
+        this.mediaManager.init(this.scene)
 
-        this.choicesManager = new ChoicesManager();
+        this.choicesManager = new ChoicesManager()
         
         // Précharger les médias après avoir initialisé le MediaManager
-        await this.preloadMedias();
+        await this.preloadMedias()
         
-        this.setupUI();
+        this.setupUI()
     }
 
     setupUI() {
@@ -163,18 +164,15 @@ export default class App extends EventEmitter {
     assetsLoadCompleteHandler() {
         this.initScene()
         this.postProcessing = new PostProcessingManager(this.renderer.instance, this.scene, this.camera.mainCamera)
-        
         this.mediaManager.init(this.scene)
         this.mediaManager.connectToPostProcessingManager(this.postProcessing)
 
         this.animationLoop.start()
-        this.debug = new Debug()
+        this.debug.init()
         this.debug.showAnimationClipLine(this.assetManager.getItem('Museum'))
     }
 
     initScene() {
-        this.scene = new Scene()
-        this.camera.initControls()
         this.environment = new CustomEnvironment(this.scene, this.renderer.instance, '/hdri/ocan_sky.exr')
         this.ocean = new Ocean(this.scene, this.renderer.instance)
         this.objectManager = new ObjectManager()
@@ -192,59 +190,38 @@ export default class App extends EventEmitter {
 
         this.objectManager.addPointLight(new Vector3(-20, 6, 8), 0xf7c164, 30.0)
 
-        this.doorManager = new DoorManager(this.scene);
-        this.doorManager.addDoorPair(new Vector3(-2, 0, -2)); // Porte 1
-        this.doorManager.addDoorPair(new Vector3(2, 0, -2), 2, 4, 0x0000ff, 0xffff00); // Porte 2, couleurs différentes
-
-        // Ouvre les portes au clic
-        window.addEventListener('click', () => {
-            this.doorManager.openDoors();
-        });
+        this.doorManager = new DoorManager(this.scene)
+        this.doorManager.addDoorPair(new Vector3(-2, 0, -2)) // Porte 1
+        this.doorManager.addDoorPair(new Vector3(2, 0, -2), 2, 4, 0x0000ff, 0xffff00) // Porte 2, couleurs différentes
 
         // Interaction : ouvrir/fermer la porte la plus proche du joueur
         window.addEventListener('keydown', (event) => {
-            const playerPos = this.camera.mainCamera.position; // ou la position de ton contrôleur joueur
+            const playerPos = this.physicsManager.sphereBody.position // ou la position de ton contrôleur joueur
             if (event.key.toLowerCase() === 'v') {
-                this.doorManager.openNearestPair(playerPos);
+                this.doorManager.openNearestPair(playerPos)
             }
             if (event.key.toLowerCase() === 'b') {
-                this.doorManager.closeNearestPair(playerPos);
+                this.doorManager.closeNearestPair(playerPos)
             }
-        });
+        })
     }
 
     update(time) {
-        if(this.playMuseumAnimation){
-            this.objectManager.update(time)
-        }
+        if(this.playMuseumAnimation) this.objectManager.update(time)
+        if (this.mediaManager) this.mediaManager.update(this.camera.mainCamera)
+        if (this.soundManager) this.soundManager.updateListener()
+        if (this.physicsManager) this.physicsManager.update(time.delta)
+
+        if (this.doorManager) this.doorManager.update()
+
         this.ocean.update(time.delta)
-        
-        if (this.mediaManager) {
-            this.mediaManager.update(this.camera.mainCamera)
-        }
-        
         this.debug.update()
-        this.soundManager.updateListener()
-
-        const playerPos = this.camera.mainCamera.position;
-        this.doorManager.update(playerPos);
-
-        // Affichage de l'aide contextuelle
-        const helpDiv = document.getElementById('door-help');
-        const nearest = this.doorManager.getNearestPairInRange(playerPos, 4);
-        if (nearest) {
-            helpDiv.style.display = 'block';
-        } else {
-            helpDiv.style.display = 'none';
-        }
 
         if (this.enablePostProcessing) {
             this.postProcessing.render(this.camera.mainCamera)
         } else {
             this.renderer.instance.render(this.scene, this.camera.mainCamera)
         }
-
-        this.debug.updateStats()
     }
 
     destroy() {
@@ -329,6 +306,6 @@ export default class App extends EventEmitter {
                 muted: false,
                 duration: 2000 // en ms
             }
-        });
+        })
     }
 }
