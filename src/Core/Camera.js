@@ -1,7 +1,6 @@
-    import { PerspectiveCamera, Vector3, Raycaster } from "three"
-    import EventEmitter from "../Utils/EventEmitter"
-    import App from "../App"
-    import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js'
+import { PerspectiveCamera, Vector3, Raycaster } from "three"
+import EventEmitter from "../Utils/EventEmitter"
+import App from "../App"
 
 
     export default class Camera extends EventEmitter {
@@ -13,7 +12,6 @@
             this.mainCamera = null
 
             this.perspective = null
-            this.controls = null
 
             this.resizeHandlerBound = this.resizeHandler.bind(this)
             this.animation = this.animate.bind(this)
@@ -39,8 +37,7 @@
 
         async init() {
             this.perspective = new PerspectiveCamera(70, this.app.canvasSize.aspect, 0.1, 500)
-            this.perspective.position.set(-20, 2, 0)
-            this.perspective.rotation.set(0, 90, 0)
+            this.perspective.position.set(0, this.initialY, 0)
 
             this.mainCamera = this.perspective
             this.allCameras.push(this.perspective)
@@ -48,38 +45,6 @@
 
             this.animate()
         }
-
-        initControls() {
-            this.controls = new PointerLockControls(this.perspective, this.app.canvas)
-        
-            document.addEventListener('pointerlockchange', () => {
-                this.isPointerLocked = document.pointerLockElement === this.app.canvas
-            })
-                
-            this.app.canvas.addEventListener('mousedown', (e) => {
-                if (!this.isPointerLocked) {
-                    this.app.canvas.requestPointerLock()
-                }
-            })
-        
-            // document.addEventListener('mouseup', () => {
-            //     if (this.isPointerLocked) {
-            //         document.exitPointerLock()
-            //     }
-            // })
-
-            document.addEventListener('keydown', (e) => {
-                this.keysPressed.add(e.key.toLowerCase())
-            })
-            
-            document.addEventListener('keyup', (e) => {
-                this.keysPressed.delete(e.key.toLowerCase())
-            })
-        
-            // Optionnel : bloquer le clic droit
-            this.app.canvas.addEventListener('contextmenu', (e) => e.preventDefault())
-        }
-        
 
         resizeHandler(data) {
             const {aspect} = data
@@ -94,6 +59,13 @@
 
             // Si la caméra vient d'un modèle et a une matrice appliquée, force l'update
             this.mainCamera.updateMatrixWorld(true)
+            if (!this.app.physicsManager) return
+            
+            if (index === 0 ) {
+                this.app.physicsManager.controls.enabled = true
+            } else {
+                this.app.physicsManager.controls.enabled = false
+            }
         }
 
         animate() {
@@ -104,48 +76,6 @@
                 this.mainCamera.position.y += breathingOffset
             }
 
-            if (this.isPointerLocked) {
-                const direction = new Vector3()
-                const velocity = new Vector3()
-            
-                this.controls.getDirection(direction)
-            
-                // Déplacement horizontal
-                if (this.app.debug.active){
-                    if (this.keysPressed.has('z')) velocity.add(direction)
-                    if (this.keysPressed.has('s')) velocity.sub(direction)
-                } else {
-                    if (this.keysPressed.has('z')) velocity.add(new Vector3(direction.x, 0, direction.z))
-                    if (this.keysPressed.has('s')) velocity.sub(new Vector3(direction.x, 0, direction.z))
-                }
-            
-                const right = new Vector3().crossVectors(this.mainCamera.up, direction).normalize()
-                if (this.keysPressed.has('q')) velocity.add(right)
-                if (this.keysPressed.has('d')) velocity.sub(right)
-
-                this.raycaster.set(this.mainCamera.position, new Vector3(direction.x, 0, direction.z).normalize());
-                const objectsArray = Array.from(this.app.objectManager.objects.values()).map(storedObject => storedObject.object.scene);
-                const intersections = this.raycaster.intersectObjects(objectsArray, true);
-
-                if (intersections.length > 0 && intersections[0].distance < 1.5 && !this.app.debug.active) {
-                    console.log('Collision détectée !')
-                    velocity.set(0, 0, 0)
-                }
-                    
-            
-                // Déplacement vertical
-                if (this.app.debug.active){
-                    if (this.keysPressed.has('e')) velocity.y += 1
-                    if (this.keysPressed.has('a')) velocity.y -= 1
-                }
-
-                const isSprinting = this.keysPressed.has('shift')
-                const speed = this.moveSpeed * (isSprinting ? this.sprintMultiplier : 1)
-
-                velocity.normalize().multiplyScalar(speed)
-                this.perspective.position.add(velocity)
-            }
-
             requestAnimationFrame(this.animation)
         }
         
@@ -154,7 +84,6 @@
             this.app.canvasSize.off('resize')
 
             this.mainCamera = null
-            this.controls = null
             this.breathing = null
 
             this.resizeHandlerBound = null
