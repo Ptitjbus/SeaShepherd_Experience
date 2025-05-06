@@ -64,7 +64,7 @@ export class ChoicesManager {
             callback(choiceIndex);
         }
         
-        // Emit event - Make sure to use the correct method name from your EventEmitter class
+        // Emit event
         this.eventEmitter.trigger('choice', choiceIndex);
         
         // Remove all buttons from container to prevent triggering them again
@@ -84,6 +84,12 @@ export class ChoicesManager {
             this.container = document.createElement('div');
             this.container.classList.add('choices-container');
             this.container.style.display = 'none'; // Caché par défaut
+        }
+
+        // === Remettre le pointer lock ===
+        const canvas = document.querySelector('canvas');
+        if (canvas && typeof canvas.requestPointerLock === 'function') {
+            canvas.requestPointerLock();
         }
     }
     
@@ -144,6 +150,11 @@ export class ChoicesManager {
      */
     show() {
         this.container.style.display = 'flex';
+
+        // Forcer la sortie du pointer lock si actif
+        if (document.pointerLockElement) {
+            document.exitPointerLock();
+        }
     }
     
     /**
