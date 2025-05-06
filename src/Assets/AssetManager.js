@@ -16,6 +16,8 @@ import App from '../App'
 
 import gsap from 'gsap'
 
+import VideoManager from '../Core/Managers/VideoManager.js';
+
 export default class AssetManager extends EventEmitter {
     constructor() {
         super()
@@ -30,6 +32,11 @@ export default class AssetManager extends EventEmitter {
         this.loadedCount = 0
 
         this.loadingComplete = false
+        
+        // Create a VideoManager instance
+        this.videoManager = new VideoManager()
+        this.videoReadyHandlerBound = this.videoReadyHandler.bind(this)
+        this.videoManager.on('ready', this.videoReadyHandlerBound)
 
         this.init()
     }
@@ -37,7 +44,8 @@ export default class AssetManager extends EventEmitter {
     init() {
         this.items = {}
 
-        this.initProgressBar()
+        // Replace initProgressBar with initVideoLoader
+        this.initVideoLoader()
 
         this.loaders = {}
         
@@ -46,78 +54,41 @@ export default class AssetManager extends EventEmitter {
         this.loaders.exr = new EXRLoader(this.loadingManager)
         this.loaders.hdr = new RGBELoader(this.loadingManager)
 
+        // Initialisation correcte du DRACOLoader
+        const dracoLoader = new DRACOLoader()
+        dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.5/')
+        
         this.loaders.fbx = new FBXLoader(this.loadingManager)
         this.loaders.gltf = new GLTFLoader(this.loadingManager)
-        
-        const dracoLoader = new DRACOLoader()
-        dracoLoader.setDecoderPath('/draco/')
-        this.loaders.gltf.setDRACOLoader(dracoLoader)
+        this.loaders.gltf.setDRACOLoader(dracoLoader) // Attacher DRACOLoader au GLTFLoader
     }
 
-    initProgressBar() {
-        const overlayGeometry = new THREE.PlaneGeometry(2, 2, 1, 1)
-        const overlayMaterial = new THREE.ShaderMaterial({
-            transparent: true,
-            vertexShader: `
-                void main() {
-                    gl_Position = vec4(position, 1.);
-                }
-            `,
-                
-            fragmentShader: `
-                uniform float uAlpha;
-                void main() {
-                    gl_FragColor = vec4(0., 0., 0., uAlpha);
-                }
-            `,
-            uniforms: {
-                uAlpha : new THREE.Uniform(0)
-            }
-        })
-        
-        this.loadingOverlayMesh = new THREE.Mesh(overlayGeometry, overlayMaterial)
-        this.loadingOverlayMesh.name = 'LoadingOverlay'
-        this.loadingOverlayMesh.material.uniforms.uAlpha.value = 1.0
-        
-        this.loadingBarElement = document.querySelector('.loading-bar')
-        this.loadingBarElement.style.opacity = 1
-                
+    // Replace initProgressBar with this method
+    initVideoLoader() {
         this.loadingManager = new THREE.LoadingManager(
-            // Loaded
+            // Loaded callback
             () => {
                 this.loadingComplete = true
-
-                this.trigger('ready')
-
-                // Match 500ms 
-                gsap.delayedCall(0.5, () => {
-                    console.log(`AssetManager :: assets load complete`)
-    
-                    if (this.loadingBarElement !== null) {
-                        this.loadingBarElement.classList.add('ended')
-                        this.loadingBarElement.style.transform = ''
-                    }
-                    
-                    const tl = gsap.timeline({
-                        onComplete : () => {        
-                            this.app.scene.remove(this.loadingOverlayMesh)
-                            // Memory.releaseObject3D(this.loadingOverlayMesh)
-                            this.loadingOverlayMesh = null
-                        }
-                    })
-                    
-                    tl.to(this.loadingOverlayMesh.material.uniforms.uAlpha, {value: 0.0, ease: "power4.in", duration: 1})
-                })
+                this.videoManager.notifyAssetsLoaded()
             },
             
-            // Progress 
+            // Progress callback 
             (itemUrl, itemsLoaded, itemsTotal) => {
-                if (this.loadingBarElement !== null) {
-                    const progressRatio = itemsLoaded / itemsTotal
-                    this.loadingBarElement.style.transform = `scaleX(${progressRatio})`
-                }
+                const progressRatio = itemsLoaded / itemsTotal
+                this.videoManager.updateLoadingProgress(progressRatio)
             }
         )
+        
+        // Load intro video - utiliser une vidéo locale qui existe
+        this.videoManager.loadVideo('/videos/test.mp4')
+    }
+    
+    videoReadyHandler() {
+        console.log(`AssetManager :: assets load complete and video ended`)
+        // Donner un court délai pour s'assurer que tout est bien chargé avant de continuer
+        setTimeout(() => {
+            this.trigger('ready')
+        }, 100)
     }
 
     load() {
@@ -225,6 +196,13 @@ export default class AssetManager extends EventEmitter {
     }
 
     destroy() {
+        // Add this line to clean up VideoManager
+        if (this.videoManager) {
+            this.videoManager.off('ready', this.videoReadyHandlerBound)
+            this.videoManager.destroy()
+            this.videoManager = null
+        }
+        
         this.assets = null
 
         this.loadingBarElement = null
