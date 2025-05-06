@@ -56,7 +56,7 @@ export default class SoundManager {
                 const position = new Vector3()
                 const worldPosition = child.getWorldPosition(position)
 
-                this.app.debug.createHelper(child, this.app.scene, worldPosition)
+                this.app.debug.createSpeakerHelper(child, this.app.scene, worldPosition)
 
                 // Stocker les haut-parleurs pour une utilisation ultérieure
                 this.speakers.push({
