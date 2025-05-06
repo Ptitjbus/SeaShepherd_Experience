@@ -161,15 +161,21 @@ export default class App extends EventEmitter {
     }
 
     assetsLoadCompleteHandler() {
-        this.initScene()
-        this.postProcessing = new PostProcessingManager(this.renderer.instance, this.scene, this.camera.mainCamera)
+        this.initScene();
+        this.postProcessing = new PostProcessingManager(this.renderer.instance, this.scene, this.camera.mainCamera);
         
-        this.mediaManager.init(this.scene)
-        this.mediaManager.connectToPostProcessingManager(this.postProcessing)
+        this.mediaManager.init(this.scene);
+        this.mediaManager.connectToPostProcessingManager(this.postProcessing);
 
-        this.animationLoop.start()
-        this.debug = new Debug()
-        this.debug.showAnimationClipLine(this.assetManager.getItem('Museum'))
+        this.animationLoop.start();
+        this.debug = new Debug();
+        this.debug.showAnimationClipLine(this.assetManager.getItem('Museum'));
+        
+        // If we're using the video intro, make sure the canvas is visible and pointer controls are active
+        this.canvas.style.opacity = '1';
+        if (this.camera.controls) {
+            this.camera.app.canvas.requestPointerLock();
+        }
     }
 
     initScene() {
