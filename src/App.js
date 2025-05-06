@@ -161,20 +161,36 @@ export default class App extends EventEmitter {
     }
 
     assetsLoadCompleteHandler() {
-        this.initScene();
-        this.postProcessing = new PostProcessingManager(this.renderer.instance, this.scene, this.camera.mainCamera);
-        
-        this.mediaManager.init(this.scene);
-        this.mediaManager.connectToPostProcessingManager(this.postProcessing);
+        try {
+            // Assurez-vous que la scène est créée avant tout
+            if (!this.scene) {
+                this.scene = new THREE.Scene();
+            }
+            
+            this.initScene();
+            this.postProcessing = new PostProcessingManager(this.renderer.instance, this.scene, this.camera.mainCamera);
+            
+            this.mediaManager.init(this.scene);
+            this.mediaManager.connectToPostProcessingManager(this.postProcessing);
 
-        this.animationLoop.start();
-        this.debug = new Debug();
-        this.debug.showAnimationClipLine(this.assetManager.getItem('Museum'));
-        
-        // If we're using the video intro, make sure the canvas is visible and pointer controls are active
-        this.canvas.style.opacity = '1';
-        if (this.camera.controls) {
-            this.camera.app.canvas.requestPointerLock();
+            this.animationLoop.start();
+            this.debug = new Debug();
+            
+            // Vérification que l'élément Museum existe avant d'appeler showAnimationClipLine
+            const museumItem = this.assetManager.getItem('Museum');
+            if (museumItem) {
+                this.debug.showAnimationClipLine(museumItem);
+            }
+            
+            // Assurez-vous que le canvas est visible
+            this.canvas.style.opacity = '1';
+            
+            // Activer le contrôle de la caméra si disponible
+            if (this.camera && this.camera.controls) {
+                this.camera.app.canvas.requestPointerLock();
+            }
+        } catch (error) {
+            console.error('Erreur dans assetsLoadCompleteHandler:', error);
         }
     }
 

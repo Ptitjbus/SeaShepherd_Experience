@@ -54,8 +54,13 @@ export default class AssetManager extends EventEmitter {
         this.loaders.exr = new EXRLoader(this.loadingManager)
         this.loaders.hdr = new RGBELoader(this.loadingManager)
 
+        // Initialisation correcte du DRACOLoader
+        const dracoLoader = new DRACOLoader()
+        dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.5/')
+        
         this.loaders.fbx = new FBXLoader(this.loadingManager)
         this.loaders.gltf = new GLTFLoader(this.loadingManager)
+        this.loaders.gltf.setDRACOLoader(dracoLoader) // Attacher DRACOLoader au GLTFLoader
     }
 
     // Replace initProgressBar with this method
@@ -74,13 +79,16 @@ export default class AssetManager extends EventEmitter {
             }
         )
         
-        // Load intro video
+        // Load intro video - utiliser une vidéo locale qui existe
         this.videoManager.loadVideo('/videos/test.mp4')
     }
     
     videoReadyHandler() {
         console.log(`AssetManager :: assets load complete and video ended`)
-        this.trigger('ready')
+        // Donner un court délai pour s'assurer que tout est bien chargé avant de continuer
+        setTimeout(() => {
+            this.trigger('ready')
+        }, 100)
     }
 
     load() {
