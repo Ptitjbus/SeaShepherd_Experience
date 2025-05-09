@@ -6,6 +6,7 @@ import CustomShaderMaterial from 'three-custom-shader-material/vanilla'
 import { MeshTransmissionMaterial, useFBO } from "@pmndrs/vanilla"
 import { disposeMaterial, disposeObject } from "../../Utils/Memory.js"
 import * as CANNON from 'cannon-es'
+import BoidManager from "./boidManager.js"
 
 export default class ObjectManager {
     constructor() {
@@ -24,8 +25,8 @@ export default class ObjectManager {
             side: THREE.FrontSide,
         })
         this.meshTransmissionMaterial.specularIntensity = 0.05
-        this.meshTransmissionMaterial.color = new THREE.Color(0x9ec1f0)
-        this.meshTransmissionMaterial.envMap = this.app.environment.envMap
+        this.meshTransmissionMaterial.color = new THREE.Color(0x4175b9)
+        // this.meshTransmissionMaterial.envMap = this.app.environment.envMap
 
         this.causticsTexture = new THREE.TextureLoader().load('/textures/caustic/caustic_detailled.jpg')
         this.causticsTexture.wrapS = this.causticsTexture.wrapT = THREE.RepeatWrapping
@@ -33,8 +34,15 @@ export default class ObjectManager {
         this.transmissionMeshes = []
         this.fboMain = useFBO(1024, 1024)
 
+        this.shaderMeshes = []
+
         this.bodies = []
         this.collisionWireframes = []
+
+        this.obstacles = []
+
+        this.boidManagers = []
+        this.boidSpheres = []
     }
 
     /**
@@ -71,11 +79,9 @@ export default class ObjectManager {
             }
     
             if (child.isMesh) {
-                const body = this.createTrimeshBodyFromMesh(child)
-                console.log(child.name)
 
-                //remplacer !child.name.toLowerCase().includes('particle') && !(child.userData.tag && child.userData.tag == "wall") par (child.userData.tag && child.userData.tag == "wall") quand il y aura les tag
-                if (body && !child.name.toLowerCase().includes('particle') && !(child.userData.tag && child.userData.tag == "wall")) {
+                if (child.userData.collide) {
+                    const body = this.createTrimeshBodyFromMesh(child)
                     this.app.physicsManager.world.addBody(body)
                     this.bodies.push(body)
                     if (this.app.debug.active) {
@@ -83,17 +89,16 @@ export default class ObjectManager {
                     }
                 }
                 if (child.material) {
-                    if (applyCaustics && child.material && child.material.map && (child.userData.tag && child.userData.tag == "caustic")) {
+                    if (child.userData.with_caustic) {
                         const baseMap = child.material.map
                         disposeMaterial(child.material)
                         child.material = this.createCustomShaderMaterial(baseMap)
+                        this.shaderMeshes.push(child)
                     }
 
                     if (child.name.toLowerCase().includes('verre')) {
                         disposeMaterial(child.material)
                         child.material = this.meshTransmissionMaterial
-                        child.castShadow = true
-                        child.receiveShadow = true
                         child.material.buffer = this.fboMain.texture
                         this.transmissionMeshes.push(child)
                     }
@@ -221,11 +226,12 @@ export default class ObjectManager {
         const shape = new CANNON.Trimesh(verts, tris)
         const body = new CANNON.Body({ mass })
         body.addShape(shape)
+        body.allowSleep = true
+        body.sleepSpeedLimit = 0.1
+        body.sleepTimeLimit = 1.0
 
         return body
     }
-
-    
 
     createCustomShaderMaterial(baseMap){
         return new CustomShaderMaterial({
@@ -248,7 +254,38 @@ export default class ObjectManager {
             fragmentShader: CausticShader.fragmentShader,
         })
     }
+
+    addBoids(ammount, radius, position) {
+        const boidManager = new BoidManager(this.app.scene, ammount, this.obstacles, radius, position)
+
+        if (this.app.debug.active){
+            const sphereGeometry = new THREE.SphereGeometry(radius, 32, 32)
+            const sphereMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000, wireframe: true })
+            const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial)
+            sphere.position.set(position.x, position.y + radius, position.z) 
     
+            this.app.scene.add(sphere)
+            this.boidSpheres.push(sphere)
+        }
+
+        boidManager.boids.forEach(boid => {
+            this.app.scene.add(boid.mesh)
+        })
+
+        this.boidManagers.push(boidManager)
+    }
+
+    addPlane(position, size, color = 0xffffff) {
+        const geometry = new THREE.PlaneGeometry(size.width, size.height)
+        const material = new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide })
+        const plane = new THREE.Mesh(geometry, material)
+    
+        plane.position.set(position.x, position.y, position.z)
+        plane.rotation.x = -Math.PI / 2 // Par défaut, orienter le plan horizontalement
+
+        this.app.scene.add(plane)
+        return plane
+    }
 
     /**
      * Récupère les données d'un objet (object3D, mixer, cameras)
@@ -284,6 +321,12 @@ export default class ObjectManager {
             this.app.physicsManager.sphereBody.position.z
         )
 
+        if (this.boidManagers) {
+            this.boidManagers.forEach((manager) => {
+                manager.update(time.delta)
+            })
+        }
+
         this.objects.forEach((object) => {
             // Mise à jour des animations (GLTF)
             if (object.mixer && object.playAnimations) {
@@ -291,20 +334,27 @@ export default class ObjectManager {
             }
     
             // Mise à jour des shaders
-            object.object.scene.traverse((child) => {
+            this.shaderMeshes.forEach((child) => {
                 if (child.isMesh) {
                     if (child.material?.uniforms?.cameraPos) {
                         child.material.uniforms.cameraPos.value = this.app.physicsManager.sphereBody.position
+                    }
+    
+                    if (child.material?.uniforms?.time) {
                         child.material.uniforms.time.value += time.delta * 0.4
                     }
 
-                    if (child.name.toLowerCase().includes("gn_instance")) {
+                    if (child.material?.uniforms?.uTime) {
+                        child.material.uniforms.uTime.value += time.delta * 0.4
+                    }
+    
+                    if (child.userData.look_player) {
                         const childPos = new THREE.Vector3().setFromMatrixPosition(child.matrixWorld)
-
+    
                         const dx = targetPos.x - childPos.x
                         const dz = targetPos.z - childPos.z
                         const angle = Math.atan2(dx, dz)
-
+    
                         // Appliquer la rotation uniquement sur Y
                         child.rotation.z = -angle
                     }

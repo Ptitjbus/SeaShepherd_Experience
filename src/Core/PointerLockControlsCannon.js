@@ -13,7 +13,7 @@ class PointerLockControlsCannon extends THREE.EventDispatcher {
 
     // var eyeYPos = 2 // eyes are 2 meters above the ground
     this.velocityFactor = 0.5
-    this.speed = 3
+    this.speed = 1.5
     this.jumpVelocity = 20
 
     this.pitchObject = new THREE.Object3D()
@@ -236,33 +236,29 @@ class PointerLockControlsCannon extends THREE.EventDispatcher {
   }
 
   update(delta) {
-    if (this.enabled === false) {
-      return
-    }
+    if (!this.enabled) return
 
-    delta *= 1000
-    delta *= 0.1
+    delta = Math.max(0.016, Math.min(delta, 0.04))
+    const speedFactor = delta * this.speed * (this.sprint ? 2 : 1) * 500
 
     this.inputVelocity.set(0, 0, 0)
 
     if (this.moveForward) {
-      this.inputVelocity.z = -this.velocityFactor * delta
+      this.inputVelocity.z = -this.velocityFactor * speedFactor
     }
     if (this.moveBackward) {
-      this.inputVelocity.z = this.velocityFactor * delta
+      this.inputVelocity.z = this.velocityFactor * speedFactor
     }
 
     if (this.moveLeft) {
-      this.inputVelocity.x = -this.velocityFactor * delta
+      this.inputVelocity.x = -this.velocityFactor * speedFactor
     }
     if (this.moveRight) {
-      this.inputVelocity.x = this.velocityFactor * delta
+      this.inputVelocity.x = this.velocityFactor * speedFactor
     }
 
-    if (this.moveUp && this.flyMode) this.inputVelocity.y = this.velocityFactor * delta
-    if (this.moveDown && this.flyMode) this.inputVelocity.y = -this.velocityFactor * delta
-
-    const speedFactor = this.sprint ? 2 : 1
+    if (this.moveUp && this.flyMode) this.inputVelocity.y = this.velocityFactor * speedFactor
+    if (this.moveDown && this.flyMode) this.inputVelocity.y = -this.velocityFactor * speedFactor
     
     // Add to the object
     if (this.flyMode){
@@ -270,9 +266,9 @@ class PointerLockControlsCannon extends THREE.EventDispatcher {
       const yawQuaternion = new THREE.Quaternion().setFromEuler(yawEuler)
       this.inputVelocity.applyQuaternion(yawQuaternion)
 
-      this.velocity.x = this.inputVelocity.x * this.speed * 10 * speedFactor * 2
-      this.velocity.y = this.inputVelocity.y * this.speed * 10 * speedFactor * 2
-      this.velocity.z = this.inputVelocity.z * this.speed * 10 * speedFactor * 2
+      this.velocity.x = this.inputVelocity.x * 2
+      this.velocity.y = this.inputVelocity.y * 2
+      this.velocity.z = this.inputVelocity.z * 2
     } else {
       // Convert velocity to world coordinates
       this.euler.x = this.pitchObject.rotation.x
@@ -282,11 +278,11 @@ class PointerLockControlsCannon extends THREE.EventDispatcher {
       this.inputVelocity.applyQuaternion(this.quaternion)
 
       if (this.smoothWalk){
-        this.velocity.x += this.inputVelocity.x * speedFactor
-        this.velocity.z += this.inputVelocity.z * speedFactor
+        this.velocity.x += this.inputVelocity.x 
+        this.velocity.z += this.inputVelocity.z
       } else {
-        this.velocity.x = this.inputVelocity.x * this.speed * 10 * speedFactor
-        this.velocity.z = this.inputVelocity.z * this.speed * 10 * speedFactor
+        this.velocity.x = this.inputVelocity.x 
+        this.velocity.z = this.inputVelocity.z 
       }
     }
 

@@ -2,9 +2,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
 import { GlitchPass } from 'three/examples/jsm/postprocessing/GlitchPass.js'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
-import { RenderPixelatedPass } from 'three/addons/postprocessing/RenderPixelatedPass.js'
 import { FisheyeShader } from '../../Shaders/FisheyeShader.js'
-import { FXAAShader } from 'three/addons/shaders/FXAAShader.js'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
 import App from '../../App.js'
 import { Vector2 } from 'three'
@@ -17,12 +15,6 @@ export default class PostProcessingManager {
         this.app = new App()
 
         this.renderPass = new RenderPass(scene, camera)
-        this.pixelSize = 1.8
-        this.renderPixelatedPass = new RenderPixelatedPass( this.pixelSize, scene, camera )
-        this.renderPixelatedPass.normalEdgeStrength = 0.1
-        this.renderPixelatedPass.depthEdgeStrength = 0.1
-        this.renderPixelatedPass.enabled = false
-
         this.fisheyePass = new ShaderPass(FisheyeShader)
         this.fisheyePass.uniforms['strength'].value = 0.5
         this.glitchPass = new GlitchPass()
@@ -39,18 +31,13 @@ export default class PostProcessingManager {
             bloomParams.threshold
         )
 
-        this.fxaaPass = new ShaderPass( FXAAShader )
-        this.fxaaPass.enabled = false
-
         this.glitchPass.goWild = false
         this.glitchPass.randX = 0
 
         this.composer.addPass(this.renderPass)
-        // this.composer.addPass(this.renderPixelatedPass)
         this.composer.addPass(this.fisheyePass)
         this.composer.addPass(this.glitchPass)
         this.composer.addPass(this.bloomPass)
-        // this.composer.addPass(this.fxaaPass)
     }
 
     triggerGlitch() {
@@ -72,7 +59,6 @@ export default class PostProcessingManager {
 
     render(camera = this.camera) {
         this.renderPass.camera = camera
-        this.renderPixelatedPass.camera = camera
 
         this.composer.render()
     }

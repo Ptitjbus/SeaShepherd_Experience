@@ -45,7 +45,8 @@ export default class Debug extends EventEmitter {
         this.initTransmissionMaterialFolder()
         this.initCausticMaterialFolder()
         this.initSoundPlayerFolder()
-        this.initMediaPlayerFolder()               
+        this.initMediaPlayerFolder()  
+        this.initBoidsFolder()             
     }
 
     initStats() {
@@ -120,9 +121,15 @@ export default class Debug extends EventEmitter {
                 this.toogleCollisionsHelpers()
             }
         }, 'showCollisionsHelpers').name('Toogle collisions helpers')
+        debugFolder.add({
+            showBoidShperesHelpers: () => {
+                this.toogleBoidSpheressHelpers()
+            }
+        }, 'showBoidShperesHelpers').name('Toogle boids helpers')
     }
 
     initShortcutsFolder() {
+        const museum = this.app.objectManager.get("Museum")
         window.addEventListener('keydown', (event) => {
             event.preventDefault()
 
@@ -154,17 +161,10 @@ export default class Debug extends EventEmitter {
         postProcessingFolder.add(this.app, 'enablePostProcessing', true).name('Enable Post Processing')
         postProcessingFolder.add(this.app.postProcessing.fisheyePass, 'enabled', true).name('Enable Fisheye Pass')
         postProcessingFolder.add(this.app.postProcessing.fisheyePass.uniforms['strength'], 'value', 0.0, 4.0).name('Fisheye Strength')
-        postProcessingFolder.add(this.app.postProcessing.renderPixelatedPass, 'enabled', true).name('Enable Pixelated Pass')
         postProcessingFolder.add(this.app.postProcessing.bloomPass, 'enabled', true).name('Enable Bloom Pass')
         postProcessingFolder.add(this.app.postProcessing.bloomPass, 'threshold', 0.0, 1.0).name('Threshold')
         postProcessingFolder.add(this.app.postProcessing.bloomPass, 'strength', 0.0, 3.0).name('Strength')
         postProcessingFolder.add(this.app.postProcessing.bloomPass, 'radius', 0.0, 1.0).name('Radius')
-        postProcessingFolder.add(this.app.postProcessing.fxaaPass, 'enabled', true).name('Enable Fxaa Pass')
-        postProcessingFolder.add(this.app.postProcessing.renderPixelatedPass, 'normalEdgeStrength', 0, 1).name('Normal Edge Strength')
-        postProcessingFolder.add(this.app.postProcessing.renderPixelatedPass, 'depthEdgeStrength', 0, 1).name('Depth Edge Strength')
-        postProcessingFolder.add( this.app.postProcessing, 'pixelSize', 1, 50 ).onChange( () => {
-            this.app.postProcessing.renderPixelatedPass.setPixelSize( this.app.postProcessing.pixelSize )
-        })        
         postProcessingFolder.add(this.app.postProcessing, 'triggerGlitch').name('Trigger Glitch')
         postProcessingFolder.add(this.app.postProcessing, 'triggerBigGlitch').name('Trigger Big glitch')
         postProcessingFolder.open()
@@ -381,6 +381,70 @@ export default class Debug extends EventEmitter {
         videoFolder.close()
     }
 
+    initBoidsFolder() {
+        if (!this.app.objectManager.boidManagers || this.app.objectManager.boidManagers.length === 0) return
+    
+        const boidsFolder = this.gui.addFolder('Boids')
+    
+        // On prend les paramètres depuis le premier boid du premier manager comme référence
+        const firstBoid = this.app.objectManager.boidManagers[0].boids[0]
+    
+        const params = {
+            minSpeed: firstBoid.minSpeed,
+            maxSpeed: firstBoid.maxSpeed,
+            numSamplesForSmoothing: firstBoid.numSamplesForSmoothing,
+            cohesionWeight: firstBoid.cohesionWeight,
+            separationWeight: firstBoid.separationWeight,
+            alignmentWeight: firstBoid.alignmentWeight,
+            visionRange: firstBoid.visionRange
+        }
+    
+        boidsFolder.add(params, 'minSpeed', 0.001, 0.2).onChange((v) => {
+            this.app.objectManager.boidManagers.forEach(manager =>
+                manager.boids.forEach(b => b.minSpeed = v)
+            )
+        })
+    
+        boidsFolder.add(params, 'maxSpeed', 0.001, 0.2).onChange((v) => {
+            this.app.objectManager.boidManagers.forEach(manager =>
+                manager.boids.forEach(b => b.maxSpeed = v)
+            )
+        })
+    
+        boidsFolder.add(params, 'numSamplesForSmoothing', 0, 20, 1).onChange((v) => {
+            this.app.objectManager.boidManagers.forEach(manager =>
+                manager.boids.forEach(b => b.numSamplesForSmoothing = v)
+            )
+        })
+    
+        boidsFolder.add(params, 'cohesionWeight', 0, 2).onChange((v) => {
+            this.app.objectManager.boidManagers.forEach(manager =>
+                manager.boids.forEach(b => b.cohesionWeight = v)
+            )
+        })
+    
+        boidsFolder.add(params, 'separationWeight', 0, 2).onChange((v) => {
+            this.app.objectManager.boidManagers.forEach(manager =>
+                manager.boids.forEach(b => b.separationWeight = v)
+            )
+        })
+    
+        boidsFolder.add(params, 'alignmentWeight', 0, 2).onChange((v) => {
+            this.app.objectManager.boidManagers.forEach(manager =>
+                manager.boids.forEach(b => b.alignmentWeight = v)
+            )
+        })
+    
+        boidsFolder.add(params, 'visionRange', 0.1, 5).onChange((v) => {
+            this.app.objectManager.boidManagers.forEach(manager =>
+                manager.boids.forEach(b => b.visionRange = v)
+            )
+        })
+    
+        boidsFolder.close()
+    }
+    
+
     // **
     // ** HELPERS **
     // **
@@ -522,6 +586,12 @@ export default class Debug extends EventEmitter {
 
     toogleCollisionsHelpers() {
         this.app.objectManager.collisionWireframes.forEach((mesh) => {
+            mesh.visible = !mesh.visible
+        })
+    }
+
+    toogleBoidSpheressHelpers() {
+        this.app.objectManager.boidSpheres.forEach((mesh) => {
             mesh.visible = !mesh.visible
         })
     }

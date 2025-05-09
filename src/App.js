@@ -167,9 +167,9 @@ export default class App extends EventEmitter {
         this.mediaManager.init(this.scene)
         this.mediaManager.connectToPostProcessingManager(this.postProcessing)
 
-        this.animationLoop.start()
         this.debug.init()
         this.debug.showAnimationClipLine(this.assetManager.getItem('Museum'))
+        this.animationLoop.start()
     }
 
     initScene() {
@@ -182,13 +182,16 @@ export default class App extends EventEmitter {
         const museum = this.objectManager.add("Museum", new Vector3(0, 0, 0), {
             applyCaustics: true
         })
-        this.objectManager.add("Fishes", new Vector3(-20, 2, 6), {
-            material: goldMaterial,
-            castShadow: true,
-            receiveShadow: true
-        })
 
         this.objectManager.addPointLight(new Vector3(-20, 6, 8), 0xf7c164, 30.0)
+
+
+        this.objectManager.addBoids(50, 15, new Vector3(-51, 1.5, 18))
+        this.objectManager.addBoids(20, 10, new Vector3(-77, 1.5, -25))
+        this.objectManager.addBoids(10, 5, new Vector3(-37, 1.5, -8))
+        this.objectManager.addBoids(20, 10, new Vector3(-30, 1.5, -30))
+        this.objectManager.addBoids(20, 10, new Vector3(-30, 1.5, 25))
+        this.objectManager.addBoids(30, 15, new Vector3(-80, 1.5, 18))
 
         this.doorManager = new DoorManager(this.scene)
         this.doorManager.addDoorPair(new Vector3(-2, 0, -2)) // Porte 1
