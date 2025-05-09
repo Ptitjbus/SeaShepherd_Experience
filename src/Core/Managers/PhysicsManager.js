@@ -39,9 +39,9 @@ export default class PhysicsManager {
         solver.tolerance = 0.1
         this.world.solver = new CANNON.SplitSolver(solver)
         // use this to test non-split solver
-        // world.solver = solver
+        // this.world.solver = solver
 
-        this.world.gravity.set(0, -40, 0)
+        this.world.gravity.set(0, -50, 0)
 
         // Create a slippery material (friction coefficient = 0.0)
         this.physicsMaterial = new CANNON.Material('physics')
@@ -56,10 +56,10 @@ export default class PhysicsManager {
         // Create the user collision sphere
         const radius = 1.3
         const sphereShape = new CANNON.Sphere(radius)
-        this.sphereBody = new CANNON.Body({ mass: 5, material: this.physicsMaterial })
+        this.sphereBody = new CANNON.Body({ mass: 25, material: this.physicsMaterial })
         this.sphereBody.addShape(sphereShape)
         this.sphereBody.position.set(0, 1, 0)
-        this.sphereBody.linearDamping = 0.2
+        this.sphereBody.linearDamping = 0.9
         this.world.addBody(this.sphereBody)
 
         // Create the ground plane
@@ -86,7 +86,7 @@ export default class PhysicsManager {
         this.controls.addEventListener('unlock', () => {
             this.controls.enabled = false
         })
-      }
+    }
 
     addBody(body) {
         this.world.addBody(body)
@@ -99,7 +99,7 @@ export default class PhysicsManager {
     }
 
     update(deltaTime) {
-        this.world.step(this.timeStep, deltaTime)
+        this.world.step(this.timeStep, deltaTime, 3)
         this.controls.update(deltaTime)
     }
 }

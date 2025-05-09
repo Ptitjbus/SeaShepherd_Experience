@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-export const CausticShader = {
+export const DeformationShader = {
   uniforms: {
     baseMap: { value: null },
     causticsMap: { value: null },
@@ -8,10 +8,6 @@ export const CausticShader = {
     scale: { value: 0.1 },
     intensity: { value: 1.5 },
     causticTint: { value: new THREE.Color(0.2, 0.5, 1.0) },
-    fogColor: { value: new THREE.Color(0xe0e0e0) },
-    fogNear: { value: 10 },
-    fogFar: { value: 50 },
-    cameraPos: { value: new THREE.Vector3() }
   },
 
   vertexShader: `
@@ -33,11 +29,6 @@ export const CausticShader = {
     uniform float scale;
     uniform float intensity;
     uniform vec3 causticTint;
-    uniform vec3 cameraPos;
-
-    uniform vec3 fogColor;
-    uniform float fogNear;
-    uniform float fogFar;
 
     varying vec3 vWorldPosition;
     varying vec2 vUv;
@@ -48,10 +39,6 @@ export const CausticShader = {
       float c = texture2D(causticsMap, uv).r;
 
       vec3 finalColor = baseColor + causticTint * c * intensity * clamp(vWorldPosition.y + 1.0, 0.0, 3.0);
-
-      float fogDistance = length(vWorldPosition - cameraPos);
-      float fogFactor = smoothstep(fogNear, fogFar, fogDistance);
-      finalColor = mix(finalColor, fogColor, fogFactor);
 
       csm_DiffuseColor = vec4(finalColor, 1.0);
       // gl_FragColor = vec4(finalColor, 1.0);
