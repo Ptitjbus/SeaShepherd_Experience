@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import Boid from '../../World/boid';
+import Boid from '../../World/Boid';
 
 export default class BoidManager {
   /**
