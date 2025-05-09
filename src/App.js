@@ -76,7 +76,7 @@ export default class App extends EventEmitter {
         this.init()
     }
 
-    async init() {
+    init() {
         this.renderer = new Renderer()
         this.camera = new Camera()
         this.scene = new Scene()
@@ -104,9 +104,13 @@ export default class App extends EventEmitter {
         this.choicesManager = new ChoicesManager()
         
         // Précharger les médias après avoir initialisé le MediaManager
-        await this.preloadMedias()
+        this.initMadias()
         
         this.setupUI()
+    }
+
+    async initMadias(){
+        await this.preloadMedias()
     }
 
     setupUI() {
@@ -167,9 +171,10 @@ export default class App extends EventEmitter {
         this.mediaManager.init(this.scene)
         this.mediaManager.connectToPostProcessingManager(this.postProcessing)
 
+        this.canvas.style.opacity = '1'
+        this.animationLoop.start()
         this.debug.init()
         this.debug.showAnimationClipLine(this.assetManager.getItem('Museum'))
-        this.animationLoop.start()
     }
 
     initScene() {
