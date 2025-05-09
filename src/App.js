@@ -145,9 +145,7 @@ export default class App extends EventEmitter {
             })
         }
     
-        setTimeout(() => {
-            this.playMuseumAnimation = !this.playMuseumAnimation
-        }, 1500)
+        this.playMuseumAnimation = !this.playMuseumAnimation
     }
 
     endExperience() {
@@ -197,8 +195,9 @@ export default class App extends EventEmitter {
         this.objectManager.addBoids(20, 10, new Vector3(-30, 1.5, -30))
         this.objectManager.addBoids(20, 10, new Vector3(-30, 1.5, 25))
         this.objectManager.addBoids(30, 15, new Vector3(-80, 1.5, 18))
-        this.objectManager.addBoids(30, 15, new Vector3(-30, 5, 0))
+        this.objectManager.addBoids(30, 15, new Vector3(-30, 6, 0))
         this.objectManager.addBoids(30, 15, new Vector3(-70, 5, -5))
+        this.objectManager.addBoids(2, 6, new Vector3(-12, 1.5, -12))
 
         this.doorManager = new DoorManager(this.scene)
         this.doorManager.addDoorPair(new Vector3(-2, 0, -2)) // Porte 1

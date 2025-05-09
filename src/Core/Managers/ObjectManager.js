@@ -6,7 +6,7 @@ import CustomShaderMaterial from 'three-custom-shader-material/vanilla'
 import { MeshTransmissionMaterial, useFBO } from "@pmndrs/vanilla"
 import { disposeMaterial, disposeObject } from "../../Utils/Memory.js"
 import * as CANNON from 'cannon-es'
-import BoidManager from "./boidManager.js"
+import BoidManager from "./BoidManager.js"
 
 export default class ObjectManager {
     constructor() {
