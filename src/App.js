@@ -168,7 +168,6 @@ export default class App extends EventEmitter {
         this.postProcessing = new PostProcessingManager(this.renderer.instance, this.scene, this.camera.mainCamera)
         this.mediaManager.init(this.scene)
         this.mediaManager.connectToPostProcessingManager(this.postProcessing)
-
         this.canvas.style.opacity = '1'
         this.animationLoop.start()
         this.debug.init()

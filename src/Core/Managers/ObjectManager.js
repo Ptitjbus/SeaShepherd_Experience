@@ -1,6 +1,7 @@
 import * as THREE from "three"
 import App from "../../App"
 import { CausticShader } from '../../Shaders/CausticShader.js'
+import { LayerShader } from "../../Shaders/LayerShader.js"
 import { BlackWhiteShader } from '../../Shaders/BlackWhiteShader.js'
 import CustomShaderMaterial from 'three-custom-shader-material/vanilla'
 import { MeshTransmissionMaterial, useFBO } from "@pmndrs/vanilla"
@@ -79,7 +80,6 @@ export default class ObjectManager {
             }
     
             if (child.isMesh) {
-
                 if (child.userData.collide) {
                     const body = this.createTrimeshBodyFromMesh(child)
                     this.app.physicsManager.world.addBody(body)
@@ -101,6 +101,13 @@ export default class ObjectManager {
                         child.material = this.meshTransmissionMaterial
                         child.material.buffer = this.fboMain.texture
                         this.transmissionMeshes.push(child)
+                    }
+
+                    if (child.material.name.toLowerCase().includes("algue")) {
+                        const material = this.createShadeDeformationrMaterial(child.material.map)
+                        material.name = child.material.name
+                        child.material = material
+                        this.shaderMeshes.push(child)
                     }
                 }
     
@@ -255,6 +262,27 @@ export default class ObjectManager {
         })
     }
 
+    createShadeDeformationrMaterial(baseMap){
+        const uDisplacementTexture = new THREE.TextureLoader().load('/textures/shader/displacment-map.jpg');
+        uDisplacementTexture.wrapS = THREE.RepeatWrapping;
+        uDisplacementTexture.wrapT = THREE.RepeatWrapping;
+        uDisplacementTexture.minFilter = THREE.LinearFilter;
+        uDisplacementTexture.magFilter = THREE.LinearFilter;
+
+        const material = new THREE.ShaderMaterial({
+            uniforms: {
+              uTexture: { value: baseMap },
+              uDisplacement: { value: uDisplacementTexture },
+              uStrength: { value: 0.4 },
+              time: { value: 0 },
+            },
+            vertexShader: LayerShader.vertexShader,
+            fragmentShader: LayerShader.fragmentShader,
+            transparent: true,
+          });
+          return material
+    }
+
     addBoids(ammount, radius, position) {
         const boidManager = new BoidManager(this.app.scene, ammount, this.obstacles, radius, position)
 
@@ -348,7 +376,7 @@ export default class ObjectManager {
                         child.material.uniforms.uTime.value += time.delta * 0.4
                     }
     
-                    if (child.userData.look_player) {
+                    if (child.material.name.toLowerCase().includes("algue")) {
                         const childPos = new THREE.Vector3().setFromMatrixPosition(child.matrixWorld)
     
                         const dx = targetPos.x - childPos.x
