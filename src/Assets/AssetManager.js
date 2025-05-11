@@ -80,7 +80,7 @@ export default class AssetManager extends EventEmitter {
         )
         
         // Load intro video - utiliser une vidéo locale qui existe
-        this.videoManager.loadVideo('/videos/test.mp4')
+        this.videoManager.loadVideo('/videos/intro.mp4')
     }
     
     videoReadyHandler() {
