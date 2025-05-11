@@ -1,5 +1,5 @@
 import App from '../../App';
-import { PlaneGeometry, Mesh, MeshBasicMaterial, VideoTexture } from 'three';
+import { PlaneGeometry, Mesh, MeshBasicMaterial, VideoTexture, Vector3 } from 'three';
 
 export default class MediaManager {
     constructor() {
@@ -7,10 +7,37 @@ export default class MediaManager {
         this.mediaElements = new Map();
         this.currentMedia = null;
         this.postProcessingManager = null;
+        
+        // Ajout d'un drapeau pour suivre les mises à jour
+        this.needsUpdate = false;
+        
+        // Attacher la méthode update au contexte de cette instance
+        this.update = this.update.bind(this);
     }
 
     init(scene) {
         this.scene = scene;
+        
+        // Commencer la boucle d'animation dès l'initialisation
+        this.startUpdateLoop();
+    }
+    
+    startUpdateLoop() {
+        // Vérifier si l'animation loop existe ET contient une méthode addCallback
+        if (this.app && this.app.animationLoop && typeof this.app.animationLoop.addCallback === 'function') {
+            this.app.animationLoop.addCallback(this.update);
+        } else {
+            // Fallback si l'animationLoop n'est pas disponible ou n'a pas la méthode addCallback
+            console.warn("MediaManager: animationLoop.addCallback not found, using requestAnimationFrame fallback");
+            
+            const animate = () => {
+                if (this.currentMedia && this.needsUpdate) {
+                    this.updateMediaPosition();
+                }
+                requestAnimationFrame(animate);
+            };
+            animate();
+        }
     }
 
     connectToPostProcessingManager(postProcessingManager) {
@@ -57,13 +84,17 @@ export default class MediaManager {
                 const geometry = new PlaneGeometry(16, 9);
                 const material = new MeshBasicMaterial({ 
                     map: videoTexture,
-                    transparent: true
+                    transparent: true,
+                    opacity: 1.0,
+                    depthTest: false, // Désactiver le test de profondeur pour toujours afficher au-dessus
+                    depthWrite: false // Ne pas écrire dans le buffer de profondeur
                 });
                 
                 const mesh = new Mesh(geometry, material);
-                mesh.scale.set(0.2, 0.2, 0.2);
-                mesh.position.set(0, 1.5, -1); // Position in front of camera
+                mesh.scale.set(0.5, 0.5, 0.5); // Taille initiale
+                mesh.renderOrder = 999; // S'assurer qu'il est rendu en dernier
                 mesh.name = `media-${id}`;
+                mesh.frustumCulled = false; // Ne jamais cacher même hors du frustum
                 
                 mediaData.mesh = mesh;
                 this.scene.add(mesh);
@@ -74,17 +105,23 @@ export default class MediaManager {
 
             // Play the video
             element.currentTime = 0;
-            element.play();
+            element.play().catch(e => console.error("Failed to play video:", e));
             
             // Trigger the glitch effect
-            if (config.glitchType === 'big') {
-                this.postProcessingManager.triggerBigGlitch();
-            } else {
-                this.postProcessingManager.triggerGlitch();
+            if (this.postProcessingManager) {
+                if (config.glitchType === 'big') {
+                    this.postProcessingManager.triggerBigGlitch();
+                } else {
+                    this.postProcessingManager.triggerGlitch();
+                }
             }
 
             // Set as current media
             this.currentMedia = id;
+            this.needsUpdate = true;
+            
+            // Forcer une première mise à jour de position
+            this.updateMediaPosition();
 
             // Set a timeout to hide the media after the specified duration
             if (config.duration) {
@@ -110,6 +147,7 @@ export default class MediaManager {
 
         if (this.currentMedia === id) {
             this.currentMedia = null;
+            this.needsUpdate = false;
         }
     }
 
@@ -119,16 +157,39 @@ export default class MediaManager {
         });
     }
 
-    // This method positions media in relation to the camera
-    update(camera) {
-        if (this.currentMedia) {
-            const mediaData = this.mediaElements.get(this.currentMedia);
-            if (mediaData && mediaData.mesh) {
-                // Position the media in front of the camera
-                const direction = camera.getWorldDirection(camera.position.clone());
-                mediaData.mesh.position.copy(camera.position).add(direction.multiplyScalar(2));
-                mediaData.mesh.lookAt(camera.position);
+    // Méthode pour mettre à jour la position de la vidéo par rapport à la caméra
+    updateMediaPosition() {
+        const camera = this.app.camera;
+        if (!camera || !camera.mainCamera) return;
+        
+        const mediaData = this.mediaElements.get(this.currentMedia);
+        if (!mediaData || !mediaData.mesh) return;
+        
+        // Approche plus directe: attacher directement le mesh à la caméra comme enfant
+        if (mediaData.mesh.parent !== camera.mainCamera) {
+            // Retirer d'abord du parent actuel
+            if (mediaData.mesh.parent) {
+                mediaData.mesh.parent.remove(mediaData.mesh);
             }
+            
+            // Ajouter comme enfant direct de la caméra
+            camera.mainCamera.add(mediaData.mesh);
+            
+            // Positionner la vidéo plus loin pour qu'elle soit moins imposante
+            mediaData.mesh.position.set(0, 0, -0.3);
+            
+            // Réinitialiser la rotation locale
+            mediaData.mesh.rotation.set(0, 0, 0);
+            
+            // Définir une taille beaucoup plus petite
+            mediaData.mesh.scale.set(0.03, 0.03, 1);
+        }
+    }
+
+    // This method is called every frame to update media position
+    update() {
+        if (this.currentMedia && this.needsUpdate) {
+            this.updateMediaPosition();
         }
     }
 
@@ -138,6 +199,11 @@ export default class MediaManager {
     }
 
     destroy() {
+        // Arrêter la boucle d'animation
+        if (this.app && this.app.animationLoop) {
+            this.app.animationLoop.removeCallback(this.update);
+        }
+        
         this.stopAllMedia();
         
         this.mediaElements.forEach((mediaData) => {
@@ -145,6 +211,9 @@ export default class MediaManager {
                 this.scene.remove(mediaData.mesh);
                 mediaData.mesh.geometry.dispose();
                 mediaData.mesh.material.dispose();
+                if (mediaData.mesh.material.map) {
+                    mediaData.mesh.material.map.dispose();
+                }
             }
         });
         
