@@ -12,7 +12,7 @@ export default class DoorManager {
         this.helpDiv = document.getElementById('door-help')
     }
 
-    addDoorPair(position, width = 2, height = 4, colorLeft = 0xff0000, colorRight = 0x00ff00, canBeOpened = true) {
+    addDoorPair(position, width = 3, height = 5, colorLeft = 0x707070, colorRight = 0x707070, canBeOpened = true) {
         const pair = new DoorPair(this.scene, position, width, height, colorLeft, colorRight, true) // Sliding doors
         pair.setOpenable(canBeOpened); // Définir si la porte peut être ouverte
         this.doorPairs.push(pair)
@@ -21,7 +21,7 @@ export default class DoorManager {
 
     update() {
         const playerPosition = this.app.physicsManager.sphereBody.position
-        const nearest = this.getNearestPairInRange(playerPosition, 4)
+        const nearest = this.getNearestPairInRange(playerPosition, 7)
         
         if (nearest && nearest.isOpenable()) {
             this.helpDiv.style.display = 'none' // Masquer l'aide car ouverture automatique
