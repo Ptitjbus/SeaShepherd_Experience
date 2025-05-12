@@ -671,6 +671,63 @@ body
     transform: scale(1) translateY(0);
     pointer-events: auto;
 }
+/* ************ Style de boutons ************ */
+
+.choices-container {
+  font-family: 'Inter', sans-serif;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  gap: 60px; /* Espace entre les boutons */
+  min-width: 720px;
+}
+
+.choice-button {
+  padding: 12px 24px;
+  background-color: rgba(13, 14, 95, 0.50);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 32px;
+  cursor: pointer;
+  font-weight: bold;
+  text-transform: uppercase;
+  transition: background-color 0.3s;
+  position: relative;
+  min-width: 220px; /* Largeur fixe pour les boutons */
+  text-align: center;
+}
+
+.choice-button:hover {
+  background-color: rgba(13, 14, 95, 0.50);
+}
+
+.key-hint {
+  font-weight: lighter;
+  color: white;
+  padding: 5px 15px;
+  border-radius: 4px;
+  font-size: 18px;
+  text-align: center;
+  margin-bottom: 26px;
+}
+
+.key-letter {
+  font-weight: bold;
+  margin-left: 24px;
+  background-color: rgba(13, 14, 95, 0.33);
+  box-shadow: 1.5px 1.5px 0px 4px #60C2FF;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 4px;
+  font-size: 14px;
+}
 
 /* Media queries pour le responsive */
 @media (max-width: 768px) {

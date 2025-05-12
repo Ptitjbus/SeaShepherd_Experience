@@ -8,8 +8,6 @@ export default class DoorManager {
         this.scene = scene
         this.doorPairs = []
         this.app = new App()
-
-        this.helpDiv = document.getElementById('door-help')
     }
 
     addDoorPair(position, width = 3, height = 5, colorLeft = 0x707070, colorRight = 0x707070, canBeOpened = true) {
@@ -22,12 +20,6 @@ export default class DoorManager {
     update() {
         const playerPosition = this.app.physicsManager.sphereBody.position
         const nearest = this.getNearestPairInRange(playerPosition, 7)
-        
-        if (nearest && nearest.isOpenable()) {
-            this.helpDiv.style.display = 'none' // Masquer l'aide car ouverture automatique
-        } else {
-            this.helpDiv.style.display = 'none'
-        }
         
         // Mettre à jour toutes les paires de portes avec la position du joueur
         for (const pair of this.doorPairs) {
