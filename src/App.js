@@ -199,10 +199,20 @@ export default class App extends EventEmitter {
         this.objectManager.addBoids(2, 6, new Vector3(-12, 1.5, -12))
 
         this.doorManager = new DoorManager(this.scene)
-        this.doorManager.addDoorPair(new Vector3(-2, 0, -2)) // Porte 1
+         
+        // Porte 1
+        this.doorManager.addDoorPair(new Vector3(-8.01, 0, 0))
         this.doorManager.doorPairs[0].setRotation(Math.PI/2)
-        this.doorManager.doorPairs[0].setOpenable(false) // Désactiver l'ouverture de la porte 1
-        this.doorManager.addDoorPair(new Vector3(2, 0, -2), 2, 4, 0x0000ff, 0xffff00) // Porte 2, couleurs différentes
+        this.doorManager.doorPairs[0].setOpenable(true)
+
+        // Porte 2
+        this.doorManager.addDoorPair(new Vector3(-50.55, 0, -30.40))
+        this.doorManager.doorPairs[1].setRotation(0.11 * Math.PI / 180)
+        this.doorManager.doorPairs[1].setOpenable(true)
+
+        // Porte 3
+        this.doorManager.addDoorPair(new Vector3(-67.01, 0, 29))
+        this.doorManager.doorPairs[2].setOpenable(false)
 
         // Interaction : ouvrir/fermer la porte la plus proche du joueur
         window.addEventListener('keydown', (event) => {

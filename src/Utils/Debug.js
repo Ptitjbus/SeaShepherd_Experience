@@ -378,6 +378,31 @@ export default class Debug extends EventEmitter {
             if (event.key === 'm') {
                 this.app.physicsManager.controls.setFlyMode(!this.app.physicsManager.controls.flyMode)
             }
+
+            if(event.key === 'u'){
+                this.app.choicesManager.showChoices(
+                    {
+                        choice1: "Option A",
+                        choice2: "Option B"
+                    },
+                    (choiceIndex) => {
+                        if (choiceIndex === 1) {
+                            this.app.eventsManager.displayAlert("Vous avez choisi l'option A", 'information')
+
+                            this.app.mediaManager.playMediaWithGlitch('error1')
+                        } else {
+                            this.app.eventsManager.displayAlert("Vous avez choisi l'option B", 'information')
+
+                            this.app.soundManager.playSoundOnSpeakers('voiceLine 1', 'audio/voices/voice_test.m4a', {
+                                volume: 0.8,
+                                loop: false,
+                                maxDistance: 8,
+                                vttSrc: 'audio/subtitles/voice_test.vtt'
+                            })
+                        }
+                    }
+                )
+            }
         })
     }
 
