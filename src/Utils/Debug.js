@@ -2,7 +2,7 @@ import EventEmitter from './EventEmitter'
 import App from '../App'
 import GUI from 'lil-gui'
 import Stats from 'three/addons/libs/stats.module.js'
-import { Vector3, Color, BufferGeometry, LineBasicMaterial, Line, AxesHelper,ArrowHelper, Quaternion, SphereGeometry, MeshBasicMaterial, Mesh, CanvasTexture, LinearFilter, SpriteMaterial, Sprite, PointLightHelper } from 'three'
+import { Vector3, Color, BufferGeometry, LineBasicMaterial, Line, AxesHelper, ArrowHelper, Quaternion, SphereGeometry, MeshBasicMaterial, Mesh, CanvasTexture, LinearFilter, SpriteMaterial, Sprite, PointLightHelper, Euler } from 'three'
 
 export default class Debug extends EventEmitter {
     constructor() {
@@ -10,6 +10,7 @@ export default class Debug extends EventEmitter {
 
         this.active = window.location.hash === '#debug'
         this.statsActive = window.location.hash === '#stats' || window.location.hash === '#debug'
+        this.positionDisplayActive = this.active
 
         this.gui = null
         this.app = null
@@ -19,6 +20,7 @@ export default class Debug extends EventEmitter {
         this.animationsClipsLines = []
         this.animationsTextLabels = []
         this.speakersHelpers = []
+        this.positionDisplay = null
     }
 
     init(){
@@ -28,6 +30,95 @@ export default class Debug extends EventEmitter {
         if(this.statsActive){
             this.initStats()
         }
+        if(this.positionDisplayActive) {
+            this.initPositionDisplay()
+        }
+    }
+
+    initPositionDisplay() {
+        this.positionDisplay = document.createElement('div')
+        this.positionDisplay.style.position = 'absolute'
+        this.positionDisplay.style.bottom = '10px'
+        this.positionDisplay.style.left = '10px'
+        this.positionDisplay.style.backgroundColor = 'rgba(0, 0, 0, 0.7)'
+        this.positionDisplay.style.color = 'white'
+        this.positionDisplay.style.padding = '10px'
+        this.positionDisplay.style.borderRadius = '5px'
+        this.positionDisplay.style.fontFamily = 'monospace'
+        this.positionDisplay.style.fontSize = '14px'
+        this.positionDisplay.style.zIndex = '1000'
+        this.positionDisplay.style.pointerEvents = 'none'
+        document.body.appendChild(this.positionDisplay)
+    }
+
+    updatePositionDisplay() {
+        if (!this.positionDisplay || !this.app.physicsManager || !this.app.physicsManager.controls) return;
+    
+        const player = this.app.physicsManager.controls;
+        
+        // Déterminer la position du joueur en explorant différentes possibilités
+        let position = { x: 0, y: 0, z: 0 };
+        let rotation = { x: 0, y: 0, z: 0 };
+        
+        // Option 1: Accès direct aux propriétés
+        if (player.position) {
+            position = player.position;
+        }
+        // Option 2: Accès via le corps physique
+        else if (player.body && player.body.position) {
+            position = player.body.position;
+        }
+        // Option 3: Accès via une méthode spécifique
+        else if (typeof player.getObjectPosition === 'function') {
+            position = player.getObjectPosition();
+        }
+        else if (typeof player.getObject === 'function' && player.getObject().position) {
+            position = player.getObject().position;
+        }
+        // Option 4: Accès via la caméra
+        else if (this.app.camera && this.app.camera.instance && this.app.camera.instance.position) {
+            position = this.app.camera.instance.position;
+        }
+        
+        // Vérifier si le joueur a une rotation accessible
+        if (player.rotation) {
+            rotation = player.rotation;
+        }
+        else if (player.quaternion) {
+            const euler = new Euler().setFromQuaternion(player.quaternion);
+            rotation = { x: euler.x, y: euler.y, z: euler.z };
+        }
+        else if (player.getObject && typeof player.getObject === 'function' && player.getObject().rotation) {
+            rotation = player.getObject().rotation;
+        }
+        else if (this.app.camera && this.app.camera.instance && this.app.camera.instance.rotation) {
+            rotation = this.app.camera.instance.rotation;
+        }
+        
+        // Ajouter des logs pour le débogage
+        console.log('Debug player object:', player);
+        console.log('Position trouvée:', position);
+        console.log('Rotation trouvée:', rotation);
+    
+        // Convertir les angles en degrés pour une meilleure lisibilité
+        const rotationDegrees = {
+            x: (rotation.x * 180 / Math.PI).toFixed(2),
+            y: (rotation.y * 180 / Math.PI).toFixed(2),
+            z: (rotation.z * 180 / Math.PI).toFixed(2)
+        };
+        
+        // Mise à jour de l'affichage
+        this.positionDisplay.innerHTML = `
+            <strong>Position:</strong>
+            X: ${position.x.toFixed(2)}
+            Y: ${position.y.toFixed(2)}
+            Z: ${position.z.toFixed(2)}
+            <br>
+            <strong>Rotation (deg):</strong>
+            X: ${rotationDegrees.x}
+            Y: ${rotationDegrees.y}
+            Z: ${rotationDegrees.z}
+        `;
     }
 
     initGUI() {
@@ -47,16 +138,92 @@ export default class Debug extends EventEmitter {
         this.initSoundPlayerFolder()
         this.initMediaPlayerFolder()  
         this.initBoidsFolder()
+        this.initPositionDisplayFolder()
+    }
+
+    initPositionDisplayFolder() {
+        const positionFolder = this.gui.addFolder('Position Display')
+        
+        positionFolder.add({ 
+            enabled: this.positionDisplayActive 
+        }, 'enabled')
+        .name('Show Position Display')
+        .onChange(value => {
+            this.positionDisplayActive = value
+            if (this.positionDisplay) {
+                this.positionDisplay.style.display = value ? 'block' : 'none'
+            } else if (value) {
+                this.initPositionDisplay()
+            }
+        })
+        
+        positionFolder.add({ 
+            copy: () => {
+                if (!this.app.physicsManager || !this.app.physicsManager.controls) return;
+                
+                const player = this.app.physicsManager.controls;
+                
+                // Utiliser la même logique que dans updatePositionDisplay
+                let position = { x: 0, y: 0, z: 0 };
+                let rotation = { x: 0, y: 0, z: 0 };
+                
+                // Déterminer la position du joueur
+                if (player.position) {
+                    position = player.position;
+                }
+                else if (player.body && player.body.position) {
+                    position = player.body.position;
+                }
+                else if (typeof player.getObjectPosition === 'function') {
+                    position = player.getObjectPosition();
+                }
+                else if (typeof player.getObject === 'function' && player.getObject().position) {
+                    position = player.getObject().position;
+                }
+                else if (this.app.camera && this.app.camera.instance && this.app.camera.instance.position) {
+                    position = this.app.camera.instance.position;
+                }
+                
+                // Déterminer la rotation
+                if (player.rotation) {
+                    rotation = player.rotation;
+                }
+                else if (player.quaternion) {
+                    const euler = new Euler().setFromQuaternion(player.quaternion);
+                    rotation = { x: euler.x, y: euler.y, z: euler.z };
+                }
+                else if (player.getObject && typeof player.getObject === 'function' && player.getObject().rotation) {
+                    rotation = player.getObject().rotation;
+                }
+                else if (this.app.camera && this.app.camera.instance && this.app.camera.instance.rotation) {
+                    rotation = this.app.camera.instance.rotation;
+                }
+                
+                const positionString = `position: new Vector3(${position.x.toFixed(2)}, ${position.y.toFixed(2)}, ${position.z.toFixed(2)}), rotation: ${rotation.y.toFixed(2)}`;
+                
+                navigator.clipboard.writeText(positionString)
+                    .then(() => {
+                        console.log('Position copied to clipboard');
+                        const originalText = this.positionDisplay.innerHTML;
+                        this.positionDisplay.innerHTML += '<br><span style="color: #4CAF50">✓ Copied to clipboard!</span>';
+                        setTimeout(() => {
+                            this.positionDisplay.innerHTML = originalText;
+                        }, 1000);
+                    })
+                    .catch(err => {
+                        console.error('Could not copy text: ', err);
+                    });
+            }
+        }, 'copy')
+        .name('Copy Position & Rotation');
+        
+        positionFolder.close();
     }
 
     initStats() {
         this.stats = new Stats()
         document.body.appendChild( this.stats.dom )
     }
-
-    // **
-    // ** GUI FOLDERS **
-    // **
 
     initPysicsFolder() {
         if (!this.app.physicsManager) return
@@ -236,7 +403,6 @@ export default class Debug extends EventEmitter {
 
         transmissionFolder.add({
             reset: () => {
-                // Remettre les valeurs par défaut
                 Object.assign(params, defaultParams)
                 mat.thickness = defaultParams.thickness
                 mat._transmission = defaultParams._transmission
@@ -246,7 +412,6 @@ export default class Debug extends EventEmitter {
                 mat.color.set(defaultParams.color)
                 mat.specularIntensity = defaultParams.specularIntensity
 
-                // Forcer la mise à jour des contrôleurs
                 for (let controller of transmissionFolder.controllers) {
                     controller.updateDisplay()
                 }
@@ -315,7 +480,6 @@ export default class Debug extends EventEmitter {
                         obj.material.uniforms.fogFar.value = defaultParams.fogFar
                     })
 
-                    // Update GUI controllers
                     for (let controller of causticFolder.controllers) {
                         controller.updateDisplay()
                     }
@@ -379,7 +543,6 @@ export default class Debug extends EventEmitter {
                             this.app.mediaManager.playMediaWithGlitch('error1')
                         } else {
                             this.app.eventsManager.displayAlert("Vous avez choisi l'option B", 'information')
-                            // Your logic for option B
 
                             this.app.soundManager.playSoundOnSpeakers('voiceLine 1', 'audio/voices/1-INTRO.mp3', {
                                 volume: 3,
@@ -401,7 +564,6 @@ export default class Debug extends EventEmitter {
     
         const boidsFolder = this.gui.addFolder('Boids')
     
-        // On prend les paramètres depuis le premier boid du premier manager comme référence
         const firstBoid = this.app.objectManager.boidManagers[0].boids[0]
     
         const params = {
@@ -458,66 +620,7 @@ export default class Debug extends EventEmitter {
     
         boidsFolder.close()
     }
-
-    initWaterSurfaceFolder() {
-        const waterMaterials = []
-
-        this.app.scene.traverse((child) => {
-            if (child.isMesh && child.material?.uniforms?.wDeepColor && child.material?.uniforms?.wShallowColor) {
-                waterMaterials.push(child)
-            }
-        })
-
-        if (waterMaterials.length > 0) {
-            const waterFolder = this.gui.addFolder('Water Surface')
-            const mat = waterMaterials[0].material
-
-            const params = {
-                time: mat.uniforms.time.value,
-                camMinZ: mat.uniforms.camMinZ.value,
-                camMaxZ: mat.uniforms.camMaxZ.value,
-                maxDepth: mat.uniforms.maxDepth.value,
-                wNoiseScale: mat.uniforms.wNoiseScale.value,
-                wNoiseOffset: mat.uniforms.wNoiseOffset.value,
-                fNoiseScale: mat.uniforms.fNoiseScale.value,
-                wDeepColor: `#${mat.uniforms.wDeepColor.value}`,
-                wShallowColor: `#${mat.uniforms.wShallowColor.value }`
-            }
-
-            waterFolder.add(params, 'camMinZ', 0, 5).onChange(v => {
-                waterMaterials.forEach(obj => obj.material.uniforms.camMinZ.value = v)
-            })
-            waterFolder.add(params, 'camMaxZ', 5, 200).onChange(v => {
-                waterMaterials.forEach(obj => obj.material.uniforms.camMaxZ.value = v)
-            })
-            waterFolder.add(params, 'maxDepth', 0.1, 20).onChange(v => {
-                waterMaterials.forEach(obj => obj.material.uniforms.maxDepth.value = v)
-            })
-            waterFolder.add(params, 'wNoiseScale', 0, 20).onChange(v => {
-                waterMaterials.forEach(obj => obj.material.uniforms.wNoiseScale.value = v)
-            })
-            waterFolder.add(params, 'wNoiseOffset', 0, 0.05).onChange(v => {
-                waterMaterials.forEach(obj => obj.material.uniforms.wNoiseOffset.value = v)
-            })
-            waterFolder.add(params, 'fNoiseScale', 0, 30).onChange(v => {
-                waterMaterials.forEach(obj => obj.material.uniforms.fNoiseScale.value = v)
-            })
-            waterFolder.addColor(params, 'wDeepColor').onChange(value => {
-                waterMaterials.forEach(obj => obj.material.uniforms.wDeepColor.value.set(value))
-            })
-            waterFolder.addColor(params, 'wShallowColor').onChange(value => {
-                waterMaterials.forEach(obj => obj.material.uniforms.wShallowColor.value.set(value))
-            })
-
-            waterFolder.close()
-        }
-    }
-
     
-
-    // **
-    // ** HELPERS **
-    // **
 
     displayLightsHelpers() {
         if (!this.active) return
@@ -573,7 +676,6 @@ export default class Debug extends EventEmitter {
             this.app.scene.add(line)
             this.animationsClipsLines.push(line)
     
-            // Ajouter un label texte au début du chemin
             const label = this.createTextLabel(clip.name, positions[0])
             this.animationsTextLabels.push(label)
             this.app.scene.add(label)
@@ -640,7 +742,7 @@ export default class Debug extends EventEmitter {
         sphere.position.copy(pos)
         
         const direction = new Vector3(0, 0, 1)
-        direction.applyQuaternion(object.quaternion) // utilise l'orientation de l'objet
+        direction.applyQuaternion(object.quaternion)
         const arrow = new ArrowHelper(direction, pos, 1, 0x00ff00)
         scene.add(sphere)
         scene.add(arrow)
@@ -688,11 +790,19 @@ export default class Debug extends EventEmitter {
             this.stats.update()
         }
 
+        if(this.positionDisplayActive && this.positionDisplay) {
+            this.updatePositionDisplay()
+        }
     }
 
     destroy() {
         this.gui.destroy()
         this.gui = null
+
+        if (this.positionDisplay) {
+            document.body.removeChild(this.positionDisplay)
+            this.positionDisplay = null
+        }
 
         this.app = null    
     }
