@@ -46,7 +46,7 @@ export default class Debug extends EventEmitter {
         this.initCausticMaterialFolder()
         this.initSoundPlayerFolder()
         this.initMediaPlayerFolder()  
-        this.initBoidsFolder()             
+        this.initBoidsFolder()
     }
 
     initStats() {
@@ -126,6 +126,11 @@ export default class Debug extends EventEmitter {
                 this.toogleBoidSpheressHelpers()
             }
         }, 'showBoidShperesHelpers').name('Toogle boids helpers')
+        debugFolder.add({
+            toogleAllHelpers: () => {
+                this.toogleAllHelpers()
+            }
+        }, 'toogleAllHelpers').name('TOOGLE ALL HELPERS')
     }
 
     initShortcutsFolder() {
@@ -327,14 +332,24 @@ export default class Debug extends EventEmitter {
         const soundPlayerFolder = this.gui.addFolder('Sound Player')
         soundPlayerFolder.add({
             playSoundOnSpeakers: () => {
-                this.app.soundManager.playSoundOnSpeakers('voiceLine 1', 'audio/voices/voice_test.m4a', {
-                    volume: 0.8,
+                this.app.soundManager.playSoundOnSpeakers('voiceLine 1', 'audio/voices/1-INTRO.mp3', {
+                    volume: 3,
                     loop: false,
                     maxDistance: 8,
-                    vttSrc: 'audio/subtitles/voice_test.vtt'
+                    vttSrc: 'audio/subtitles/PADG_INTRO_1.vtt'
                 })
             }
-        }, 'playSoundOnSpeakers').name('Play Sound on speakers')
+        }, 'playSoundOnSpeakers').name('Play Sound 1 on speakers')
+        soundPlayerFolder.add({
+            playSoundOnSpeakers: () => {
+                this.app.soundManager.playSoundOnSpeakers('voiceLine 1', 'audio/voices/1-INTRO.mp3', {
+                    volume: 3,
+                    loop: false,
+                    maxDistance: 8,
+                    vttSrc: 'audio/subtitles/PADG_INTRO_1.vtt'
+                })
+            }
+        }, 'playSoundOnSpeakers').name('Play Sound 2 on speakers')
         soundPlayerFolder.add(this.app.soundManager, 'stopAll').name('Stop All Sounds')
         soundPlayerFolder.close()
     }
@@ -366,11 +381,11 @@ export default class Debug extends EventEmitter {
                             this.app.eventsManager.displayAlert("Vous avez choisi l'option B", 'information')
                             // Your logic for option B
 
-                            this.app.soundManager.playSoundOnSpeakers('voiceLine 1', 'audio/voices/voice_test.m4a', {
-                                volume: 0.8,
+                            this.app.soundManager.playSoundOnSpeakers('voiceLine 1', 'audio/voices/1-INTRO.mp3', {
+                                volume: 3,
                                 loop: false,
                                 maxDistance: 8,
-                                vttSrc: 'audio/subtitles/voice_test.vtt'
+                                vttSrc: 'audio/subtitles/PADG_INTRO_1.vtt'
                             })
                         }
                     }
@@ -443,6 +458,61 @@ export default class Debug extends EventEmitter {
     
         boidsFolder.close()
     }
+
+    initWaterSurfaceFolder() {
+        const waterMaterials = []
+
+        this.app.scene.traverse((child) => {
+            if (child.isMesh && child.material?.uniforms?.wDeepColor && child.material?.uniforms?.wShallowColor) {
+                waterMaterials.push(child)
+            }
+        })
+
+        if (waterMaterials.length > 0) {
+            const waterFolder = this.gui.addFolder('Water Surface')
+            const mat = waterMaterials[0].material
+
+            const params = {
+                time: mat.uniforms.time.value,
+                camMinZ: mat.uniforms.camMinZ.value,
+                camMaxZ: mat.uniforms.camMaxZ.value,
+                maxDepth: mat.uniforms.maxDepth.value,
+                wNoiseScale: mat.uniforms.wNoiseScale.value,
+                wNoiseOffset: mat.uniforms.wNoiseOffset.value,
+                fNoiseScale: mat.uniforms.fNoiseScale.value,
+                wDeepColor: `#${mat.uniforms.wDeepColor.value}`,
+                wShallowColor: `#${mat.uniforms.wShallowColor.value }`
+            }
+
+            waterFolder.add(params, 'camMinZ', 0, 5).onChange(v => {
+                waterMaterials.forEach(obj => obj.material.uniforms.camMinZ.value = v)
+            })
+            waterFolder.add(params, 'camMaxZ', 5, 200).onChange(v => {
+                waterMaterials.forEach(obj => obj.material.uniforms.camMaxZ.value = v)
+            })
+            waterFolder.add(params, 'maxDepth', 0.1, 20).onChange(v => {
+                waterMaterials.forEach(obj => obj.material.uniforms.maxDepth.value = v)
+            })
+            waterFolder.add(params, 'wNoiseScale', 0, 20).onChange(v => {
+                waterMaterials.forEach(obj => obj.material.uniforms.wNoiseScale.value = v)
+            })
+            waterFolder.add(params, 'wNoiseOffset', 0, 0.05).onChange(v => {
+                waterMaterials.forEach(obj => obj.material.uniforms.wNoiseOffset.value = v)
+            })
+            waterFolder.add(params, 'fNoiseScale', 0, 30).onChange(v => {
+                waterMaterials.forEach(obj => obj.material.uniforms.fNoiseScale.value = v)
+            })
+            waterFolder.addColor(params, 'wDeepColor').onChange(value => {
+                waterMaterials.forEach(obj => obj.material.uniforms.wDeepColor.value.set(value))
+            })
+            waterFolder.addColor(params, 'wShallowColor').onChange(value => {
+                waterMaterials.forEach(obj => obj.material.uniforms.wShallowColor.value.set(value))
+            })
+
+            waterFolder.close()
+        }
+    }
+
     
 
     // **
@@ -594,6 +664,15 @@ export default class Debug extends EventEmitter {
         this.app.objectManager.boidSpheres.forEach((mesh) => {
             mesh.visible = !mesh.visible
         })
+    }
+
+    toogleAllHelpers(){
+        this.toogleLightsHelpers()
+        this.toogleAllAnimationClipsLines()
+        this.toogleCameraHelpers()
+        this.toogleSpeakersHelpers()
+        this.toogleCollisionsHelpers()
+        this.toogleBoidSpheressHelpers()
     }
 
     update() {
