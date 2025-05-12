@@ -10,11 +10,11 @@ export default class DoorManager {
         this.app = new App()
 
         this.helpDiv = document.getElementById('door-help')
-        
     }
 
-    addDoorPair(position, width = 2, height = 4, colorLeft = 0xff0000, colorRight = 0x00ff00) {
-        const pair = new DoorPair(this.scene, position, width, height, colorLeft, colorRight)
+    addDoorPair(position, width = 2, height = 4, colorLeft = 0xff0000, colorRight = 0x00ff00, canBeOpened = true) {
+        const pair = new DoorPair(this.scene, position, width, height, colorLeft, colorRight, true) // Sliding doors
+        pair.setOpenable(canBeOpened); // Définir si la porte peut être ouverte
         this.doorPairs.push(pair)
         return pair
     }
@@ -23,33 +23,23 @@ export default class DoorManager {
         const playerPosition = this.app.physicsManager.sphereBody.position
         const nearest = this.getNearestPairInRange(playerPosition, 4)
         
-        if (nearest) {
-            this.helpDiv.style.display = 'block'
+        if (nearest && nearest.isOpenable()) {
+            this.helpDiv.style.display = 'none' // Masquer l'aide car ouverture automatique
         } else {
             this.helpDiv.style.display = 'none'
         }
         
+        // Mettre à jour toutes les paires de portes avec la position du joueur
         for (const pair of this.doorPairs) {
-            pair.update()
-            // Optionnel : tu peux ici gérer une animation d'ouverture automatique si le joueur est proche
-            // if (pair.isPlayerNear(playerPosition)) { pair.openAnimated() }
+            pair.update(playerPosition)
         }
     }
 
     // Interaction manuelle : ouvre la porte la plus proche si assez proche
     openNearestPair(playerPosition) {
-        let nearest = null
-        let minDist = Infinity
-        for (const pair of this.doorPairs) {
-            const center = new Vector3().addVectors(pair.leftPivot.position, pair.rightPivot.position).multiplyScalar(0.5)
-            const dist = center.distanceTo(playerPosition)
-            if (dist < minDist) {
-                minDist = dist
-                nearest = pair
-            }
-        }
-        if (nearest && nearest.isPlayerNear(playerPosition)) {
-            nearest.openAnimated()
+        let nearest = this.getNearestPairInRange(playerPosition);
+        if (nearest && nearest.isOpenable()) {
+            nearest.openAnimated();
         }
     }
 
@@ -57,7 +47,7 @@ export default class DoorManager {
         let nearest = null
         let minDist = Infinity
         for (const pair of this.doorPairs) {
-            const center = new Vector3().addVectors(pair.leftPivot.position, pair.rightPivot.position).multiplyScalar(0.5)
+            const center = new Vector3().addVectors(pair.leftDoor.position, pair.rightDoor.position).multiplyScalar(0.5)
             const dist = center.distanceTo(playerPosition)
             if (dist < minDist) {
                 minDist = dist
@@ -73,7 +63,7 @@ export default class DoorManager {
         let nearest = null
         let minDist = Infinity
         for (const pair of this.doorPairs) {
-            const center = new Vector3().addVectors(pair.leftPivot.position, pair.rightPivot.position).multiplyScalar(0.5)
+            const center = new Vector3().addVectors(pair.leftDoor.position, pair.rightDoor.position).multiplyScalar(0.5)
             const dist = center.distanceTo(playerPosition)
             if (dist < minDist) {
                 minDist = dist

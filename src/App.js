@@ -200,6 +200,8 @@ export default class App extends EventEmitter {
 
         this.doorManager = new DoorManager(this.scene)
         this.doorManager.addDoorPair(new Vector3(-2, 0, -2)) // Porte 1
+        this.doorManager.doorPairs[0].setRotation(Math.PI/2)
+        this.doorManager.doorPairs[0].setOpenable(false) // Désactiver l'ouverture de la porte 1
         this.doorManager.addDoorPair(new Vector3(2, 0, -2), 2, 4, 0x0000ff, 0xffff00) // Porte 2, couleurs différentes
 
         // Interaction : ouvrir/fermer la porte la plus proche du joueur
