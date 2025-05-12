@@ -608,10 +608,16 @@ export default class Debug extends EventEmitter {
 
         const videoFolder = this.gui.addFolder('Video')
         videoFolder.add({
-            playVideo: () => {
+            playSmallVideo: () => {
                 this.app.mediaManager.playMediaWithGlitch('error1')
             }
-        }, 'playVideo').name('Jouer une vidéo')
+        }, 'playSmallVideo').name('Petite vidéo')
+
+        videoFolder.add({
+            playBigVideo: () => {
+                this.app.mediaManager.playMediaWithGlitch('bigvideo')
+            }
+        }, 'playBigVideo').name('Grosse vidéo')
 
         const choicesFolder = this.gui.addFolder('Choices')
         choicesFolder.add({

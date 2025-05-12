@@ -1,5 +1,5 @@
 import App from '../../App';
-import { PlaneGeometry, Mesh, MeshBasicMaterial, VideoTexture, Vector3 } from 'three';
+import { PlaneGeometry, Mesh, MeshBasicMaterial, VideoTexture, LinearFilter, Vector3 } from 'three';
 
 export default class MediaManager {
     constructor() {
@@ -81,6 +81,11 @@ export default class MediaManager {
             if (!mediaData.mesh) {
                 // Create video texture and mesh if not already created
                 const videoTexture = new VideoTexture(element);
+                videoTexture.needsUpdate = true;
+               
+                videoTexture.minFilter = LinearFilter;
+                videoTexture.magFilter = LinearFilter;
+        
                 const geometry = new PlaneGeometry(16, 9);
                 const material = new MeshBasicMaterial({ 
                     map: videoTexture,
@@ -130,6 +135,28 @@ export default class MediaManager {
                 }, config.duration);
             }
         }
+
+        element.addEventListener('playing', () => {
+            console.log(`La vidéo ${id} est en cours de lecture`);
+        });
+
+        element.addEventListener('canplay', () => {
+            console.log(`La vidéo ${id} peut être lue`);
+        });
+
+        // Ajouter au début de playMedia ou après la création de la texture
+        element.addEventListener('error', (e) => {
+            console.error(`Erreur de lecture vidéo ${id}:`, element.error);
+        });
+
+        element.addEventListener('playing', () => {
+            console.log(`Vidéo ${id} en cours de lecture`);
+            // Force l'actualisation de la texture
+            if (mediaData.mesh && mediaData.mesh.material.map) {
+                mediaData.mesh.material.map.needsUpdate = true;
+            }
+        });
+        
     }
 
     hideMedia(id) {

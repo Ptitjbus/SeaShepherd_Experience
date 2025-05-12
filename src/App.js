@@ -315,6 +315,14 @@ export default class App extends EventEmitter {
                 loop: false,
                 muted: false,
                 duration: 2000 // en ms
+            },
+            'bigvideo': { 
+                type: 'video', 
+                src: '/videos/test_multivideos.mov', 
+                glitchType: 'big',
+                loop: false,
+                muted: false,
+                duration: 15000 // en ms
             }
         })
     }
