@@ -94,6 +94,7 @@ export default class PhysicsManager {
     }
 
     removeBody(body) {
+        if (!body) return;
         this.world.removeBody(body)
         this.bodies = this.bodies.filter(b => b !== body)
     }
@@ -101,5 +102,40 @@ export default class PhysicsManager {
     update(deltaTime) {
         this.world.step(this.timeStep, deltaTime, 3)
         this.controls.update(deltaTime)
+    }
+
+    createBox(dimensions, options, mesh) {
+        const shape = new CANNON.Box(new CANNON.Vec3(
+            dimensions.width / 2,
+            dimensions.height / 2,
+            dimensions.depth / 2
+        ));
+        
+        const body = new CANNON.Body({
+            mass: options.mass || 0,
+            position: new CANNON.Vec3(
+                options.position.x,
+                options.position.y,
+                options.position.z
+            ),
+            shape: shape,
+            material: new CANNON.Material({
+                friction: options.material?.friction || 0.3,
+                restitution: options.material?.restitution || 0.3
+            })
+        });
+        
+        // Stocker le mesh associé pour faciliter la synchronisation
+        body.mesh = mesh;
+        
+        this.world.addBody(body);
+        return body;
+    }
+
+    updateBodyPosition(body, position) {
+        if (!body) return;
+        
+        body.position.set(position.x, position.y, position.z);
+        body.wakeUp(); // Réveiller le corps pour qu'il réagisse aux collisions
     }
 }
