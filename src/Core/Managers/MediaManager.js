@@ -1,5 +1,5 @@
 import App from '../../App';
-import { PlaneGeometry, Mesh, MeshBasicMaterial, VideoTexture, LinearFilter, Vector3 } from 'three';
+import { PlaneGeometry, Mesh, MeshBasicMaterial, VideoTexture, DoubleSide } from 'three';
 
 export default class MediaManager {
     constructor() {
@@ -82,16 +82,15 @@ export default class MediaManager {
                 // Create video texture and mesh if not already created
                 const videoTexture = new VideoTexture(element);
                 videoTexture.needsUpdate = true;
-               
-                videoTexture.minFilter = LinearFilter;
-                videoTexture.magFilter = LinearFilter;
-        
+
                 const geometry = new PlaneGeometry(16, 9);
                 const material = new MeshBasicMaterial({ 
                     map: videoTexture,
                     transparent: true,
                     opacity: 1.0,
-                    depthTest: false, // Désactiver le test de profondeur pour toujours afficher au-dessus
+                    alphaTest: 0.5,  // Ajoutez ceci pour améliorer la gestion de l'alpha
+                    side: DoubleSide, // Permet de voir la vidéo des deux côtés si nécessaire
+                    depthTest: false,
                     depthWrite: false // Ne pas écrire dans le buffer de profondeur
                 });
                 
