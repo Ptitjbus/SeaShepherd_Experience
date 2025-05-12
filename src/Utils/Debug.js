@@ -353,6 +353,11 @@ export default class Debug extends EventEmitter {
                 this.toogleBoidSpheressHelpers()
             }
         }, 'showBoidShperesHelpers').name('Toogle boids helpers')
+        debugFolder.add({
+            toogleAllHelpers: () => {
+                this.toogleAllHelpers()
+            }
+        }, 'toogleAllHelpers').name('TOOGLE ALL HELPERS')
     }
 
     initShortcutsFolder() {
@@ -576,14 +581,24 @@ export default class Debug extends EventEmitter {
         const soundPlayerFolder = this.gui.addFolder('Sound Player')
         soundPlayerFolder.add({
             playSoundOnSpeakers: () => {
-                this.app.soundManager.playSoundOnSpeakers('voiceLine 1', 'audio/voices/voice_test.m4a', {
-                    volume: 0.8,
+                this.app.soundManager.playSoundOnSpeakers('voiceLine 1', 'audio/voices/1-INTRO.mp3', {
+                    volume: 3,
                     loop: false,
                     maxDistance: 8,
-                    vttSrc: 'audio/subtitles/voice_test.vtt'
+                    vttSrc: 'audio/subtitles/PADG_INTRO_1.vtt'
                 })
             }
-        }, 'playSoundOnSpeakers').name('Play Sound on speakers')
+        }, 'playSoundOnSpeakers').name('Play Sound 1 on speakers')
+        soundPlayerFolder.add({
+            playSoundOnSpeakers: () => {
+                this.app.soundManager.playSoundOnSpeakers('voiceLine 1', 'audio/voices/1-INTRO.mp3', {
+                    volume: 3,
+                    loop: false,
+                    maxDistance: 8,
+                    vttSrc: 'audio/subtitles/PADG_INTRO_1.vtt'
+                })
+            }
+        }, 'playSoundOnSpeakers').name('Play Sound 2 on speakers')
         soundPlayerFolder.add(this.app.soundManager, 'stopAll').name('Stop All Sounds')
         soundPlayerFolder.close()
     }
@@ -614,11 +629,11 @@ export default class Debug extends EventEmitter {
                         } else {
                             this.app.eventsManager.displayAlert("Vous avez choisi l'option B", 'information')
 
-                            this.app.soundManager.playSoundOnSpeakers('voiceLine 1', 'audio/voices/voice_test.m4a', {
-                                volume: 0.8,
+                            this.app.soundManager.playSoundOnSpeakers('voiceLine 1', 'audio/voices/1-INTRO.mp3', {
+                                volume: 3,
                                 loop: false,
                                 maxDistance: 8,
-                                vttSrc: 'audio/subtitles/voice_test.vtt'
+                                vttSrc: 'audio/subtitles/PADG_INTRO_1.vtt'
                             })
                         }
                     }
@@ -836,6 +851,15 @@ export default class Debug extends EventEmitter {
         this.app.objectManager.boidSpheres.forEach((mesh) => {
             mesh.visible = !mesh.visible
         })
+    }
+
+    toogleAllHelpers(){
+        this.toogleLightsHelpers()
+        this.toogleAllAnimationClipsLines()
+        this.toogleCameraHelpers()
+        this.toogleSpeakersHelpers()
+        this.toogleCollisionsHelpers()
+        this.toogleBoidSpheressHelpers()
     }
 
     update() {
