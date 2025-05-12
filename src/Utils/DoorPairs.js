@@ -3,7 +3,7 @@ import { gsap } from 'gsap'
 import App from '../App.js'
 
 export default class DoorPair {
-    constructor(scene, position, width = 2, height = 4, colorLeft = 0xff0000, colorRight = 0x00ff00, sliding = true, rotation = 0) {
+    constructor(scene, position, width = 5, height = 7, colorLeft = 0x707070, colorRight = 0x707070, sliding = true, rotation = 0) {
         this.scene = scene
         this.position = position
         this.width = width
@@ -171,7 +171,7 @@ export default class DoorPair {
         return this.canBeOpened;
     }
     
-    openAnimated(duration = 1) {
+    openAnimated(duration = 1.7) {
         if (this.isOpen || this.isAnimating || !this.canBeOpened) return
         
         this.isAnimating = true
@@ -190,13 +190,13 @@ export default class DoorPair {
         gsap.to(this.leftDoor.position, {
             x: this.leftOpenPos.x,
             duration: duration,
-            ease: "power2.out"
+            ease: "ease.inOut",
         });
         
         gsap.to(this.rightDoor.position, {
             x: this.rightOpenPos.x,
             duration: duration,
-            ease: "power2.out",
+            ease: "ease.inOut",
             onComplete: () => {
                 this.isOpen = true;
                 this.isAnimating = false;
@@ -245,7 +245,7 @@ export default class DoorPair {
     
     update(playerPosition) {
         // Vérifier si le joueur est proche
-        const isNear = this.isPlayerNear(playerPosition);
+        const isNear = this.isPlayerNear(playerPosition, 7);
         
         // Si le joueur vient d'entrer dans la zone et que la porte peut s'ouvrir
         if (isNear && !this.isOpen && this.canBeOpened && !this.isAnimating) {
@@ -260,7 +260,7 @@ export default class DoorPair {
         this.playerInRange = isNear;
     }
     
-    isPlayerNear(playerPosition, threshold = 3) {
+    isPlayerNear(playerPosition, threshold = 4) {
         if (!playerPosition) return false;
         
         // Utiliser la position mondiale du conteneur

@@ -201,29 +201,19 @@ export default class App extends EventEmitter {
         this.doorManager = new DoorManager(this.scene)
          
         // Porte 1
-        this.doorManager.addDoorPair(new Vector3(-8.01, 0, 0))
+        this.doorManager.addDoorPair(new Vector3(-8.01, 0, 0.05))
         this.doorManager.doorPairs[0].setRotation(Math.PI/2)
         this.doorManager.doorPairs[0].setOpenable(true)
 
         // Porte 2
-        this.doorManager.addDoorPair(new Vector3(-50.55, 0, -30.40))
-        this.doorManager.doorPairs[1].setRotation(0.11 * Math.PI / 180)
+        this.doorManager.addDoorPair(new Vector3(-50.86, 0, -30.36))
+        this.doorManager.doorPairs[1].setRotation(0.42 * Math.PI/180)
         this.doorManager.doorPairs[1].setOpenable(true)
 
         // Porte 3
-        this.doorManager.addDoorPair(new Vector3(-67.01, 0, 29))
-        this.doorManager.doorPairs[2].setOpenable(false)
-
-        // Interaction : ouvrir/fermer la porte la plus proche du joueur
-        window.addEventListener('keydown', (event) => {
-            const playerPos = this.physicsManager.sphereBody.position // ou la position de ton contrôleur joueur
-            if (event.key.toLowerCase() === 'v') {
-                this.doorManager.openNearestPair(playerPos)
-            }
-            if (event.key.toLowerCase() === 'b') {
-                this.doorManager.closeNearestPair(playerPos)
-            }
-        })
+        this.doorManager.addDoorPair(new Vector3(-67, 0, -121), 6, 9)
+        this.doorManager.doorPairs[2].setRotation(Math.PI/2)
+        this.doorManager.doorPairs[2].setOpenable(true)
     }
 
     update(time) {
