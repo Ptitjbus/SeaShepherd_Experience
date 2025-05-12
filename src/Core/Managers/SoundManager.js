@@ -43,7 +43,7 @@ export default class SoundManager {
 
     initSound() {
         this.sound = new Howl({
-            src: ['audio/background_music.mp3'],
+            src: ['audio/voices/1-INTRO.mp3'],
             loop: true,
             volume: 1.0,
             onload: () => this.attachToSpeakers()
