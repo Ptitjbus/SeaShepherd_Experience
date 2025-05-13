@@ -354,6 +354,14 @@ export default class App extends EventEmitter {
                 loop: false,
                 muted: false,
                 duration: 15000 // en ms
+            },
+            'connexion': { 
+                type: 'video', 
+                src: '/videos/connexion_1080p.webm', 
+                glitchType: 'small',
+                loop: false,
+                muted: false,
+                duration: 12000 // en ms
             }
         })
     }

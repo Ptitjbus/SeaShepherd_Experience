@@ -602,6 +602,12 @@ export default class Debug extends EventEmitter {
             }
         }, 'playBigVideo').name('Grosse vidéo')
 
+        videoFolder.add({
+            playConnexionVideo: () => {
+                this.app.mediaManager.playMediaWithGlitch('connexion')
+            }
+        }, 'playConnexionVideo').name('Vidéo connexion')
+
         const choicesFolder = this.gui.addFolder('Choices')
         choicesFolder.add({
             showChoice1: () => {
