@@ -16,6 +16,7 @@ import CustomEnvironment from './World/CustomEnvironment.js'
 import { ChoicesManager } from "./Core/Managers/ChoicesManager.js"
 import DoorManager from './Core/Managers/DoorManager.js'
 import PhysicsManager from "./Core/Managers/PhysicsManager.js"
+import StoryManager from "./Core/Managers/StoryManager.js"
 
 let myAppInstance = null
 
@@ -73,6 +74,8 @@ export default class App extends EventEmitter {
 
         this.physicsManager = null
 
+        this.storyManager = null
+
         this.init()
     }
 
@@ -107,60 +110,8 @@ export default class App extends EventEmitter {
         this.initMadias()
         
         this.setupUI()
-    }
 
-    async initMadias(){
-        await this.preloadMedias()
-    }
-
-    setupUI() {
-        this.startOverlay = document.querySelector('.start-overlay')
-        this.startButton = document.querySelector('.start-button')
-        this.endOverlay = document.querySelector('.end-overlay')
-                
-        this.startButton.addEventListener('click', (e) => {
-            e.preventDefault()
-            this.startExperience()
-        })
-    }
-
-    startExperience() {
-        if (this.experienceStarted) return
-        
-        this.experienceStarted = true
-        
-        this.startOverlay.classList.add('hidden')
-        
-        this.canvas.style.opacity = '1'
-        // this.camera.switchCamera()
-
-        // this.soundManager.resumeAll()
-
-        if (this.museumMixer) {
-            this.museumMixer.stopAllAction()
-            
-            const museum = this.assetManager.getItem('Museum')
-            museum.animations.forEach((clip) => {
-                this.museumMixer.clipAction(clip).reset().play()
-            })
-        }
-    
-        this.playMuseumAnimation = !this.playMuseumAnimation
-    }
-
-    endExperience() {
-        if (this.experienceEnded) return
-        this.experienceEnded = true
-        
-        this.endOverlay.classList.remove('hidden')
-        
-        void this.endOverlay.offsetWidth
-        
-        this.canvas.style.opacity = '0'
-        
-        setTimeout(() => {
-            this.endOverlay.classList.add('visible')
-        }, 100)
+        this.storyManager = new StoryManager()
     }
 
     assetsLoadCompleteHandler() {
@@ -216,6 +167,21 @@ export default class App extends EventEmitter {
         this.doorManager.doorPairs[2].setOpenable(true)
     }
 
+    async initMadias(){
+        await this.preloadMedias()
+    }
+
+    setupUI() {
+        this.startOverlay = document.querySelector('.start-overlay')
+        this.startButton = document.querySelector('.start-button')
+        this.endOverlay = document.querySelector('.end-overlay')
+                
+        this.startButton.addEventListener('click', (e) => {
+            e.preventDefault()
+            this.storyManager.startExperience()
+        })
+    }
+
     update(time) {
         if(this.playMuseumAnimation) this.objectManager.update(time)
         if (this.mediaManager) this.mediaManager.update(this.camera.mainCamera)
@@ -236,7 +202,7 @@ export default class App extends EventEmitter {
 
     destroy() {
         if (this.startButton) {
-            this.startButton.removeEventListener('click', this.startExperience)
+            this.startButton.removeEventListener('click', this.storyManager.startExperience)
         }
 
         if (this.eventsManager) {
