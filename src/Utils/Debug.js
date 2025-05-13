@@ -94,7 +94,7 @@ export default class Debug extends EventEmitter {
         else if (this.app.camera && this.app.camera.instance && this.app.camera.instance.rotation) {
             rotation = this.app.camera.instance.rotation;
         }
-            
+    
         // Convertir les angles en degrés pour une meilleure lisibilité
         const rotationDegrees = {
             x: (rotation.x * 180 / Math.PI).toFixed(2),
@@ -199,7 +199,6 @@ export default class Debug extends EventEmitter {
                 
                 navigator.clipboard.writeText(positionString)
                     .then(() => {
-                        console.log('Position copied to clipboard');
                         const originalText = this.positionDisplay.innerHTML;
                         this.positionDisplay.innerHTML += '<br><span style="color: #4CAF50">✓ Copied to clipboard!</span>';
                         setTimeout(() => {
@@ -217,8 +216,74 @@ export default class Debug extends EventEmitter {
     }
 
     initStats() {
-        this.stats = new Stats()
-        document.body.appendChild( this.stats.dom )
+        // Créer le conteneur principal pour tous les panneaux
+        const container = document.createElement('div');
+        container.style.cssText = 'position:absolute;top:0;left:0;display:flex;';
+        document.body.appendChild(container);
+        
+        // Créer le panneau pour les FPS (standard)
+        this.fpsPanel = new Stats();
+        this.fpsPanel.showPanel(0); // Panel 0 is FPS
+        this.fpsPanel.dom.style.cssText = 'position:relative;';
+        container.appendChild(this.fpsPanel.dom);
+        
+        // Créer un panneau personnalisé pour les triangles
+        this.trianglesContainer = document.createElement('div');
+        this.trianglesContainer.style.cssText = 'position:relative;width:80px;height:48px;cursor:pointer;opacity:0.9;background-color:rgba(0,0,0,0.7);';
+        
+        const triangleCanvas = document.createElement('canvas');
+        triangleCanvas.width = 74;
+        triangleCanvas.height = 30;
+        triangleCanvas.style.cssText = 'width:74px;height:30px;top:0px;left:3px;position:absolute;';
+        this.trianglesContainer.appendChild(triangleCanvas);
+        
+        this.triangleCtx = triangleCanvas.getContext('2d');
+        this.triangleCtx.fillStyle = 'rgb(0,0,0)';
+        this.triangleCtx.fillRect(0, 0, 74, 30);
+        
+        const triangleText = document.createElement('div');
+        triangleText.style.cssText = 'color:#fff;font-family:Helvetica,Arial,sans-serif;font-size:9px;font-weight:bold;line-height:15px;position:absolute;top:33px;width:74px;left:3px;text-align:center;';
+        triangleText.textContent = 'TRIANGLES';
+        this.trianglesContainer.appendChild(triangleText);
+        
+        this.triangleValueText = document.createElement('div');
+        this.triangleValueText.style.cssText = 'color:#000;font-family:Helvetica,Arial,sans-serif;font-size:9px;font-weight:bold;line-height:15px;position:absolute;top:1px;width:74px;left:3px;text-align:right;';
+        this.trianglesContainer.appendChild(this.triangleValueText);
+        
+        container.appendChild(this.trianglesContainer);
+        
+        // Créer un panneau personnalisé pour les appels de rendu
+        this.callsContainer = document.createElement('div');
+        this.callsContainer.style.cssText = 'position:relative;width:80px;height:48px;cursor:pointer;opacity:0.9;background-color:rgba(0,0,0,0.7);';
+        
+        const callsCanvas = document.createElement('canvas');
+        callsCanvas.width = 74;
+        callsCanvas.height = 30;
+        callsCanvas.style.cssText = 'width:74px;height:30px;top:0px;left:3px;position:absolute;';
+        this.callsContainer.appendChild(callsCanvas);
+        
+        this.callsCtx = callsCanvas.getContext('2d');
+        this.callsCtx.fillStyle = 'rgb(0,0,0)';
+        this.callsCtx.fillRect(0, 0, 74, 30);
+        
+        const callsText = document.createElement('div');
+        callsText.style.cssText = 'color:#f08;font-family:Helvetica,Arial,sans-serif;font-size:9px;font-weight:bold;line-height:15px;position:absolute;top:33px;width:74px;left:3px;text-align:center;';
+        callsText.textContent = 'CALLS';
+        this.callsContainer.appendChild(callsText);
+        
+        this.callsValueText = document.createElement('div');
+        this.callsValueText.style.cssText = 'color:#fff;font-family:Helvetica,Arial,sans-serif;font-size:9px;font-weight:bold;line-height:15px;position:absolute;top:1px;width:74px;left:3px;text-align:right;';
+        this.callsContainer.appendChild(this.callsValueText);
+        
+        container.appendChild(this.callsContainer);
+        
+        // Variables pour le suivi des données
+        this.triangleValues = [];
+        this.callsValues = [];
+        for (let i = 0; i < 74; i++) {
+            this.triangleValues.push(0);
+            this.callsValues.push(0);
+        }
     }
 
     initPysicsFolder() {
@@ -318,6 +383,31 @@ export default class Debug extends EventEmitter {
             }
             if (event.key === 'm') {
                 this.app.physicsManager.controls.setFlyMode(!this.app.physicsManager.controls.flyMode)
+            }
+
+            if(event.key === 'u'){
+                this.app.choicesManager.showChoices(
+                    {
+                        choice1: "Option A",
+                        choice2: "Option B"
+                    },
+                    (choiceIndex) => {
+                        if (choiceIndex === 1) {
+                            this.app.eventsManager.displayAlert("Vous avez choisi l'option A", 'information')
+
+                            this.app.mediaManager.playMediaWithGlitch('error1')
+                        } else {
+                            this.app.eventsManager.displayAlert("Vous avez choisi l'option B", 'information')
+
+                            this.app.soundManager.playSoundOnSpeakers('voiceLine 1', 'audio/voices/voice_test.m4a', {
+                                volume: 0.8,
+                                loop: false,
+                                maxDistance: 8,
+                                vttSrc: 'audio/subtitles/voice_test.vtt'
+                            })
+                        }
+                    }
+                )
             }
         })
     }
@@ -809,18 +899,72 @@ export default class Debug extends EventEmitter {
     update() {
         if (this.active) {
             this.cameraHelpers.forEach(({ camera, helper }) => {
-                camera.updateMatrixWorld(true)
-                helper.position.copy(camera.getWorldPosition(new Vector3()))
-                helper.quaternion.copy(camera.getWorldQuaternion(new Quaternion()))
-            })
+                camera.updateMatrixWorld(true);
+                helper.position.copy(camera.getWorldPosition(new Vector3()));
+                helper.quaternion.copy(camera.getWorldQuaternion(new Quaternion()));
+            });
         }
 
         if(this.statsActive) {
-            this.stats.update()
+            // Mise à jour du panneau FPS standard
+            if (this.fpsPanel) {
+                this.fpsPanel.update();
+            }
+            
+            // Mise à jour des panneaux personnalisés
+            if (this.app.renderer && this.app.renderer.instance) {
+                const renderer = this.app.renderer.instance;
+                
+                // Récupération des valeurs
+                const triangleCount = renderer.info.render.triangles;
+                const callsCount = renderer.info.render.calls;
+                
+                // Mise à jour du panneau des triangles
+                if (this.triangleCtx && this.triangleValueText) {
+                    // Décaler les valeurs
+                    this.triangleValues.shift();
+                    this.triangleValues.push(triangleCount);
+                    
+                    // Affichage du nombre
+                    this.triangleValueText.textContent = triangleCount;
+                    
+                    // Dessin du graphique
+                    this.triangleCtx.fillStyle = 'rgb(0,0,0)';
+                    this.triangleCtx.fillRect(0, 0, 74, 30);
+                    this.triangleCtx.fillStyle = 'rgb(0,255,255)';
+                    
+                    const maxTriangles = Math.max(...this.triangleValues, 100000);
+                    for (let i = 0; i < this.triangleValues.length; i++) {
+                        const h = Math.min(30, 30 * (this.triangleValues[i] / maxTriangles));
+                        this.triangleCtx.fillRect(i, 30 - h, 1, h);
+                    }
+                }
+                
+                // Mise à jour du panneau des appels
+                if (this.callsCtx && this.callsValueText) {
+                    // Décaler les valeurs
+                    this.callsValues.shift();
+                    this.callsValues.push(callsCount);
+                    
+                    // Affichage du nombre
+                    this.callsValueText.textContent = callsCount;
+                    
+                    // Dessin du graphique
+                    this.callsCtx.fillStyle = 'rgb(0,0,0)';
+                    this.callsCtx.fillRect(0, 0, 74, 30);
+                    this.callsCtx.fillStyle = 'rgb(255,0,128)';
+                    
+                    const maxCalls = Math.max(...this.callsValues, 1000);
+                    for (let i = 0; i < this.callsValues.length; i++) {
+                        const h = Math.min(30, 30 * (this.callsValues[i] / maxCalls));
+                        this.callsCtx.fillRect(i, 30 - h, 1, h);
+                    }
+                }
+            }
         }
 
         if(this.positionDisplayActive && this.positionDisplay) {
-            this.updatePositionDisplay()
+            this.updatePositionDisplay();
         }
     }
 

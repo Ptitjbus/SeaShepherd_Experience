@@ -3,7 +3,7 @@ import { gsap } from 'gsap'
 import App from '../App.js'
 
 export default class DoorPair {
-    constructor(scene, position, width = 2, height = 4, colorLeft = 0xff0000, colorRight = 0x00ff00, sliding = true, rotation = 0) {
+    constructor(scene, position, width = 5, height = 7, colorLeft = 0x707070, colorRight = 0x707070, sliding = true, rotation = 0) {
         this.scene = scene
         this.position = position
         this.width = width
@@ -18,7 +18,7 @@ export default class DoorPair {
         // État des portes
         this.isOpen = false
         this.isAnimating = false
-        this.canBeOpened = false
+        this.canBeOpened = true
         this.playerInRange = false
         
         // Créer un conteneur parent pour faciliter la rotation
@@ -171,52 +171,40 @@ export default class DoorPair {
         return this.canBeOpened;
     }
     
-    openAnimated(duration = 1) {
+    openAnimated(duration = 1.7) {
         if (this.isOpen || this.isAnimating || !this.canBeOpened) return
         
         this.isAnimating = true
         
+        // Supprimer temporairement les corps physiques pendant l'animation
+        if (this.leftBody) {
+            this.physicsManager.removeBody(this.leftBody);
+            this.leftBody = null;
+        }
+        
+        if (this.rightBody) {
+            this.physicsManager.removeBody(this.rightBody);
+            this.rightBody = null;
+        }
+        
         gsap.to(this.leftDoor.position, {
             x: this.leftOpenPos.x,
             duration: duration,
-            ease: "power2.out",
-            onComplete: () => {
-                this.isOpen = true
-                this.isAnimating = false
-            },
-            onUpdate: () => {
-                // Mettre à jour la position du corps physique
-                if (this.leftBody) {
-                    const worldPos = new Vector3();
-                    this.leftDoor.getWorldPosition(worldPos);
-                    
-                    this.physicsManager.updateBodyPosition(this.leftBody, {
-                        x: worldPos.x,
-                        y: worldPos.y,
-                        z: worldPos.z
-                    });
-                }
-            }
-        })
+            ease: "ease.inOut",
+        });
         
         gsap.to(this.rightDoor.position, {
             x: this.rightOpenPos.x,
             duration: duration,
-            ease: "power2.out",
-            onUpdate: () => {
-                // Mettre à jour la position du corps physique
-                if (this.rightBody) {
-                    const worldPos = new Vector3();
-                    this.rightDoor.getWorldPosition(worldPos);
-                    
-                    this.physicsManager.updateBodyPosition(this.rightBody, {
-                        x: worldPos.x,
-                        y: worldPos.y,
-                        z: worldPos.z
-                    });
-                }
+            ease: "ease.inOut",
+            onComplete: () => {
+                this.isOpen = true;
+                this.isAnimating = false;
+                
+                // Recréer les corps physiques une fois l'animation terminée
+                this.createPhysicsBodies();
             }
-        })
+        });
     }
     
     closeAnimated(duration = 1) {
@@ -224,50 +212,40 @@ export default class DoorPair {
         
         this.isAnimating = true
         
+        // Supprimer temporairement les corps physiques pendant l'animation
+        if (this.leftBody) {
+            this.physicsManager.removeBody(this.leftBody);
+            this.leftBody = null;
+        }
+        
+        if (this.rightBody) {
+            this.physicsManager.removeBody(this.rightBody);
+            this.rightBody = null;
+        }
+        
         gsap.to(this.leftDoor.position, {
             x: this.leftInitialPos.x,
             duration: duration,
-            ease: "power2.out",
-            onComplete: () => {
-                this.isOpen = false
-                this.isAnimating = false
-            },
-            onUpdate: () => {
-                if (this.leftBody) {
-                    const worldPos = new Vector3();
-                    this.leftDoor.getWorldPosition(worldPos);
-                    
-                    this.physicsManager.updateBodyPosition(this.leftBody, {
-                        x: worldPos.x,
-                        y: worldPos.y,
-                        z: worldPos.z
-                    });
-                }
-            }
-        })
+            ease: "power2.out"
+        });
         
         gsap.to(this.rightDoor.position, {
             x: this.rightInitialPos.x,
             duration: duration,
             ease: "power2.out",
-            onUpdate: () => {
-                if (this.rightBody) {
-                    const worldPos = new Vector3();
-                    this.rightDoor.getWorldPosition(worldPos);
-                    
-                    this.physicsManager.updateBodyPosition(this.rightBody, {
-                        x: worldPos.x,
-                        y: worldPos.y,
-                        z: worldPos.z
-                    });
-                }
+            onComplete: () => {
+                this.isOpen = false;
+                this.isAnimating = false;
+                
+                // Recréer les corps physiques une fois l'animation terminée
+                this.createPhysicsBodies();
             }
-        })
+        });
     }
     
     update(playerPosition) {
         // Vérifier si le joueur est proche
-        const isNear = this.isPlayerNear(playerPosition);
+        const isNear = this.isPlayerNear(playerPosition, 7);
         
         // Si le joueur vient d'entrer dans la zone et que la porte peut s'ouvrir
         if (isNear && !this.isOpen && this.canBeOpened && !this.isAnimating) {
@@ -282,7 +260,7 @@ export default class DoorPair {
         this.playerInRange = isNear;
     }
     
-    isPlayerNear(playerPosition, threshold = 2) {
+    isPlayerNear(playerPosition, threshold = 4) {
         if (!playerPosition) return false;
         
         // Utiliser la position mondiale du conteneur
@@ -290,7 +268,10 @@ export default class DoorPair {
         this.container.getWorldPosition(doorCenter);
         doorCenter.y = playerPosition.y; // Pour ne comparer que la distance horizontale
         
-        return doorCenter.distanceTo(playerPosition) < threshold;
+        // Afficher la distance pour debug
+        const distance = doorCenter.distanceTo(playerPosition);
+        
+        return distance < threshold;
     }
     
     dispose() {
