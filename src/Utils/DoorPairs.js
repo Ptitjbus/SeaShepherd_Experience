@@ -1,4 +1,4 @@
-import { Mesh, PlaneGeometry, MeshBasicMaterial, DoubleSide, Object3D, Vector3, Quaternion, Euler } from 'three'
+import { Mesh, BoxGeometry, MeshBasicMaterial, DoubleSide, Object3D, Vector3, Quaternion, Euler } from 'three'
 import { gsap } from 'gsap'
 import App from '../App.js'
 
@@ -44,96 +44,115 @@ export default class DoorPair {
     }
     
     createDoors(colorLeft, colorRight) {
-        // Géométrie commune
-        const doorGeometry = new PlaneGeometry(this.width, this.height)
+        // Significantly thicker doors for better visibility
+        const doorThickness = 0.07; // Increase visual thickness
+        const doorGeometry = new BoxGeometry(this.width, this.height, doorThickness);
         
         // Matériaux
-        const leftMaterial = new MeshBasicMaterial({ color: colorLeft, side: DoubleSide })
-        const rightMaterial = new MeshBasicMaterial({ color: colorRight, side: DoubleSide })
+        const leftMaterial = new MeshBasicMaterial({ color: colorLeft });
+        const rightMaterial = new MeshBasicMaterial({ color: colorRight });
         
         // Mesh des portes
-        this.leftDoor = new Mesh(doorGeometry, leftMaterial)
-        this.rightDoor = new Mesh(doorGeometry, rightMaterial)
+        this.leftDoor = new Mesh(doorGeometry, leftMaterial);
+        this.rightDoor = new Mesh(doorGeometry, rightMaterial);
         
         // Positionnement des portes (par rapport au conteneur)
-        this.leftDoor.position.copy(this.leftInitialPos)
-        this.rightDoor.position.copy(this.rightInitialPos)
+        this.leftDoor.position.copy(this.leftInitialPos);
+        this.rightDoor.position.copy(this.rightInitialPos);
         
         // Ajout au conteneur au lieu de la scène directement
-        this.container.add(this.leftDoor)
-        this.container.add(this.rightDoor)
+        this.container.add(this.leftDoor);
+        this.container.add(this.rightDoor);
         
         // Créer les corps physiques via le physics manager
-        this.createPhysicsBodies()
+        this.createPhysicsBodies();
     }
     
     createPhysicsBodies() {
         if (!this.physicsManager) return;
         
-        // Épaisseur de la porte pour la collision
-        const doorThickness = 0.1;
+        // Supprimer les corps physiques existants
+        if (this.leftBody) {
+            this.physicsManager.removeBody(this.leftBody);
+            this.leftBody = null;
+        }
         
-        // Calcul des positions mondiales pour les corps physiques
+        if (this.rightBody) {
+            this.physicsManager.removeBody(this.rightBody);
+            this.rightBody = null;
+        }
+        
+        // Créer des boîtes de collision correctement orientées
+        // On va échanger width et depth pour aligner avec la rotation à 90°
+        const doorThickness = this.width * 1.1; // Utiliser la largeur de la porte comme épaisseur
+        const doorWidth = 1; // Épaisseur de collision dans la direction perpendiculaire
+        
+        // Obtenir les positions mondiales
         const leftWorldPos = new Vector3();
         this.leftDoor.getWorldPosition(leftWorldPos);
         
         const rightWorldPos = new Vector3();
         this.rightDoor.getWorldPosition(rightWorldPos);
         
-        // Quaternion pour appliquer la rotation aux corps physiques
-        const quaternion = new Quaternion().setFromEuler(new Euler(0, this.rotation, 0));
+        // Utiliser la rotation du conteneur pour l'orientation des portes
+        const containerQuat = new Quaternion();
+        this.container.getWorldQuaternion(containerQuat);
         
-        // Utilisez les méthodes du PhysicsManager pour créer les corps physiques
+        // Créer des corps physiques avec les dimensions correctement orientées
         this.leftBody = this.physicsManager.createBox(
             {
-                width: this.width,
-                height: this.height,
-                depth: doorThickness
+                width: doorWidth,         // Épaisseur dans l'axe X (après rotation)
+                height: this.height * 1.1, // Hauteur inchangée
+                depth: doorThickness      // Largeur de la porte devient la profondeur
             },
             {
-                mass: 0,
+                mass: 0,  // Corps statique
                 position: {
                     x: leftWorldPos.x,
                     y: leftWorldPos.y,
                     z: leftWorldPos.z
                 },
                 quaternion: {
-                    x: quaternion.x,
-                    y: quaternion.y,
-                    z: quaternion.z,
-                    w: quaternion.w
+                    x: containerQuat.x,
+                    y: containerQuat.y,
+                    z: containerQuat.z,
+                    w: containerQuat.w
                 },
                 material: {
-                    friction: 0.3,
-                    restitution: 0.2
-                }
+                    friction: 0.5,      // Plus de friction
+                    restitution: 0.0    // Pas de rebond
+                },
+                collisionFlags: 1,      // Flag d'objet statique
+                collisionFilterGroup: 1 // Groupe de collision par défaut
             },
             this.leftDoor
         );
         
         this.rightBody = this.physicsManager.createBox(
             {
-                width: this.width,
-                height: this.height,
-                depth: doorThickness
+                width: doorWidth,         // Épaisseur dans l'axe X (après rotation)
+                height: this.height * 1.1, // Hauteur inchangée
+                depth: doorThickness      // Largeur de la porte devient la profondeur
             },
             {
-                mass: 0,
+                mass: 0,  // Corps statique
                 position: {
                     x: rightWorldPos.x,
                     y: rightWorldPos.y,
                     z: rightWorldPos.z
                 },
                 quaternion: {
-                    x: quaternion.x,
-                    y: quaternion.y,
-                    z: quaternion.z,
-                    w: quaternion.w
+                    x: containerQuat.x,
+                    y: containerQuat.y,
+                    z: containerQuat.z,
+                    w: containerQuat.w
                 },
                 material: {
-                    friction: 0.3,
-                    restitution: 0.2
-                }
+                    friction: 0.5,      // Plus de friction
+                    restitution: 0.0    // Pas de rebond
+                },
+                collisionFlags: 1,      // Flag d'objet statique
+                collisionFilterGroup: 1 // Groupe de collision par défaut
             },
             this.rightDoor
         );
@@ -150,16 +169,18 @@ export default class DoorPair {
     updatePhysicsBodies() {
         if (!this.physicsManager) return;
         
-        // Supprimer les anciens corps physiques
+        // Remove existing physics bodies
         if (this.leftBody) {
             this.physicsManager.removeBody(this.leftBody);
+            this.leftBody = null;
         }
         
         if (this.rightBody) {
             this.physicsManager.removeBody(this.rightBody);
+            this.rightBody = null;
         }
         
-        // Recréer les corps physiques avec la nouvelle orientation
+        // Create new physics bodies at current door positions
         this.createPhysicsBodies();
     }
     
@@ -172,61 +193,69 @@ export default class DoorPair {
     }
     
     openAnimated(duration = 1.7) {
-        if (this.isOpen || this.isAnimating || !this.canBeOpened) return
+        if (this.isOpen || this.isAnimating || !this.canBeOpened) return;
         
-        this.isAnimating = true
-        
-        // Supprimer temporairement les corps physiques pendant l'animation
-        if (this.leftBody) {
-            this.physicsManager.removeBody(this.leftBody);
-            this.leftBody = null;
-        }
-        
-        if (this.rightBody) {
-            this.physicsManager.removeBody(this.rightBody);
-            this.rightBody = null;
-        }
+        this.isAnimating = true;
+
+        // Keep track of the animation progress
+        let progress = 0;
+        const updateInterval = 0.1; // Update physics every 10% of animation
         
         gsap.to(this.leftDoor.position, {
             x: this.leftOpenPos.x,
             duration: duration,
-            ease: "ease.inOut",
+            ease: "power2.out",
+            onUpdate: () => {
+                // Calculate current progress
+                const currentProgress = gsap.getProperty(this.leftDoor.position, "x");
+                const normalizedProgress = (currentProgress - this.leftInitialPos.x) / 
+                                          (this.leftOpenPos.x - this.leftInitialPos.x);
+                
+                // Update physics every 10% of animation
+                if (normalizedProgress >= progress + updateInterval) {
+                    progress = Math.floor(normalizedProgress / updateInterval) * updateInterval;
+                    this.updatePhysicsBodies(); // Update both door physics bodies
+                }
+            }
         });
         
         gsap.to(this.rightDoor.position, {
             x: this.rightOpenPos.x,
             duration: duration,
-            ease: "ease.inOut",
+            ease: "power2.out",
             onComplete: () => {
                 this.isOpen = true;
                 this.isAnimating = false;
-                
-                // Recréer les corps physiques une fois l'animation terminée
-                this.createPhysicsBodies();
+                this.updatePhysicsBodies(); // Final update when fully open
             }
         });
     }
     
     closeAnimated(duration = 1) {
-        if (!this.isOpen || this.isAnimating) return
+        if (!this.isOpen || this.isAnimating) return;
         
-        this.isAnimating = true
+        this.isAnimating = true;
         
-        // Supprimer temporairement les corps physiques pendant l'animation
-        if (this.leftBody) {
-            this.physicsManager.removeBody(this.leftBody);
-            this.leftBody = null;
-        }
-        
-        if (this.rightBody) {
-            this.physicsManager.removeBody(this.rightBody);
-            this.rightBody = null;
-        }
+        // Keep track of the animation progress
+        let progress = 0;
+        const updateInterval = 0.1; // Update physics every 10% of animation
         
         gsap.to(this.leftDoor.position, {
             x: this.leftInitialPos.x,
             duration: duration,
-            ease: "power2.out"
+            ease: "power2.out",
+            onUpdate: () => {
+                // Calculate current progress
+                const currentProgress = gsap.getProperty(this.leftDoor.position, "x");
+                const normalizedProgress = 1 - (currentProgress - this.leftOpenPos.x) / 
+                                          (this.leftInitialPos.x - this.leftOpenPos.x);
+                
+                // Update physics every 10% of animation
+                if (normalizedProgress >= progress + updateInterval) {
+                    progress = Math.floor(normalizedProgress / updateInterval) * updateInterval;
+                    this.updatePhysicsBodies(); // Update both door physics bodies
+                }
+            }
         });
         
         gsap.to(this.rightDoor.position, {
@@ -236,9 +265,7 @@ export default class DoorPair {
             onComplete: () => {
                 this.isOpen = false;
                 this.isAnimating = false;
-                
-                // Recréer les corps physiques une fois l'animation terminée
-                this.createPhysicsBodies();
+                this.updatePhysicsBodies(); // Final update when fully closed
             }
         });
     }

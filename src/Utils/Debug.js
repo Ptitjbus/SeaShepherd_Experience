@@ -688,10 +688,24 @@ export default class Debug extends EventEmitter {
         const doorsFolder = this.gui.addFolder('Doors')
 
         doorsFolder.add({
+            unlockDoor: () => {
+                this.app.doorManager.doorPairs[0].setOpenable(true)
+            }
+        }, 'unlockDoor').name('Unlock la porte')
+
+        doorsFolder.add({
+            lockDoor: () => {
+                this.app.doorManager.doorPairs[0].setOpenable(false)
+            }
+        }, 'lockDoor').name('Lock la porte')
+
+
+        doorsFolder.add({
             openDoor: () => {
                 this.app.doorManager.triggerOpenDoorByIndex(0)
             }
         }, 'openDoor').name('Ouvrir la porte')
+
         doorsFolder.add({
             closeDoor: () => {
                 this.app.doorManager.triggerCloseDoorByIndex(0)
