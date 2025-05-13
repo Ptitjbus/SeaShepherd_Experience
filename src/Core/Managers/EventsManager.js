@@ -83,16 +83,6 @@ export default class EventsManager extends EventEmitter {
             closeButton.remove();
         }
         
-        // Ajouter une indication pour l'utilisateur
-        const hint = document.createElement('p');
-        hint.className = 'dialog-hint';
-        hint.textContent = 'Appuyez sur Entrée pour continuer';
-        hint.style.textAlign = 'center';
-        hint.style.fontSize = '14px';
-        hint.style.opacity = '0.7';
-        hint.style.marginTop = '20px';
-        dialog.appendChild(hint);
-        
         // Ajouter une classe basée sur le type
         if (type) {
             dialog.classList.add(`type-${type}`);
