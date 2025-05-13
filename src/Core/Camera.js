@@ -10,6 +10,7 @@ import App from "../App"
             this.app = new App()
 
             this.mainCamera = null
+            this.followCamera = null
 
             this.perspective = null
 
@@ -37,6 +38,7 @@ import App from "../App"
 
         async init() {
             this.perspective = new PerspectiveCamera(70, this.app.canvasSize.aspect, 0.1, 500)
+
             this.perspective.position.set(0, this.initialY, 0)
 
             this.mainCamera = this.perspective

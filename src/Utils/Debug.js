@@ -94,12 +94,7 @@ export default class Debug extends EventEmitter {
         else if (this.app.camera && this.app.camera.instance && this.app.camera.instance.rotation) {
             rotation = this.app.camera.instance.rotation;
         }
-        
-        // Ajouter des logs pour le débogage
-        console.log('Debug player object:', player);
-        console.log('Position trouvée:', position);
-        console.log('Rotation trouvée:', rotation);
-    
+            
         // Convertir les angles en degrés pour une meilleure lisibilité
         const rotationDegrees = {
             x: (rotation.x * 180 / Math.PI).toFixed(2),
@@ -139,6 +134,7 @@ export default class Debug extends EventEmitter {
         this.initMediaPlayerFolder()  
         this.initBoidsFolder()
         this.initPositionDisplayFolder()
+        this.initWaterShader()
     }
 
     initPositionDisplayFolder() {
@@ -619,6 +615,39 @@ export default class Debug extends EventEmitter {
         })
     
         boidsFolder.close()
+    }
+
+    initWaterShader(){
+        const waterMaterial = this.app.objectManager?.waterUniformData
+
+        if (!waterMaterial) return
+
+        const folder = this.gui.addFolder('Water Shader')
+
+        folder.add(waterMaterial.uDistortFreq, 'value', 0, 50, 0.1).name('Distort Frequency')
+        folder.add(waterMaterial.uDistortAmp, 'value', 0.001, 0.05, 0.001).name('Distort Amplitude')
+        folder.add(waterMaterial.uMaxDepth, 'value', 0, 20, 0.01).name('Max Depth')
+        folder.add(waterMaterial.uFoamDepth, 'value', 0, 5, 0.01).name('Foam Depth')
+        folder.add(waterMaterial.uFoamTiling, 'value', 0.1, 10, 0.1).name('Foam Tiling')
+        folder.add(waterMaterial.uSolidFoamColor, 'value').name('Solid Foam Color')
+        folder.add(waterMaterial.uSpecularReflection, 'value').name('Specular Reflection')
+        folder.add(waterMaterial.uPlanarReflection, 'value').name('Planar Reflection')
+        folder.add(waterMaterial.uFresnelFactor, 'value', 0, 2, 0.01).name('Fresnel Factor')
+
+        folder.addColor({ color1: `#${waterMaterial.uColor1.value.getHexString()}` }, 'color1')
+            .name('Color 1')
+            .onChange(val => waterMaterial.uColor1.value.set(val))
+
+        folder.addColor({ color2: `#${waterMaterial.uColor2.value.getHexString()}` }, 'color2')
+            .name('Color 2')
+            .onChange(val => waterMaterial.uColor2.value.set(val))
+
+        folder.addColor({ foamColor: `#${waterMaterial.uFoamColor.value.getHexString()}` }, 'foamColor')
+            .name('Foam Color')
+            .onChange(val => waterMaterial.uFoamColor.value.set(val))
+
+        folder.close()
+
     }
     
 

@@ -18,6 +18,7 @@ class PointerLockControlsCannon extends THREE.EventDispatcher {
 
     this.pitchObject = new THREE.Object3D()
     this.pitchObject.add(camera)
+    this.camera = camera
 
     this.yawObject = new THREE.Object3D()
     this.yawObject.position.y = 2
@@ -287,6 +288,8 @@ class PointerLockControlsCannon extends THREE.EventDispatcher {
     }
 
     this.yawObject.position.copy(this.cannonBody.position)
+    this.yawObject.updateMatrixWorld(true);
+    this.pitchObject.updateMatrixWorld(true);
 
   }
 }

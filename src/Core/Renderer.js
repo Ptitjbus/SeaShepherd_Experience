@@ -1,4 +1,4 @@
-import { WebGLRenderer } from "three"
+import { DepthFormat, DepthTexture, FloatType, WebGLRenderer, WebGLRenderTarget } from "three"
 import App from "../App"
 import EventEmitter from "../Utils/EventEmitter"
 
@@ -12,6 +12,8 @@ export default class Renderer extends EventEmitter {
         this.maxPixelRatio = 1
 
         this.resizeHandlerBound = this.resizeHandler.bind(this)
+        this.renderTarget = null
+        this.reflectionRenderTarget = null
 
         this.init()
     }
@@ -20,12 +22,18 @@ export default class Renderer extends EventEmitter {
         // TODO : rendre les ombres : https://threejs.org/docs/#api/en/renderers/WebGLRenderer PCFShadowMap
         this.instance = new WebGLRenderer({
             canvas : this.app.canvas,
-            context: this.app.canvas.getContext('webgl2'),
             antialias : true
         })
-
-        this.instance.setSize(this.app.canvasSize.width, this.app.canvasSize.height)
         this.instance.setPixelRatio(Math.min(this.app.canvasSize.pixelRatio, this.maxPixelRatio))
+        this.instance.setSize(this.app.canvasSize.width, this.app.canvasSize.height)
+
+        this.renderTarget = new WebGLRenderTarget(this.app.canvasSize.width * this.app.canvasSize.pixelRatio, this.app.canvasSize.height * this.app.canvasSize.pixelRatio);
+        this.renderTarget.depthTexture = new DepthTexture(this.app.canvasSize.width * this.app.canvasSize.pixelRatio, this.app.canvasSize.height * this.app.canvasSize.pixelRatio);
+        this.renderTarget.depthTexture.type = FloatType;
+        this.renderTarget.depthTexture.format = DepthFormat;
+
+        this.reflectionRenderTarget = new WebGLRenderTarget(this.app.canvas.width * this.app.canvasSize.pixelRatio, this.app.canvas.height * this.app.canvasSize.pixelRatio);
+
 
         this.app.canvasSize.on('resize', this.resizeHandlerBound)
     }

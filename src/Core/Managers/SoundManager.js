@@ -52,7 +52,7 @@ export default class SoundManager {
 
     attachToSpeakers() {
         this.app.scene.traverse((child) => {
-            if (child.name.startsWith('HAUT-PARLEUR')) {
+            if (child.userData.is_speaker) {
                 const position = new Vector3()
                 const worldPosition = child.getWorldPosition(position)
 

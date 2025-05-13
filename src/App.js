@@ -198,6 +198,8 @@ export default class App extends EventEmitter {
         this.objectManager.addBoids(30, 15, new Vector3(-70, 5, -5))
         this.objectManager.addBoids(2, 6, new Vector3(-12, 1.5, -12))
 
+        this.objectManager.addPlane(new Vector3(0,2,0), 40)
+
         this.doorManager = new DoorManager(this.scene)
         this.doorManager.addDoorPair(new Vector3(-2, 0, -2)) // Porte 1
         this.doorManager.doorPairs[0].setRotation(Math.PI/2)
@@ -217,7 +219,7 @@ export default class App extends EventEmitter {
     }
 
     update(time) {
-        if(this.playMuseumAnimation) this.objectManager.update(time)
+        this.objectManager.update(time)
         if (this.mediaManager) this.mediaManager.update(this.camera.mainCamera)
         if (this.soundManager) this.soundManager.updateListener()
         if (this.physicsManager) this.physicsManager.update(time.delta)

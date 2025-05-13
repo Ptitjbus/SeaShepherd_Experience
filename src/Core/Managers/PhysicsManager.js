@@ -102,6 +102,7 @@ export default class PhysicsManager {
     update(deltaTime) {
         this.world.step(this.timeStep, deltaTime, 3)
         this.controls.update(deltaTime)
+        this.controls.getObject().updateMatrixWorld(true);
     }
 
     createBox(dimensions, options, mesh) {
