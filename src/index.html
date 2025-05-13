@@ -36,7 +36,7 @@
 
     <div class="end-overlay hidden">
         <div class="logo-container">
-            <img src="/images/logos/sea-shepherd-logo.webp" alt="Logo Sea Shepherd France" class="sea-shepherd-logo">
+            <img src="/images/logos/sea_shepherd_logo.svg" alt="Logo Sea Shepherd France" class="sea-shepherd-logo">
         </div>
         
         <div class="end-message">
@@ -48,6 +48,20 @@
             <a href="#" class="cta-button">Rejoindre Sea Shepherd</a>
         </div>
     </div>
+    
+    <!-- Container pour les dialogues -->
+    <div id="dialog-container"></div>
+    
+    <!-- Template pour les popins/dialogues -->
+    <template id="dialog-template">
+        <dialog class="system-dialog">
+            <div class="dialog-header">
+                <img src="/images/logos/sea_shepherd_logo.svg" alt="Logo Sea Shepherd" class="dialog-logo">
+            </div>
+            <h3 class="dialog-title"></h3>
+            <div class="dialog-content"></div>
+        </dialog>
+    </template>
  
     <script type="module" src="./script.js"></script>
 </body>

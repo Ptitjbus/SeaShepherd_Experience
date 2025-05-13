@@ -604,6 +604,75 @@ body
     font 7s step-end infinite, movement 8s step-end infinite;
 }
 
+/* style pour les popins */
+
+#dialog-container dialog {
+  position: fixed;
+  top: 15%;
+  left: calc(50% - 450px/2);
+  width: 450px;
+  
+  background-image: url('/images/popins/background.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  
+  padding: 25px;
+  color: #f0f0f0;
+  
+  opacity: 0;
+  transform: scale(0.95) translateY(30px);
+  transition: opacity 0.4s cubic-bezier(.4,0,.2,1), transform 0.4s cubic-bezier(.4,0,.2,1);
+  pointer-events: none;
+}
+
+#dialog-container dialog.popin-visible {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  pointer-events: auto;
+}
+
+#dialog-container dialog::backdrop {
+  background-color: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(3px);
+}
+
+/* En-tête de la popin avec logo */
+#dialog-container dialog .dialog-header {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+}
+
+/* Style du logo Sea Shepherd */
+#dialog-container dialog .dialog-logo {
+  width: 120px;
+  height: 50px;
+  object-fit: contain;
+}
+
+/* Cacher le texte du titre original */
+#dialog-container dialog .dialog-title {
+  display: none;
+}
+
+/* Améliorer le style du contenu */
+#dialog-container dialog .dialog-content {
+  margin: 20px 0;
+  line-height: 1.6;
+  font-size: 16px;
+  text-align: center;
+}
+
+/* Style de l'indication pour la touche Entrée */
+#dialog-container dialog .dialog-hint {
+  text-align: center;
+  font-size: 14px;
+  opacity: 0.7;
+  margin-top: 20px;
+}
+
 /* style pour la Page de fin */
 
 .end-overlay {

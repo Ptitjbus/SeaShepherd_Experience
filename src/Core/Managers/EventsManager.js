@@ -10,121 +10,50 @@ export default class EventsManager extends EventEmitter {
         this.activeDialogs = []
         this.dialogCounter = 0
         
-        // Créer un conteneur pour les dialogs si nécessaire
-        this.initDialogContainer()
-    }
-    
-    initDialogContainer() {
+        // Vérifier que le conteneur existe
         this.dialogContainer = document.getElementById('dialog-container')
         if (!this.dialogContainer) {
             this.dialogContainer = document.createElement('div')
             this.dialogContainer.id = 'dialog-container'
             document.body.appendChild(this.dialogContainer)
-            
-            // Ajouter le style pour le conteneur
-            const style = document.createElement('style')
-            style.textContent = `
-                #dialog-container {
-                    position: fixed;
-                    width: 100%;
-                    height: 100%;
-                    top: 0;
-                    left: 0;
-                    z-index: 9999;
-                    pointer-events: none;
-                }
-                
-                #dialog-container dialog {
-                    position: fixed;
-                    top: 50%;
-                    left: 50%;
-                    /* Centrage + animation */
-                    transform: translate(-50%, -50%) scale(0.95);
-                    border: 3px solid #ff2a2a;
-                    box-shadow: 0 0 20px rgba(255, 0, 0, 0.5), 0 0 40px rgba(255, 0, 0, 0.2);
-                    background-color: rgba(20, 0, 0, 0.9);
-                    color: #f0f0f0;
-                    padding: 25px;
-                    border-radius: 0;
-                    max-width: 450px;
-                    font-family: 'Sans serif', monospace;
-                    margin: 0;
-                    pointer-events: auto;
-                    opacity: 0;
-                    transition: opacity 0.4s cubic-bezier(.4,0,.2,1), transform 0.4s cubic-bezier(.4,0,.2,1);
-                    animation: pulse 2s infinite;
-                }
-                
-                #dialog-container dialog.popin-visible {
-                    opacity: 1;
-                    transform: translate(-50%, -50%) scale(1);
-                    pointer-events: auto;
-                }
-                
-                #dialog-container dialog::backdrop {
-                    background-color: rgba(0, 0, 0, 0.85);
-                    backdrop-filter: blur(3px);
-                }
-                
-                #dialog-container dialog h3 {
-                    margin-top: 0;
-                    color: #ff2a2a;
-                    border-bottom: 2px solid #ff2a2a;
-                    padding-bottom: 10px;
-                    text-transform: uppercase;
-                    letter-spacing: 2px;
-                    font-size: 1.2em;
-                }
-                
-                #dialog-container dialog .dialog-content {
-                    margin: 20px 0;
-                    line-height: 1.5;
-                    text-shadow: 0 0 5px rgba(255, 0, 0, 0.3);
-                }
-                
-                #dialog-container dialog button {
-                    background-color: #ff2a2a;
-                    color: black;
-                    border: none;
-                    padding: 10px 20px;
-                    border-radius: 0;
-                    cursor: pointer;
-                    font-family: 'Sans serif', monospace;
-                    float: right;
-                    text-transform: uppercase;
-                    font-weight: bold;
-                    letter-spacing: 1px;
-                    transition: all 0.3s ease;
-                }
-                
-                #dialog-container dialog button:hover {
-                    background-color: #ff0000;
-                    box-shadow: 0 0 10px rgba(255, 0, 0, 0.7);
-                    transform: scale(1.05);
-                }
-                
-                @keyframes pulse {
-                    0% { box-shadow: 0 0 20px rgba(255, 0, 0, 0.5), 0 0 40px rgba(255, 0, 0, 0.2); }
-                    50% { box-shadow: 0 0 25px rgba(255, 0, 0, 0.7), 0 0 50px rgba(255, 0, 0, 0.3); }
-                    100% { box-shadow: 0 0 20px rgba(255, 0, 0, 0.5), 0 0 40px rgba(255, 0, 0, 0.2); }
-                }
-                
-                #dialog-container dialog {
-                    animation: pulse 2s infinite;
-                }
-                
-                #dialog-container dialog.popin-visible {
-                    opacity: 1;
-                    transition: opacity 0.4s ease;
-                }
-                
-                #dialog-container dialog:not(.popin-visible) {
-                    opacity: 0;
-                    transition: opacity 0.4s ease;
-                }
-            `
-            document.head.appendChild(style)
         }
+
+        // Listener global pour la touche Entrée
+        document.addEventListener('keydown', this.handleKeyDown.bind(this))
+    }
+    
+    /**
+     * Gère les événements clavier pour fermer la popin avec la touche Entrée
+     * @param {KeyboardEvent} event - L'événement clavier
+     */
+    handleKeyDown(event) {
+        // Si la touche Entrée est pressée et qu'une dialogue est active
+        if (event.key === 'Enter' && this.activeDialogs.length > 0) {
+            // Fermer la dernière popin affichée (la plus récente)
+            const lastDialog = this.activeDialogs[this.activeDialogs.length - 1];
+            this.closeDialog(lastDialog.id);
+            event.preventDefault();
+        }
+    }
+
+    /**
+     * Ferme une popin spécifique par son ID
+     * @param {string} dialogId - L'ID de la popin à fermer
+     */
+    closeDialog(dialogId) {
+        const dialogInfo = this.activeDialogs.find(d => d.id === dialogId);
+        if (!dialogInfo) return;
+
+        const dialog = dialogInfo.element;
+        dialog.classList.remove('popin-visible');
+        
+        // Attendre la fin de l'animation avant de fermer
+        setTimeout(() => {
+            dialog.close();
+            dialog.remove();
+            this.activeDialogs = this.activeDialogs.filter(d => d.id !== dialogId);
+            this.trigger('dialogClosed', dialogId);
+        }, 400);
     }
     
     /**
@@ -135,80 +64,94 @@ export default class EventsManager extends EventEmitter {
      * @returns {string} - L'ID de la dialog créée
      */
     displayAlert(message = null, type = 'information', title = null) {
-        const displayMessage = message || 'Information'
-        const displayTitle = title || 'Message'
+        const displayMessage = message || 'Information';
 
-        // Créer la dialog
-        const dialog = document.createElement('dialog')
-        const dialogId = `dialog-${++this.dialogCounter}`
-        dialog.id = dialogId
-
-        // Construire le contenu
-        dialog.innerHTML = `
-            <h3>${displayTitle}</h3>
-            <div class="dialog-content">${displayMessage}</div>
-            <button type="button" data-action="close">OK</button>
-        `
+        // Récupérer et cloner le template
+        const template = document.getElementById('dialog-template');
+        const dialog = template.content.querySelector('dialog').cloneNode(true);
+        
+        // Générer un ID unique
+        const dialogId = `dialog-${++this.dialogCounter}`;
+        dialog.id = dialogId;
+        
+        dialog.querySelector('.dialog-title').textContent = title || 'Sea Shepherd';
+        dialog.querySelector('.dialog-content').innerHTML = displayMessage;
+        
+        // Supprimer le bouton de fermeture s'il existe
+        const closeButton = dialog.querySelector('button[data-action="close"]');
+        if (closeButton) {
+            closeButton.remove();
+        }
+        
+        // Ajouter une indication pour l'utilisateur
+        const hint = document.createElement('p');
+        hint.className = 'dialog-hint';
+        hint.textContent = 'Appuyez sur Entrée pour continuer';
+        hint.style.textAlign = 'center';
+        hint.style.fontSize = '14px';
+        hint.style.opacity = '0.7';
+        hint.style.marginTop = '20px';
+        dialog.appendChild(hint);
+        
+        // Ajouter une classe basée sur le type
+        if (type) {
+            dialog.classList.add(`type-${type}`);
+        }
 
         // Ajouter au conteneur
-        this.dialogContainer.appendChild(dialog)
+        this.dialogContainer.appendChild(dialog);
 
-        // Ouvrir la dialog AVANT d'ajouter la classe (pour que la transition fonctionne)
-        dialog.showModal()
+        // Ouvrir la dialog
+        dialog.showModal();
 
-        // Forcer le repaint avant d'ajouter la classe pour l'animation d'apparition
-        requestAnimationFrame(() => {
-            dialog.classList.add('popin-visible')
-        })
-
-        // Gérer la fermeture
-        const closeButton = dialog.querySelector('button[data-action="close"]')
-        closeButton.addEventListener('click', () => {
-            dialog.classList.remove('popin-visible')
-            setTimeout(() => {
-                dialog.close()
-                dialog.remove()
-                this.activeDialogs = this.activeDialogs.filter(d => d.id !== dialogId)
-                this.trigger('dialogClosed', dialogId)
-            }, 400) // doit correspondre à la durée du transition CSS
-        })
+        // Animation d'apparition
+        setTimeout(() => {
+            dialog.classList.add('popin-visible');
+        }, 10);
 
         // Conserver une référence
         this.activeDialogs.push({
             id: dialogId,
             element: dialog
-        })
+        });
 
-        this.trigger('dialogShown', dialogId)
-        return dialogId
+        this.trigger('dialogShown', dialogId);
+        return dialogId;
     }
 
     closeAllDialogs() {
         this.activeDialogs.forEach(dialog => {
-            dialog.element.close()
-            dialog.element.remove()
-        })
-        this.activeDialogs = []
+            dialog.element.classList.remove('popin-visible');
+            
+            setTimeout(() => {
+                dialog.element.close();
+                dialog.element.remove();
+            }, 400);
+        });
+        this.activeDialogs = [];
     }
 
     openWindow(url) {
-        const newWindow = window.open(url, '_blank')
+        const newWindow = window.open(url, '_blank');
         if (newWindow) {
-            newWindow.focus()
+            newWindow.focus();
         } else {
-            console.error('La fenêtre n\'a pas pu être ouverte. Vérifiez que les fenêtres contextuelles ne sont pas bloquées.')
+            console.error('La fenêtre n\'a pas pu être ouverte. Vérifiez que les fenêtres contextuelles ne sont pas bloquées.');
         }
     }
 
     closeWindow() {
-        window.close()
+        window.close();
     }
 
     destroy() {
-        this.closeAllDialogs()
+        // Supprimer l'écouteur d'événement global pour éviter les fuites de mémoire
+        document.removeEventListener('keydown', this.handleKeyDown.bind(this));
+        
+        this.closeAllDialogs();
         if (this.dialogContainer) {
-            this.dialogContainer.remove()
-            this.dialogContainer = null
+            this.dialogContainer.remove();
+            this.dialogContainer = null;
         }
     }
 }
