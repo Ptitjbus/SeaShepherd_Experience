@@ -349,7 +349,7 @@ export default class App extends EventEmitter {
             },
             'bigvideo': { 
                 type: 'video', 
-                src: '/videos/bigvideo_720p.webm', 
+                src: '/videos/720p/bigvideo.webm', 
                 glitchType: 'big',
                 loop: false,
                 muted: false,
@@ -357,7 +357,7 @@ export default class App extends EventEmitter {
             },
             'connexion': { 
                 type: 'video', 
-                src: '/videos/connexion_1080p.webm', 
+                src: '/videos/1080p/connexion.webm', 
                 glitchType: 'small',
                 loop: false,
                 muted: false,
