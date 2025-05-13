@@ -684,6 +684,21 @@ export default class Debug extends EventEmitter {
         })
     
         boidsFolder.close()
+
+        const doorsFolder = this.gui.addFolder('Doors')
+
+        doorsFolder.add({
+            openDoor: () => {
+                this.app.doorManager.triggerOpenDoorByIndex(0)
+            }
+        }, 'openDoor').name('Ouvrir la porte')
+        doorsFolder.add({
+            closeDoor: () => {
+                this.app.doorManager.triggerCloseDoorByIndex(0)
+            }
+        }, 'closeDoor').name('Fermer la porte') 
+
+        doorsFolder.close()
     }
     
     displayLightsHelpers() {

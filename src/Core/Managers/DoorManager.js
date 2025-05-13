@@ -67,6 +67,7 @@ export default class DoorManager {
         return null
     }
 
+    
     // Ouvre une paire de portes spécifique par index pour la mise en scène
     triggerOpenDoorByIndex(index) {
         if (index >= 0 && index < this.doorPairs.length) {
