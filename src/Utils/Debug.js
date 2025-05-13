@@ -341,6 +341,11 @@ export default class Debug extends EventEmitter {
             }
         }, 'showBoidShperesHelpers').name('Toogle boids helpers')
         debugFolder.add({
+            showTriggerWireframeHelpers: () => {
+                this.toogleTriggerHelpers()
+            }
+        }, 'showTriggerWireframeHelpers').name('Toogle trigger helpers')
+        debugFolder.add({
             toogleAllHelpers: () => {
                 this.toogleAllHelpers()
             }
@@ -861,6 +866,12 @@ export default class Debug extends EventEmitter {
         })
     }
 
+    toogleTriggerHelpers(){
+        this.app.objectManager.triggersWireframes.forEach((mesh) => {
+            mesh.visible = !mesh.visible
+        })
+    }
+
     toogleAllHelpers(){
         this.toogleLightsHelpers()
         this.toogleAllAnimationClipsLines()
@@ -868,6 +879,7 @@ export default class Debug extends EventEmitter {
         this.toogleSpeakersHelpers()
         this.toogleCollisionsHelpers()
         this.toogleBoidSpheressHelpers()
+        this.toogleTriggerHelpers()
     }
 
     update() {

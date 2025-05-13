@@ -166,18 +166,14 @@ export default class App extends EventEmitter {
         // Porte 1
         this.doorManager.addDoorPair(new Vector3(-8.01, 0, 0.05))
         this.doorManager.doorPairs[0].setRotation(Math.PI/2)
-        this.doorManager.doorPairs[0].setOpenable(true)
-        this.doorManager.doorPairs[0].setCanBeTriggered(false)
 
         // Porte 2
         this.doorManager.addDoorPair(new Vector3(-50.86, 0, -30.36))
         this.doorManager.doorPairs[1].setRotation(0.42 * Math.PI/180)
-        this.doorManager.doorPairs[1].setOpenable(true)
 
         // Porte 3
         this.doorManager.addDoorPair(new Vector3(-67, 0, -121), 6, 9)
         this.doorManager.doorPairs[2].setRotation(Math.PI/2)
-        this.doorManager.doorPairs[2].setOpenable(true)
 
         this.objectManager.addEventTrigger(
             new Vector3(-40, 1, -5),

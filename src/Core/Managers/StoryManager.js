@@ -80,6 +80,22 @@ export default class StoryManager {
         if (!this.checkActiveTask('aquarium')) return
         await this.app.soundManager.playVoiceLine('5.1_DAUPHINS')
 
+        if (!this.checkActiveTask('aquarium')) return
+        await this.app.choicesManager.showChoices({
+            choice1: "Dites m'en plus je veux tout savoir !",
+            choice2: "Vous avez rien de plus intéressant ?"
+        }).then(async (choiceIndex) => {
+            if (choiceIndex === 1) {
+                await this.app.soundManager.playVoiceLine('5.2_CHOIX1');
+            } else {
+                await this.app.soundManager.playVoiceLine('5.3_CHOIX2');
+            }
+        });
+
+        if (!this.checkActiveTask('aquarium')) return
+        await this.sleep(2000)
+        await this.app.soundManager.playVoiceLine('5.4_FINDAUPHIN')
+        this.app.doorManager.triggerOpenDoorByIndex(1)
         this.activeTasks = this.activeTasks.filter(task => task !== 'aquarium')
     }
 

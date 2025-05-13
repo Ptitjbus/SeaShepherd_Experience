@@ -13,9 +13,10 @@ export default class DoorManager {
         this.scriptOpenedDoors = []
     }
 
-    addDoorPair(position, width = 3, height = 5, colorLeft = 0x707070, colorRight = 0x707070, canBeOpened = true) {
+    addDoorPair(position, width = 3, height = 5, colorLeft = 0x707070, colorRight = 0x707070, canBeOpened = true, canBeTriggered = false) {
         const pair = new DoorPair(this.scene, position, width, height, colorLeft, colorRight, true) // Sliding doors
         pair.setOpenable(canBeOpened); // Définir si la porte peut être ouverte
+        pair.setCanBeTriggered(canBeTriggered)
         this.doorPairs.push(pair)
         return pair
     }

@@ -42,6 +42,7 @@ export default class ObjectManager {
 
         this.obstacles = []
         this.triggers = []
+        this.triggersWireframes = []
 
         this.boidManagers = []
         this.boidSpheres = []
@@ -167,6 +168,8 @@ export default class ObjectManager {
             const mesh = new THREE.Mesh(geometry, material)
             mesh.position.copy(position)
             this.app.scene.add(mesh)
+
+            this.triggersWireframes.push(mesh)
         }
 
         this.triggers.push({
