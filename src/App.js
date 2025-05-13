@@ -1,16 +1,12 @@
 import { Scene, MeshStandardMaterial, Color, Vector3 } from "three"
-import { Scene, MeshStandardMaterial, Color, Vector3 } from "three"
+import ObjectManager from './Core/Managers/ObjectManager.js'
+import AssetManager from "./Assets/AssetManager.js"
+import PostProcessingManager from "./Core/Managers/PostProcessingManager.js"
 import EventEmitter from "./Utils/EventEmitter"
 import CanvasSize from "./Core/CanvasSize"
 import Camera from "./Core/Camera"
 import Renderer from "./Core/Renderer"
 import { AnimationLoop } from "./Core/AnimationLoop"
-import ObjectManager from './Core/Managers/ObjectManager.js'
-import AssetManager from "./Assets/AssetManager.js"
-import PostProcessingManager from "./Core/Managers/PostProcessingManager.js" 
-import ObjectManager from './Core/Managers/ObjectManager.js'
-import AssetManager from "./Assets/AssetManager.js"
-import PostProcessingManager from "./Core/Managers/PostProcessingManager.js" 
 import Debug from "./Utils/Debug"
 import Ocean from './World/Ocean.js'
 import EventsManager from './Core/Managers/EventsManager'
@@ -52,7 +48,6 @@ export default class App extends EventEmitter {
         this.camera = null
         this.renderer = null
         this.sky = null
-        this.sky = null
 
         this.debug = null
 
@@ -66,11 +61,7 @@ export default class App extends EventEmitter {
         this.endOverlay = null
         this.experienceStarted = false
         this.experienceEnded = false
-        this.startOverlay = null
-        this.startButton = null
-        this.endOverlay = null
-        this.experienceStarted = false
-        this.experienceEnded = false
+        this.playMuseumAnimation = false
 
         this.popins = {}
         this.eventsManager = null
@@ -90,13 +81,8 @@ export default class App extends EventEmitter {
     }
 
     init() {
-    init() {
         this.renderer = new Renderer()
         this.camera = new Camera()
-        this.scene = new Scene()
-        this.debug = new Debug()
-        this.physicsManager = new PhysicsManager()
-        
         this.scene = new Scene()
         this.debug = new Debug()
         this.physicsManager = new PhysicsManager()
@@ -121,13 +107,16 @@ export default class App extends EventEmitter {
 
         this.choicesManager = new ChoicesManager()
         
+        // Instancier le gestionnaire d'histoire si nécessaire
+        this.storyManager = new StoryManager()
+        
         // Précharger les médias après avoir initialisé le MediaManager
-        this.initMadias()
+        this.initMedias()
         
         this.setupUI()
     }
 
-    async initMadias(){
+    async initMedias() {
         await this.preloadMedias()
     }
 
@@ -138,7 +127,15 @@ export default class App extends EventEmitter {
                 
         this.startButton.addEventListener('click', (e) => {
             e.preventDefault()
+            // Utiliser la méthode startExperience de cette classe,
+            // ou celle du storyManager si c'est ce que vous souhaitez
             this.startExperience()
+            // Si vous voulez utiliser storyManager à la place :
+            // if (this.storyManager && typeof this.storyManager.startExperience === 'function') {
+            //     this.storyManager.startExperience()
+            // } else {
+            //     this.startExperience()
+            // }
         })
     }
 
@@ -233,29 +230,12 @@ export default class App extends EventEmitter {
         this.doorManager.doorPairs[2].setRotation(Math.PI/2)
         this.doorManager.doorPairs[2].setOpenable(true)
     }
-    
-    async initMadias(){
-        await this.preloadMedias()
-    }
-
-    setupUI() {
-        this.startOverlay = document.querySelector('.start-overlay')
-        this.startButton = document.querySelector('.start-button')
-        this.endOverlay = document.querySelector('.end-overlay')
-                
-        this.startButton.addEventListener('click', (e) => {
-            e.preventDefault()
-            this.storyManager.startExperience()
-        })
-    }
 
     update(time) {
         if(this.playMuseumAnimation) this.objectManager.update(time)
         if (this.mediaManager) this.mediaManager.update(this.camera.mainCamera)
         if (this.soundManager) this.soundManager.updateListener()
         if (this.physicsManager) this.physicsManager.update(time.delta)
-
-        if (this.doorManager) this.doorManager.update()
 
         if (this.doorManager) this.doorManager.update()
 
@@ -271,7 +251,7 @@ export default class App extends EventEmitter {
 
     destroy() {
         if (this.startButton) {
-            this.startButton.removeEventListener('click', this.storyManager.startExperience)
+            this.startButton.removeEventListener('click', this.startExperience)
         }
 
         if (this.eventsManager) {
@@ -294,9 +274,7 @@ export default class App extends EventEmitter {
             }
         })
         
-
         this.postProcessing = null  
-
 
         this.camera.destroy()
         this.camera = null
@@ -305,8 +283,12 @@ export default class App extends EventEmitter {
         this.renderer = null
 
         this.scene = null
-        this.sky.destroy()
-        this.sky = null
+        
+        if (this.sky) {
+            this.sky.destroy()
+            this.sky = null
+        }
+        
         this.ocean.destroy()
         this.ocean = null
         this.objectManager.destroy()
@@ -314,7 +296,10 @@ export default class App extends EventEmitter {
         this.debug.destroy()
         this.debug = null
 
-        this.soundManager.destroy()
+        if (this.soundManager) {
+            this.soundManager.destroy()
+            this.soundManager = null
+        }
 
         this.animationLoop.off('update')
         this.animationLoop = null
@@ -328,29 +313,31 @@ export default class App extends EventEmitter {
         this.startOverlay = null
         this.startButton = null
         this.endOverlay = null
-        this.startOverlay = null
-        this.startButton = null
-        this.endOverlay = null
 
         this.canvas = null
-        this.soundManager.destroy()
-        this.soundManager = null
-        this.mediaManager.destroy()
-        this.mediaManager = null
-        this.choicesManager.destroy()
-        this.choicesManager = null
-        this.soundManager.destroy()
-        this.soundManager = null
-        this.mediaManager.destroy()
-        this.mediaManager = null
-        this.choicesManager.destroy()
-        this.choicesManager = null
+        
+        if (this.mediaManager) {
+            this.mediaManager.destroy()
+            this.mediaManager = null
+        }
+        
+        if (this.choicesManager) {
+            this.choicesManager.destroy()
+            this.choicesManager = null
+        }
+        
+        if (this.storyManager) {
+            // Ajoutez une méthode destroy au StoryManager si nécessaire
+            if (typeof this.storyManager.destroy === 'function') {
+                this.storyManager.destroy()
+            }
+            this.storyManager = null
+        }
 
         myAppInstance = null
     }
 
-    async preloadMedias()
-    {
+    async preloadMedias() {
         this.mediaManager.preloadMedia({
             'error1': { 
                 type: 'video', 
