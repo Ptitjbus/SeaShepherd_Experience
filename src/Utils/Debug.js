@@ -300,7 +300,7 @@ export default class Debug extends EventEmitter {
 
     initCameraFolder() {
         if (!this.app.camera) return 
-        const museum = this.app.objectManager.get("Museum")
+        const museum = this.app.objectManager.get("Dauphins")
 
         const cameraFolder = this.gui.addFolder('Camera')
         cameraFolder.add(this.app.camera, 'breathing', true).name('Breathing')
@@ -361,7 +361,7 @@ export default class Debug extends EventEmitter {
     }
 
     initShortcutsFolder() {
-        const museum = this.app.objectManager.get("Museum")
+        const museum = this.app.objectManager.get("Dauphins")
         window.addEventListener('keydown', (event) => {
             event.preventDefault()
 
@@ -581,24 +581,9 @@ export default class Debug extends EventEmitter {
         const soundPlayerFolder = this.gui.addFolder('Sound Player')
         soundPlayerFolder.add({
             playSoundOnSpeakers: () => {
-                this.app.soundManager.playSoundOnSpeakers('voiceLine 1', 'audio/voices/1-INTRO.mp3', {
-                    volume: 3,
-                    loop: false,
-                    maxDistance: 8,
-                    vttSrc: 'audio/subtitles/PADG_INTRO_1.vtt'
-                })
+                this.app.soundManager.playVoiceLine('1-INTRO')
             }
-        }, 'playSoundOnSpeakers').name('Play Sound 1 on speakers')
-        soundPlayerFolder.add({
-            playSoundOnSpeakers: () => {
-                this.app.soundManager.playSoundOnSpeakers('voiceLine 1', 'audio/voices/1-INTRO.mp3', {
-                    volume: 3,
-                    loop: false,
-                    maxDistance: 8,
-                    vttSrc: 'audio/subtitles/PADG_INTRO_1.vtt'
-                })
-            }
-        }, 'playSoundOnSpeakers').name('Play Sound 2 on speakers')
+        }, 'playSoundOnSpeakers').name('Play intro on speakers')
         soundPlayerFolder.add(this.app.soundManager, 'stopAll').name('Stop All Sounds')
         soundPlayerFolder.close()
     }

@@ -73,28 +73,28 @@ export class ChoicesManager {
      * @param {number} choiceIndex - The index of the selected choice (1 or 2)
      * @param {Function} callback - Callback to execute with the choice
      */
-    handleChoice(choiceIndex, callback) {
-        // Trigger callback if provided
-        if (callback && typeof callback === 'function') {
-            callback(choiceIndex);
+    handleChoice(choiceIndex, resolve) {
+        // Résoudre la Promise avec le choix sélectionné
+        if (resolve && typeof resolve === 'function') {
+            resolve(choiceIndex);
         }
-        
+
         // Emit event
         this.eventEmitter.trigger('choice', choiceIndex);
-        
+
         // Remove all buttons from container to prevent triggering them again
         this.container.innerHTML = '';
-        
+
         // Remove event listeners
         this.buttons.forEach(button => {
             button.removeEventListener('click', button.clickHandler);
         });
         this.buttons = [];
-        
+
         // Détacher le container du DOM
         if (this.container && this.container.parentNode) {
             this.container.parentNode.removeChild(this.container);
-            
+
             // Recréer un nouveau container pour les futurs choix
             this.container = document.createElement('div');
             this.container.classList.add('choices-container');
@@ -115,82 +115,84 @@ export class ChoicesManager {
      * @param {string} options.choice2 - Text for the second button
      * @param {Function} callback - Function to call when a choice is made, receives the choice index (1 or 2)
      */
-    showChoices(options, callback) {
-        // Clear previous buttons
-        this.container.innerHTML = '';
-        this.buttons = [];
-
-        // Create first button with key hint
-        const button1Wrapper = document.createElement('div');
-        button1Wrapper.style.position = 'relative';
-        
-        // Create key hint for button 1
-        const keyHint1 = document.createElement('div');
-        keyHint1.classList.add('key-hint');
-        keyHint1.textContent = 'Appuyez sur 1';
-        
-        const button1 = document.createElement('button');
-        button1.classList.add('choice-button');
-        button1.textContent = options.choice1;
-        button1.clickHandler = () => {
-            this.handleChoice(1, callback);
-        };
-        button1.addEventListener('click', button1.clickHandler);
-        
-        button1Wrapper.appendChild(keyHint1);
-        button1Wrapper.appendChild(button1);
-
-        // Create second button with key hint
-        const button2Wrapper = document.createElement('div');
-        button2Wrapper.style.position = 'relative';
-        
-        // Create key hint for button 2
-        const keyHint2 = document.createElement('div');
-        keyHint2.classList.add('key-hint');
-        keyHint2.textContent = 'Appuyez sur 2';
-        
-        const button2 = document.createElement('button');
-        button2.classList.add('choice-button');
-        button2.textContent = options.choice2;
-        button2.clickHandler = () => {
-            this.handleChoice(2, callback);
-        };
-        button2.addEventListener('click', button2.clickHandler);
-        
-        button2Wrapper.appendChild(keyHint2);
-        button2Wrapper.appendChild(button2);
-
-        // Add buttons to container
-        this.container.appendChild(button1Wrapper);
-        this.container.appendChild(button2Wrapper);
-        this.buttons.push(button1, button2);
-
-        // Ajouter le container au DOM s'il n'y est pas déjà
-        if (!document.body.contains(this.container)) {
-            document.body.appendChild(this.container);
-        }
-
-        // Afficher le container
-        this.container.style.display = 'flex';
-
-        // Ajouter un gestionnaire pour les touches 1 et 2
-        const keyHandler = (event) => {
-            if (event.key === '1' || event.key === '&') {
-                this.handleChoice(1, callback);
-            } else if (event.key === '2' || event.key === 'é') {
-                this.handleChoice(2, callback);
+    async showChoices(options, callback) {
+        return new Promise((resolve) => {
+            // Clear previous buttons
+            this.container.innerHTML = '';
+            this.buttons = [];
+    
+            // Create first button with key hint
+            const button1Wrapper = document.createElement('div');
+            button1Wrapper.style.position = 'relative';
+            
+            // Create key hint for button 1
+            const keyHint1 = document.createElement('div');
+            keyHint1.classList.add('key-hint');
+            keyHint1.textContent = 'Appuyez sur 1';
+            
+            const button1 = document.createElement('button');
+            button1.classList.add('choice-button');
+            button1.textContent = options.choice1;
+            button1.clickHandler = () => {
+                this.handleChoice(1, resolve);
+            };
+            button1.addEventListener('click', button1.clickHandler);
+            
+            button1Wrapper.appendChild(keyHint1);
+            button1Wrapper.appendChild(button1);
+    
+            // Create second button with key hint
+            const button2Wrapper = document.createElement('div');
+            button2Wrapper.style.position = 'relative';
+            
+            // Create key hint for button 2
+            const keyHint2 = document.createElement('div');
+            keyHint2.classList.add('key-hint');
+            keyHint2.textContent = 'Appuyez sur 2';
+            
+            const button2 = document.createElement('button');
+            button2.classList.add('choice-button');
+            button2.textContent = options.choice2;
+            button2.clickHandler = () => {
+                this.handleChoice(2, resolve);
+            };
+            button2.addEventListener('click', button2.clickHandler);
+            
+            button2Wrapper.appendChild(keyHint2);
+            button2Wrapper.appendChild(button2);
+    
+            // Add buttons to container
+            this.container.appendChild(button1Wrapper);
+            this.container.appendChild(button2Wrapper);
+            this.buttons.push(button1, button2);
+    
+            // Ajouter le container au DOM s'il n'y est pas déjà
+            if (!document.body.contains(this.container)) {
+                document.body.appendChild(this.container);
             }
-        };
-
-        document.addEventListener('keydown', keyHandler);
-
-        // Supprimer le gestionnaire de touches après un choix
-        const cleanup = () => {
-            document.removeEventListener('keydown', keyHandler);
-        };
-
-        // Nettoyer après un choix
-        this.eventEmitter.on('choice', cleanup);
+    
+            // Afficher le container
+            this.container.style.display = 'flex';
+    
+            // Ajouter un gestionnaire pour les touches 1 et 2
+            const keyHandler = (event) => {
+                if (event.key === '1' || event.key === '&' || event.code === 'Digit1') {
+                    this.handleChoice(1, resolve);
+                } else if (event.key === '2' || event.key === 'é' || event.code === 'Digit2') {
+                    this.handleChoice(2, resolve);
+                }
+            };
+    
+            document.addEventListener('keydown', keyHandler);
+    
+            // Supprimer le gestionnaire de touches après un choix
+            const cleanup = () => {
+                document.removeEventListener('keydown', keyHandler);
+            };
+    
+            // Nettoyer après un choix
+            this.eventEmitter.on('choice', cleanup);
+        })
     }
     
     /**

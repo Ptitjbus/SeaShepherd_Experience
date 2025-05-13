@@ -8,6 +8,7 @@ export default class SoundManager {
         this.sound = null
         this.soundIds = []
         this.customSounds = {}
+        this.musics = {}
         this.isPaused = true
         this.speakers = []
         this.subtitles = {}  // Store active subtitles by sound name
@@ -52,7 +53,7 @@ export default class SoundManager {
 
     attachToSpeakers() {
         this.app.scene.traverse((child) => {
-            if (child.name.startsWith('HAUT-PARLEUR')) {
+            if (child.userData.is_speaker) {
                 const position = new Vector3()
                 const worldPosition = child.getWorldPosition(position)
 
@@ -369,6 +370,76 @@ export default class SoundManager {
     }
 
     /**
+     * Joue une musique sur tous les haut-parleurs de la scène
+     * @param {string} name - Identifiant unique pour ce son
+     * @param {string|string[]} src - Chemin(s) vers le(s) fichier(s) audio
+     * @param {Object} options - Options supplémentaires pour le son
+     * @param {string} [options.vttSrc] - Chemin vers le fichier de sous-titres WebVTT
+     * @returns {Array} IDs des sons joués sur chaque haut-parleur
+     */
+    async playMusicOnSpeakers(name, src, options = {}) {
+        const defaultOptions = {
+            loop: false,
+            volume: 1.0,
+            onend: null,
+            maxDistance: 5,
+            refDistance: 1,
+            rolloffFactor: 1,
+            vttSrc: null
+        }
+        
+        const finalOptions = { ...defaultOptions, ...options }
+        
+        // Si le son existe déjà, on l'arrête
+        if (this.musics[name]) {
+            this.musics[name].forEach(sound => {
+                sound.stop()
+                sound.unload()
+            })
+        }
+        
+        this.musics[name] = []
+        const ids = []
+        
+        // Jouer le son sur chaque haut-parleur
+        this.speakers.forEach((speaker, index) => {
+            const sound = new Howl({
+                src: Array.isArray(src) ? src : [src],
+                loop: finalOptions.loop,
+                volume: finalOptions.volume,
+                onend: () => {
+                    if (finalOptions.onend) finalOptions.onend();
+                }
+            })
+            
+            // Ajouter à notre collection
+            this.musics[name].push(sound)
+            
+            // Jouer le son
+            const id = sound.play()
+            ids.push(id)
+            
+            // Configurer la position spatiale
+            sound.pos(
+                speaker.position.x,
+                speaker.position.y,
+                speaker.position.z,
+                id
+            )
+            
+            sound.pannerAttr({
+                panningModel: 'HRTF',
+                distanceModel: 'inverse',
+                refDistance: finalOptions.refDistance,
+                maxDistance: finalOptions.maxDistance,
+                rolloffFactor: finalOptions.rolloffFactor
+            }, id)
+        })
+        
+        return ids
+    }
+
+    /**
      * Initialise le système de sous-titres pour un son
      * @param {string} name - Nom du son
      * @param {Howl} sound - Instance Howl
@@ -484,6 +555,47 @@ export default class SoundManager {
         this.hideSubtitle()
     }
 
+    stopAllMusicSounds() {
+        Object.entries(this.musics).forEach(([name, sound]) => {
+            if (Array.isArray(sound)) {
+                // Pour les sons joués sur les haut-parleurs
+                sound.forEach(s => s.stop())
+            } else {
+                // Pour les sons joués normalement
+                sound.stop()
+            }
+        })
+    }
+
+    async playVoiceLine(name) {
+        this.stopAllCustomSounds()
+        return new Promise((resolve) => {
+            this.playSoundOnSpeakers('voiceLine ' + name, `audio/voices/${name}.mp3`, {
+                volume: 10,
+                loop: false,
+                maxDistance: 8,
+                vttSrc: `audio/subtitles/${name}.vtt`,
+                onend: () => {
+                    resolve('end');
+                }
+            });
+        });
+    }
+
+     async playMusic(name) {
+        this.stopAllMusicSounds()
+        return new Promise((resolve) => {
+            this.playMusicOnSpeakers('voiceLine ' + name, `audio/musics/${name}.mp3`, {
+                volume: 0.4,
+                loop: true,
+                maxDistance: 8,
+                onend: () => {
+                    resolve('end');
+                }
+            });
+        });
+    }
+
     /**
      * Arrête tous les sons
      */
@@ -492,6 +604,7 @@ export default class SoundManager {
             this.sound.stop()
         }
         this.stopAllCustomSounds()
+        this.stopAllMusicSounds()
     }
 
     destroy() {

@@ -384,7 +384,7 @@ export default class ObjectManager {
                         const angle = Math.atan2(dx, dz)
     
                         // Appliquer la rotation uniquement sur Y
-                        child.rotation.z = -angle
+                        child.rotation.y = angle
                     }
                 }
             })

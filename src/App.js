@@ -122,7 +122,7 @@ export default class App extends EventEmitter {
         this.canvas.style.opacity = '1'
         this.animationLoop.start()
         this.debug.init()
-        this.debug.showAnimationClipLine(this.assetManager.getItem('Museum'))
+        this.debug.showAnimationClipLine(this.assetManager.getItem('Dauphins'))
     }
 
     initScene() {
@@ -132,7 +132,7 @@ export default class App extends EventEmitter {
         this.soundManager = new SoundManager()
         this.soundManager.initSound()
 
-        const museum = this.objectManager.add("Museum", new Vector3(0, 0, 0), {
+        const museum = this.objectManager.add("Dauphins", new Vector3(0, 0, 0), {
             applyCaustics: true
         })
 
@@ -166,7 +166,7 @@ export default class App extends EventEmitter {
         this.doorManager.doorPairs[2].setRotation(Math.PI/2)
         this.doorManager.doorPairs[2].setOpenable(true)
     }
-    
+
     async initMadias(){
         await this.preloadMedias()
     }

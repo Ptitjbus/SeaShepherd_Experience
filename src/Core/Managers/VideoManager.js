@@ -89,7 +89,7 @@ export default class VideoManager extends EventEmitter {
         // Ajouter un écouteur d'événement sur le document pour activer le son
         // après la première interaction utilisateur
         const enableAudio = () => {
-            if (this.videoElement && !this.videoElement.muted) {
+            if (this.videoElement && !this.videoElement.muted && !this.videoEnded) {
                 this.videoElement.muted = false;
                 this.videoElement.volume = 1.0;
                 
