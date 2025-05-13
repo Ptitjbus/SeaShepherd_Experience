@@ -27,8 +27,6 @@ export default class StoryManager {
 
         this.app.soundManager.playMusic('background_intro')
 
-        await this.initEnd()
-        /*
         if (!this.checkActiveTask('intro')) return
         
         await this.app.soundManager.playVoiceLine('1_INTRO')
@@ -36,6 +34,7 @@ export default class StoryManager {
         if (!this.checkActiveTask('intro')) return
         
         await this.app.choicesManager.showChoices({
+            title: "J'imagine que vous mourez  d'envie de savoir qui je suis ?",
             choice1: "Dites moi",
             choice2: "Non pas vraiment"
         }).then(async (choiceIndex) => {
@@ -53,6 +52,7 @@ export default class StoryManager {
         if (!this.checkActiveTask('intro')) return
 
         await this.app.choicesManager.showChoices({
+            title: "Vous avez hâte, hein ....?",
             choice1: "Pour l'instant je suis pas convaincu …",
             choice2: "Ouais carrément !"
         }).then(async (choiceIndex) => {
@@ -75,7 +75,6 @@ export default class StoryManager {
         if (!this.checkActiveTask('intro')) return
         this.app.doorManager.triggerOpenDoorByIndex(0)
         this.activeTasks = this.activeTasks.filter(task => task !== 'intro')
-        */
     }
 
     async initAquarium(){
@@ -122,51 +121,44 @@ export default class StoryManager {
         }
 
         if (this.app.ocean) {
-            // Set absolute black color
             this.app.ocean.setColor(0x000000);
 
             if (this.app.ocean.water && this.app.ocean.water.material) {
                 const waterUniforms = this.app.ocean.water.material.uniforms;
-                
-                // Make water much darker with minimal color
+
                 if (waterUniforms.waterColor) {
-                    waterUniforms.waterColor.value.setRGB(0, 0, 0.005); // Almost pure black with tiny hint of blue
+                    waterUniforms.waterColor.value.setRGB(0, 0, 0.005);
                 }
                 
-                // Adjust reflection highlights to be more subtle but crisp
                 if (waterUniforms.sunColor) {
-                    waterUniforms.sunColor.value.setRGB(0.2, 0.2, 0.3); // More subtle reflections
+                    waterUniforms.sunColor.value.setRGB(0, 0, 0);
                 }
                 
-                // Increase distortion for more dramatic waves
                 if (waterUniforms.distortionScale) {
-                    waterUniforms.distortionScale.value = 5.0; // Higher distortion
+                    waterUniforms.distortionScale.value = 5.0; 
                 }
                 
-                // Reduce water transparency/clarity
                 if (waterUniforms.size) {
-                    waterUniforms.size.value = 2.0; // Less transparent
+                    waterUniforms.size.value = 2.0;
                 }
                 
-                // Adjust standard material properties for more darkness
                 if (this.app.ocean.water.material.opacity !== undefined) {
-                    this.app.ocean.water.material.opacity = 1.0; // Fully opaque
+                    this.app.ocean.water.material.opacity = 1.0;
                 }
                 
                 if (this.app.ocean.water.material.metalness !== undefined) {
-                    this.app.ocean.water.material.metalness = 0.9; // More metallic for sharper reflections
+                    this.app.ocean.water.material.metalness = 0.9;
                 }
                 
                 if (this.app.ocean.water.material.roughness !== undefined) {
-                    this.app.ocean.water.material.roughness = 0.1; // Less rough for more pronounced highlights
+                    this.app.ocean.water.material.roughness = 0.1;
                 }
             }
         }
 
-        // Ensure all lights are dimmed to enhance darkness
         this.app.scene.traverse(object => {
             if (object.isLight && !object.name.includes('videoPanel')) {
-                object.intensity *= 0.3; // Reduce all light intensity
+                object.intensity *= 0.3;
             }
         });
 
