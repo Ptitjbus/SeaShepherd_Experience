@@ -45,6 +45,10 @@ export default class DoorPair {
         this.leftBody = null
         this.rightBody = null
         
+        // Helpers de collision
+        this.leftCollisionHelper = null
+        this.rightCollisionHelper = null
+        
         // Créer les portes
         this.createDoors(colorLeft, colorRight)
         
@@ -165,6 +169,96 @@ export default class DoorPair {
             },
             this.rightDoor
         );
+        
+        // Ajouter des helpers de collision pour les portes si le mode debug est actif
+        if (this.app.debug && this.app.debug.active) {
+            this.createCollisionHelpers();
+        }
+    }
+    
+    createCollisionHelpers() {
+        if (!this.app.debug || !this.app.debug.active) return;
+        
+        // Supprimer les helpers existants s'il y en a
+        if (this.leftCollisionHelper) {
+            this.scene.remove(this.leftCollisionHelper);
+            this.leftCollisionHelper = null;
+        }
+        
+        if (this.rightCollisionHelper) {
+            this.scene.remove(this.rightCollisionHelper);
+            this.rightCollisionHelper = null;
+        }
+        
+        // Créer un wireframe pour la porte gauche
+        if (this.leftBody) {
+            const dims = this.leftBody.shapes[0].halfExtents;
+            const geometry = new BoxGeometry(dims.x * 2, dims.y * 2, dims.z * 2);
+            const material = new MeshBasicMaterial({ 
+                color: 0xff0000, 
+                wireframe: true,
+                transparent: true,
+                opacity: 0.7
+            });
+            this.leftCollisionHelper = new Mesh(geometry, material);
+            
+            // Positionner le helper à la position du corps physique
+            this.leftCollisionHelper.position.set(
+                this.leftBody.position.x,
+                this.leftBody.position.y,
+                this.leftBody.position.z
+            );
+            
+            // Appliquer la rotation du corps physique
+            this.leftCollisionHelper.quaternion.set(
+                this.leftBody.quaternion.x,
+                this.leftBody.quaternion.y,
+                this.leftBody.quaternion.z,
+                this.leftBody.quaternion.w
+            );
+            
+            this.scene.add(this.leftCollisionHelper);
+            
+            // Ajouter au tableau des wireframes de collision pour le toggling
+            if (this.app.objectManager && this.app.objectManager.collisionWireframes) {
+                this.app.objectManager.collisionWireframes.push(this.leftCollisionHelper);
+            }
+        }
+        
+        // Créer un wireframe pour la porte droite
+        if (this.rightBody) {
+            const dims = this.rightBody.shapes[0].halfExtents;
+            const geometry = new BoxGeometry(dims.x * 2, dims.y * 2, dims.z * 2);
+            const material = new MeshBasicMaterial({ 
+                color: 0xff0000, 
+                wireframe: true,
+                transparent: true,
+                opacity: 0.7
+            });
+            this.rightCollisionHelper = new Mesh(geometry, material);
+            
+            // Positionner le helper à la position du corps physique
+            this.rightCollisionHelper.position.set(
+                this.rightBody.position.x,
+                this.rightBody.position.y,
+                this.rightBody.position.z
+            );
+            
+            // Appliquer la rotation du corps physique
+            this.rightCollisionHelper.quaternion.set(
+                this.rightBody.quaternion.x,
+                this.rightBody.quaternion.y,
+                this.rightBody.quaternion.z,
+                this.rightBody.quaternion.w
+            );
+            
+            this.scene.add(this.rightCollisionHelper);
+            
+            // Ajouter au tableau des wireframes de collision pour le toggling
+            if (this.app.objectManager && this.app.objectManager.collisionWireframes) {
+                this.app.objectManager.collisionWireframes.push(this.rightCollisionHelper);
+            }
+        }
     }
     
     setRotation(angle) {
@@ -191,6 +285,43 @@ export default class DoorPair {
         
         // Create new physics bodies at current door positions
         this.createPhysicsBodies();
+        
+        // Mettre à jour les helpers
+        if (this.app.debug && this.app.debug.active) {
+            this.updateCollisionHelpers();
+        }
+    }
+    
+    updateCollisionHelpers() {
+        if (!this.app.debug || !this.app.debug.active) return;
+        
+        if (this.leftBody && this.leftCollisionHelper) {
+            this.leftCollisionHelper.position.set(
+                this.leftBody.position.x,
+                this.leftBody.position.y,
+                this.leftBody.position.z
+            );
+            this.leftCollisionHelper.quaternion.set(
+                this.leftBody.quaternion.x,
+                this.leftBody.quaternion.y,
+                this.leftBody.quaternion.z,
+                this.leftBody.quaternion.w
+            );
+        }
+        
+        if (this.rightBody && this.rightCollisionHelper) {
+            this.rightCollisionHelper.position.set(
+                this.rightBody.position.x,
+                this.rightBody.position.y,
+                this.rightBody.position.z
+            );
+            this.rightCollisionHelper.quaternion.set(
+                this.rightBody.quaternion.x,
+                this.rightBody.quaternion.y,
+                this.rightBody.quaternion.z,
+                this.rightBody.quaternion.w
+            );
+        }
     }
     
     setOpenable(canOpen) {
@@ -403,6 +534,29 @@ export default class DoorPair {
             this.physicsManager.removeBody(this.rightBody);
         }
         
+        // Supprimer les helpers de collision
+        if (this.leftCollisionHelper) {
+            this.scene.remove(this.leftCollisionHelper);
+            // Retirer du tableau de wireframes s'il existe
+            if (this.app.objectManager && this.app.objectManager.collisionWireframes) {
+                const index = this.app.objectManager.collisionWireframes.indexOf(this.leftCollisionHelper);
+                if (index !== -1) {
+                    this.app.objectManager.collisionWireframes.splice(index, 1);
+                }
+            }
+        }
+        
+        if (this.rightCollisionHelper) {
+            this.scene.remove(this.rightCollisionHelper);
+            // Retirer du tableau de wireframes s'il existe
+            if (this.app.objectManager && this.app.objectManager.collisionWireframes) {
+                const index = this.app.objectManager.collisionWireframes.indexOf(this.rightCollisionHelper);
+                if (index !== -1) {
+                    this.app.objectManager.collisionWireframes.splice(index, 1);
+                }
+            }
+        }
+        
         // Supprimer le conteneur de la scène (ce qui supprimera aussi les portes et le haut-parleur)
         if (this.container && this.scene) {
             this.scene.remove(this.container);
@@ -413,5 +567,7 @@ export default class DoorPair {
         this.rightDoor = null;
         this.container = null;
         this.speaker = null;
+        this.leftCollisionHelper = null;
+        this.rightCollisionHelper = null;
     }
 }
