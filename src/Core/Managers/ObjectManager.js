@@ -41,6 +41,7 @@ export default class ObjectManager {
         this.collisionWireframes = []
 
         this.obstacles = []
+        this.triggers = []
 
         this.boidManagers = []
         this.boidSpheres = []
@@ -148,6 +149,52 @@ export default class ObjectManager {
         light.shadow.camera.far = 50
         this.app.scene.add(light)
         return light
+    }
+
+    addEventTrigger(position, width, height, depth, callback) {
+        const halfExtents = new CANNON.Vec3(width / 2, height / 2, depth / 2)
+        const shape = new CANNON.Box(halfExtents)
+        const body = new CANNON.Body({ mass: 0, type: CANNON.Body.STATIC })
+        body.addShape(shape)
+        body.position.copy(position)
+        body.collisionResponse = false
+
+        this.app.physicsManager.world.addBody(body)
+
+        if (this.app.debug.active) {
+            const geometry = new THREE.BoxGeometry(width, height, depth)
+            const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true })
+            const mesh = new THREE.Mesh(geometry, material)
+            mesh.position.copy(position)
+            this.app.scene.add(mesh)
+        }
+
+        this.triggers.push({
+            body,
+            callback,
+            triggered: false,
+            halfExtents,
+        })
+    }
+
+    checkTriggers() {
+        const playerPos = this.app.physicsManager.sphereBody.position
+
+        for (const trigger of this.triggers) {
+            if (trigger.triggered) continue
+
+            const pos = trigger.body.position
+            const half = trigger.halfExtents
+
+            const insideX = playerPos.x >= pos.x - half.x && playerPos.x <= pos.x + half.x
+            const insideY = playerPos.y >= pos.y - half.y && playerPos.y <= pos.y + half.y
+            const insideZ = playerPos.z >= pos.z - half.z && playerPos.z <= pos.z + half.z
+
+            if (insideX && insideY && insideZ) {
+                trigger.triggered = true
+                trigger.callback()
+            }
+        }
     }
 
     createTrimeshWireframe(body) {
@@ -354,6 +401,8 @@ export default class ObjectManager {
                 manager.update(time.delta)
             })
         }
+
+        this.checkTriggers()
 
         this.objects.forEach((object) => {
             // Mise à jour des animations (GLTF)

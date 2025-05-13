@@ -564,7 +564,7 @@ export default class Debug extends EventEmitter {
         const soundPlayerFolder = this.gui.addFolder('Sound Player')
         soundPlayerFolder.add({
             playSoundOnSpeakers: () => {
-                this.app.soundManager.playVoiceLine('1-INTRO')
+                this.app.soundManager.playVoiceLine('1_INTRO')
             }
         }, 'playSoundOnSpeakers').name('Play intro on speakers')
         soundPlayerFolder.add(this.app.soundManager, 'stopAll').name('Stop All Sounds')
@@ -609,7 +609,7 @@ export default class Debug extends EventEmitter {
                         } else {
                             this.app.eventsManager.displayAlert("Vous avez choisi l'option B", 'information')
 
-                            this.app.soundManager.playSoundOnSpeakers('voiceLine 1', 'audio/voices/1-INTRO.mp3', {
+                            this.app.soundManager.playSoundOnSpeakers('voiceLine 1', 'audio/voices/1_INTRO.mp3', {
                                 volume: 3,
                                 loop: false,
                                 maxDistance: 8,

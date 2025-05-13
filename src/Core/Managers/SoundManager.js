@@ -44,7 +44,7 @@ export default class SoundManager {
 
     initSound() {
         this.sound = new Howl({
-            src: ['audio/voices/1-INTRO.mp3'],
+            src: ['audio/voices/1_INTRO.mp3'],
             loop: true,
             volume: 1.0,
             onload: () => this.attachToSpeakers()
@@ -530,18 +530,59 @@ export default class SoundManager {
             }
         }
     }
+
+    fadeOut(sound, from, to, duration, downPitch = false) {
+        return new Promise((resolve) => {
+            // Vérifier si le son est valide et actif
+            if (sound && sound.playing()) {
+                // Démarrer le fade du volume
+                sound.fade(from, to, duration);
+
+                // Appliquer une baisse progressive du pitch
+                if(downPitch){
+                    const node = sound._sounds[0]?._node;
+                    const bufferSource = node?.bufferSource;
+    
+                    if (bufferSource && bufferSource.playbackRate) {
+                        const now = Howler.ctx.currentTime;
+    
+                        // Baisser le pitch de 1.0 à 0.3 pendant la durée
+                        bufferSource.playbackRate.setValueAtTime(1.0, now);
+                        bufferSource.playbackRate.linearRampToValueAtTime(0.3, now + duration / 1000);
+                    }
+                }
+
+                // Arrêter le son après le fade-out
+                setTimeout(() => {
+                    sound.stop();
+                    resolve();
+                }, duration);
+            } else {
+                resolve(); // Si le son n'est pas actif, résoudre immédiatement
+            }
+        });
+    }
     
     /**
      * Arrête tous les sons personnalisés
      */
-    stopAllCustomSounds() {
+    stopAllCustomSounds(fade = false, downPitch = false) {
         Object.entries(this.customSounds).forEach(([name, sound]) => {
             if (Array.isArray(sound)) {
                 // Pour les sons joués sur les haut-parleurs
-                sound.forEach(s => s.stop())
+                sound.forEach(s => {
+                    if (fade) {
+                        this.fadeOut(s, s.volume(), 0, 1000, downPitch); // Durée de 1 seconde
+                    } else {
+                        s.stop();
+                    }
+                });
             } else {
-                // Pour les sons joués normalement
-                sound.stop()
+                if (fade) {
+                    this.fadeOut(sound, sound.volume(), 0, 1000, downPitch); // Durée de 1 seconde
+                } else {
+                    sound.stop();
+                }
             }
             
             // Nettoyer les sous-titres
@@ -555,16 +596,27 @@ export default class SoundManager {
         this.hideSubtitle()
     }
 
-    stopAllMusicSounds() {
+    stopAllMusicSounds(fade = false, downPitch = false) {
         Object.entries(this.musics).forEach(([name, sound]) => {
             if (Array.isArray(sound)) {
                 // Pour les sons joués sur les haut-parleurs
-                sound.forEach(s => s.stop())
+                sound.forEach(s => {
+                    if (fade) {
+                        this.fadeOut(s, s.volume(), 0, 1000, downPitch); // Durée de 1 seconde
+                    } else {
+                        s.stop();
+                    }
+                });
             } else {
-                // Pour les sons joués normalement
-                sound.stop()
+                if (fade) {
+                    this.fadeOut(sound, sound.volume(), 0, 1000, downPitch); // Durée de 1 seconde
+                } else {
+                    sound.stop();
+                }
             }
-        })
+        });
+
+        // Attendre que tous les fade-outs soient terminés
     }
 
     async playVoiceLine(name) {
@@ -586,7 +638,7 @@ export default class SoundManager {
         this.stopAllMusicSounds()
         return new Promise((resolve) => {
             this.playMusicOnSpeakers('voiceLine ' + name, `audio/musics/${name}.mp3`, {
-                volume: 0.4,
+                volume: 1,
                 loop: true,
                 maxDistance: 8,
                 onend: () => {

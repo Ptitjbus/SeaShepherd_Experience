@@ -20,6 +20,7 @@ export default class DoorPair {
         this.isAnimating = false
         this.canBeOpened = true
         this.playerInRange = false
+        this.canBeTriggeredByPlayer = true
         
         // Créer un conteneur parent pour faciliter la rotation
         this.container = new Object3D()
@@ -191,6 +192,14 @@ export default class DoorPair {
     isOpenable() {
         return this.canBeOpened;
     }
+
+    setCanBeTriggered(canTrigger) {
+         this.canBeTriggeredByPlayer = canTrigger;
+    }
+
+    canBeTriggered() {
+        return this.canBeTriggeredByPlayer;
+    }
     
     openAnimated(duration = 1.7) {
         if (this.isOpen || this.isAnimating || !this.canBeOpened) return;
@@ -275,11 +284,11 @@ export default class DoorPair {
         const isNear = this.isPlayerNear(playerPosition, 7);
         
         // Si le joueur vient d'entrer dans la zone et que la porte peut s'ouvrir
-        if (isNear && !this.isOpen && this.canBeOpened && !this.isAnimating) {
+        if (isNear && !this.isOpen && this.canBeTriggeredByPlayer && !this.isAnimating) {
             this.openAnimated();
         }
         // Si le joueur vient de sortir de la zone et que la porte est ouverte
-        else if (!isNear && this.isOpen && !this.isAnimating) {
+        else if (!isNear && this.isOpen && !this.isAnimating && this.canBeTriggeredByPlayer) {
             this.closeAnimated();
         }
         
