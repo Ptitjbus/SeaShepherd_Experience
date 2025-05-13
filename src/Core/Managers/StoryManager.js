@@ -30,8 +30,6 @@ export default class StoryManager {
                 this.museumMixer.clipAction(clip).reset().play()
             })
         }
-
-        this.playMuseumAnimation = !this.playMuseumAnimation
     }
 
     endExperience() {

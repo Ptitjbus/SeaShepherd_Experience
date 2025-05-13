@@ -108,10 +108,10 @@ export default class App extends EventEmitter {
         
         // Précharger les médias après avoir initialisé le MediaManager
         this.initMadias()
-        
-        this.setupUI()
 
         this.storyManager = new StoryManager()
+        
+        this.setupUI()
     }
 
     assetsLoadCompleteHandler() {
@@ -166,7 +166,7 @@ export default class App extends EventEmitter {
         this.doorManager.doorPairs[2].setRotation(Math.PI/2)
         this.doorManager.doorPairs[2].setOpenable(true)
     }
-
+    
     async initMadias(){
         await this.preloadMedias()
     }
@@ -183,7 +183,7 @@ export default class App extends EventEmitter {
     }
 
     update(time) {
-        if(this.playMuseumAnimation) this.objectManager.update(time)
+        this.objectManager.update(time)
         if (this.mediaManager) this.mediaManager.update(this.camera.mainCamera)
         if (this.soundManager) this.soundManager.updateListener()
         if (this.physicsManager) this.physicsManager.update(time.delta)
