@@ -8,6 +8,9 @@ export default class DoorManager {
         this.scene = scene
         this.doorPairs = []
         this.app = new App()
+        
+        // Tableau pour suivre les portes ouvertes par script
+        this.scriptOpenedDoors = []
     }
 
     addDoorPair(position, width = 3, height = 5, colorLeft = 0x707070, colorRight = 0x707070, canBeOpened = true) {
@@ -19,11 +22,20 @@ export default class DoorManager {
 
     update() {
         const playerPosition = this.app.physicsManager.sphereBody.position
-        const nearest = this.getNearestPairInRange(playerPosition, 7)
+        
         // Mettre à jour toutes les paires de portes avec la position du joueur
+        // Mais ignorer celles ouvertes par script
         for (const pair of this.doorPairs) {
-            pair.update(playerPosition)
+            // Si cette porte a été ouverte par script, ne pas la mettre à jour automatiquement
+            if (!this.isScriptOpened(pair)) {
+                pair.update(playerPosition)
+            }
         }
+    }
+
+    // Vérifier si une porte a été ouverte par script
+    isScriptOpened(doorPair) {
+        return this.scriptOpenedDoors.includes(doorPair)
     }
 
     // Interaction manuelle : ouvre la porte la plus proche si assez proche
@@ -47,6 +59,12 @@ export default class DoorManager {
         }
         if (nearest && nearest.isPlayerNear(playerPosition)) {
             nearest.closeAnimated()
+            
+            // Si cette porte était ouverte par script, la retirer de la liste
+            const index = this.scriptOpenedDoors.indexOf(nearest)
+            if (index !== -1) {
+                this.scriptOpenedDoors.splice(index, 1)
+            }
         }
     }
 
@@ -67,11 +85,18 @@ export default class DoorManager {
         return null
     }
 
-    
     // Ouvre une paire de portes spécifique par index pour la mise en scène
+    // et la marque comme ouverte par script pour qu'elle reste ouverte
     triggerOpenDoorByIndex(index) {
         if (index >= 0 && index < this.doorPairs.length) {
-            this.doorPairs[index].openAnimated();
+            const door = this.doorPairs[index];
+            door.openAnimated();
+            
+            // Ajouter à la liste des portes ouvertes par script
+            if (!this.isScriptOpened(door)) {
+                this.scriptOpenedDoors.push(door);
+            }
+            
             return true;
         }
         console.warn(`DoorManager: Impossible d'ouvrir la porte d'index ${index}, hors limites.`);
@@ -81,10 +106,35 @@ export default class DoorManager {
     // Ferme une paire de portes spécifique par index pour la mise en scène
     triggerCloseDoorByIndex(index) {
         if (index >= 0 && index < this.doorPairs.length) {
-            this.doorPairs[index].closeAnimated();
+            const door = this.doorPairs[index];
+            door.closeAnimated();
+            
+            // Retirer de la liste des portes ouvertes par script
+            const scriptIndex = this.scriptOpenedDoors.indexOf(door);
+            if (scriptIndex !== -1) {
+                this.scriptOpenedDoors.splice(scriptIndex, 1);
+            }
+            
             return true;
         }
         console.warn(`DoorManager: Impossible de fermer la porte d'index ${index}, hors limites.`);
+        return false;
+    }
+    
+    // Nouvelle méthode pour rendre une porte à nouveau automatique
+    resetDoorAutomation(index) {
+        if (index >= 0 && index < this.doorPairs.length) {
+            const door = this.doorPairs[index];
+            
+            // Retirer de la liste des portes ouvertes par script
+            const scriptIndex = this.scriptOpenedDoors.indexOf(door);
+            if (scriptIndex !== -1) {
+                this.scriptOpenedDoors.splice(scriptIndex, 1);
+            }
+            
+            return true;
+        }
+        console.warn(`DoorManager: Impossible de réinitialiser l'automation de la porte d'index ${index}, hors limites.`);
         return false;
     }
 }
