@@ -66,4 +66,24 @@ export default class DoorManager {
         }
         return null
     }
+
+    // Ouvre une paire de portes spécifique par index pour la mise en scène
+    triggerOpenDoorByIndex(index) {
+        if (index >= 0 && index < this.doorPairs.length) {
+            this.doorPairs[index].openAnimated();
+            return true;
+        }
+        console.warn(`DoorManager: Impossible d'ouvrir la porte d'index ${index}, hors limites.`);
+        return false;
+    }
+
+    // Ferme une paire de portes spécifique par index pour la mise en scène
+    triggerCloseDoorByIndex(index) {
+        if (index >= 0 && index < this.doorPairs.length) {
+            this.doorPairs[index].closeAnimated();
+            return true;
+        }
+        console.warn(`DoorManager: Impossible de fermer la porte d'index ${index}, hors limites.`);
+        return false;
+    }
 }
