@@ -3,6 +3,7 @@ import EventEmitter from '../../Utils/EventEmitter.js';
 export class ChoicesManager {
     constructor() {
         this.container = null;
+        this.overlay = null;
         this.buttons = [];
         this.eventEmitter = new EventEmitter();
         
@@ -10,11 +11,15 @@ export class ChoicesManager {
     }
     
     init() {
+        // Create overlay
+        this.overlay = document.createElement('div');
+        this.overlay.classList.add('choices-overlay');
+        this.overlay.style.display = 'none';
+        document.body.appendChild(this.overlay);
+        
         // Create container for choices
         this.container = document.createElement('div');
         this.container.classList.add('choices-container');
-        
-        
         
         const styleEl = document.createElement('style');
         document.head.appendChild(styleEl);
@@ -44,6 +49,11 @@ export class ChoicesManager {
         if (this._currentKeyHandler) {
             document.removeEventListener('keydown', this._currentKeyHandler);
             this._currentKeyHandler = null;
+        }
+        
+        // Cacher l'overlay
+        if (this.overlay) {
+            this.overlay.style.display = 'none';
         }
         
         // Complètement détruire et supprimer le container du DOM
@@ -76,6 +86,7 @@ export class ChoicesManager {
     /**
      * Show choice buttons with the given options
      * @param {Object} options - Configuration for the choices
+     * @param {string} options.title - Title text to display above the choices
      * @param {string} options.choice1 - Text for the first button
      * @param {string} options.choice2 - Text for the second button
      * @param {Function} callback - Function to call when a choice is made, receives the choice index (1 or 2)
@@ -89,14 +100,24 @@ export class ChoicesManager {
             // Tout d'abord, supprimer tous les écouteurs d'événements précédents
             this.eventEmitter.off('choice');
 
+            // Add title if provided
+            if (options.title) {
+                const titleElement = document.createElement('h2');
+                titleElement.classList.add('choices-title');
+                titleElement.textContent = options.title;
+                this.container.appendChild(titleElement);
+            }
+
+            // Créer un conteneur pour les boutons
+            const buttonsContainer = document.createElement('div');
+            buttonsContainer.style.display = 'flex';
+            buttonsContainer.style.flexDirection = 'row';
+            buttonsContainer.style.gap = '60px';
+            buttonsContainer.style.justifyContent = 'center';
+
             // Create first button with key hint
             const button1Wrapper = document.createElement('div');
             button1Wrapper.style.position = 'relative';
-            
-            // Create key hint for button 1
-            const keyHint1 = document.createElement('div');
-            keyHint1.classList.add('key-hint');
-            keyHint1.innerHTML = 'Appuyez sur <span class="key-letter">U</span>';
             
             const button1 = document.createElement('button');
             button1.classList.add('choice-button');
@@ -106,17 +127,18 @@ export class ChoicesManager {
             };
             button1.addEventListener('click', button1.clickHandler);
             
-            button1Wrapper.appendChild(keyHint1);
+            // Create key hint for button 1
+            const keyHint1 = document.createElement('div');
+            keyHint1.classList.add('key-hint');
+            keyHint1.innerHTML = 'Appuyez sur <span class="key-letter">U</span>';
+            
+            // Ajouter d'abord le bouton puis le key hint
             button1Wrapper.appendChild(button1);
+            button1Wrapper.appendChild(keyHint1);
 
             // Create second button with key hint
             const button2Wrapper = document.createElement('div');
             button2Wrapper.style.position = 'relative';
-            
-            // Create key hint for button 2
-            const keyHint2 = document.createElement('div');
-            keyHint2.classList.add('key-hint');
-            keyHint2.innerHTML = 'Appuyez sur <span class="key-letter">I</span>';
             
             const button2 = document.createElement('button');
             button2.classList.add('choice-button');
@@ -126,12 +148,22 @@ export class ChoicesManager {
             };
             button2.addEventListener('click', button2.clickHandler);
             
-            button2Wrapper.appendChild(keyHint2);
+            // Create key hint for button 2
+            const keyHint2 = document.createElement('div');
+            keyHint2.classList.add('key-hint');
+            keyHint2.innerHTML = 'Appuyez sur <span class="key-letter">I</span>';
+            
+            // Ajouter d'abord le bouton puis le key hint
             button2Wrapper.appendChild(button2);
+            button2Wrapper.appendChild(keyHint2);
 
-            // Add buttons to container
-            this.container.appendChild(button1Wrapper);
-            this.container.appendChild(button2Wrapper);
+            // Ajouter les wrappers au conteneur de boutons
+            buttonsContainer.appendChild(button1Wrapper);
+            buttonsContainer.appendChild(button2Wrapper);
+            
+            // Ajouter le conteneur de boutons au conteneur principal
+            this.container.appendChild(buttonsContainer);
+            
             this.buttons.push(button1, button2);
 
             // Ajouter le container au DOM s'il n'y est pas déjà
@@ -139,7 +171,8 @@ export class ChoicesManager {
                 document.body.appendChild(this.container);
             }
 
-            // Afficher le container
+            // Afficher l'overlay et le container
+            this.overlay.style.display = 'block';
             this.container.style.display = 'flex';
 
             // Ajouter un gestionnaire pour les touches 1 et 2
@@ -180,6 +213,7 @@ export class ChoicesManager {
      * Show the choices container
      */
     show() {
+        this.overlay.style.display = 'block';
         this.container.style.display = 'flex';
 
         // Forcer la sortie du pointer lock si actif
@@ -192,6 +226,7 @@ export class ChoicesManager {
      * Hide the choices container
      */
     hide() {
+        this.overlay.style.display = 'none';
         this.container.style.display = 'none';
     }
     
@@ -213,6 +248,10 @@ export class ChoicesManager {
      * Destroy the choices manager
      */
     destroy() {
+        if (this.overlay && this.overlay.parentNode) {
+            this.overlay.parentNode.removeChild(this.overlay);
+        }
+        
         if (this.container && this.container.parentNode) {
             this.container.parentNode.removeChild(this.container);
         }
