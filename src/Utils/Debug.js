@@ -3,18 +3,311 @@ import App from '../App'
 import GUI from 'lil-gui'
 import Stats from 'three/addons/libs/stats.module.js'
 import { Vector3, Color, BufferGeometry, LineBasicMaterial, Line, AxesHelper, ArrowHelper, Quaternion, SphereGeometry, MeshBasicMaterial, Mesh, CanvasTexture, LinearFilter, SpriteMaterial, Sprite, PointLightHelper, Euler } from 'three'
+import Stats from 'three/addons/libs/stats.module.js'
+import { Vector3, Color, BufferGeometry, LineBasicMaterial, Line, AxesHelper, ArrowHelper, Quaternion, SphereGeometry, MeshBasicMaterial, Mesh, CanvasTexture, LinearFilter, SpriteMaterial, Sprite, PointLightHelper, Euler } from 'three'
 
 export default class Debug extends EventEmitter {
+    constructor() {
+        super()
     constructor() {
         super()
 
         this.active = window.location.hash === '#debug'
         this.statsActive = window.location.hash === '#stats' || window.location.hash === '#debug'
         this.positionDisplayActive = this.active
+        this.active = window.location.hash === '#debug'
+        this.statsActive = window.location.hash === '#stats' || window.location.hash === '#debug'
+        this.positionDisplayActive = this.active
 
-        this.gui = null
-        this.app = null
+    this.gui = null
+    this.app = null
 
+        this.cameraHelpers = []
+        this.lightHelpers = []
+        this.animationsClipsLines = []
+        this.animationsTextLabels = []
+        this.speakersHelpers = []
+        this.positionDisplay = null
+    }
+
+    init(){
+        if(this.active) {
+            this.initGUI()
+        }
+        if(this.statsActive){
+            this.initStats()
+        }
+        if(this.positionDisplayActive) {
+            this.initPositionDisplay()
+        }
+    }
+
+    initPositionDisplay() {
+        this.positionDisplay = document.createElement('div')
+        this.positionDisplay.style.position = 'absolute'
+        this.positionDisplay.style.bottom = '10px'
+        this.positionDisplay.style.left = '10px'
+        this.positionDisplay.style.backgroundColor = 'rgba(0, 0, 0, 0.7)'
+        this.positionDisplay.style.color = 'white'
+        this.positionDisplay.style.padding = '10px'
+        this.positionDisplay.style.borderRadius = '5px'
+        this.positionDisplay.style.fontFamily = 'monospace'
+        this.positionDisplay.style.fontSize = '14px'
+        this.positionDisplay.style.zIndex = '1000'
+        this.positionDisplay.style.pointerEvents = 'none'
+        document.body.appendChild(this.positionDisplay)
+    }
+
+    updatePositionDisplay() {
+        if (!this.positionDisplay || !this.app.physicsManager || !this.app.physicsManager.controls) return;
+    
+        const player = this.app.physicsManager.controls;
+        
+        // Déterminer la position du joueur en explorant différentes possibilités
+        let position = { x: 0, y: 0, z: 0 };
+        let rotation = { x: 0, y: 0, z: 0 };
+        
+        // Option 1: Accès direct aux propriétés
+        if (player.position) {
+            position = player.position;
+        }
+        // Option 2: Accès via le corps physique
+        else if (player.body && player.body.position) {
+            position = player.body.position;
+        }
+        // Option 3: Accès via une méthode spécifique
+        else if (typeof player.getObjectPosition === 'function') {
+            position = player.getObjectPosition();
+        }
+        else if (typeof player.getObject === 'function' && player.getObject().position) {
+            position = player.getObject().position;
+        }
+        // Option 4: Accès via la caméra
+        else if (this.app.camera && this.app.camera.instance && this.app.camera.instance.position) {
+            position = this.app.camera.instance.position;
+        }
+        
+        // Vérifier si le joueur a une rotation accessible
+        if (player.rotation) {
+            rotation = player.rotation;
+        }
+        else if (player.quaternion) {
+            const euler = new Euler().setFromQuaternion(player.quaternion);
+            rotation = { x: euler.x, y: euler.y, z: euler.z };
+        }
+        else if (player.getObject && typeof player.getObject === 'function' && player.getObject().rotation) {
+            rotation = player.getObject().rotation;
+        }
+        else if (this.app.camera && this.app.camera.instance && this.app.camera.instance.rotation) {
+            rotation = this.app.camera.instance.rotation;
+        }
+    
+        // Convertir les angles en degrés pour une meilleure lisibilité
+        const rotationDegrees = {
+            x: (rotation.x * 180 / Math.PI).toFixed(2),
+            y: (rotation.y * 180 / Math.PI).toFixed(2),
+            z: (rotation.z * 180 / Math.PI).toFixed(2)
+        };
+        
+        // Mise à jour de l'affichage
+        this.positionDisplay.innerHTML = `
+            <strong>Position:</strong>
+            X: ${position.x.toFixed(2)}
+            Y: ${position.y.toFixed(2)}
+            Z: ${position.z.toFixed(2)}
+            <br>
+            <strong>Rotation (deg):</strong>
+            X: ${rotationDegrees.x}
+            Y: ${rotationDegrees.y}
+            Z: ${rotationDegrees.z}
+        `;
+    }
+
+    initGUI() {
+        this.app = new App()
+        this.gui = new GUI()
+        this.displayLightsHelpers()
+
+        this.initPysicsFolder()
+        this.initCameraFolder()
+        this.initDebugFolder()
+        this.initShortcutsFolder()
+        this.initPostProcessingFolder()
+        this.initPopinsFolder()
+        this.initWindowFolder()
+        this.initTransmissionMaterialFolder()
+        this.initCausticMaterialFolder()
+        this.initSoundPlayerFolder()
+        this.initMediaPlayerFolder()  
+        this.initBoidsFolder()
+        this.initPositionDisplayFolder()
+    }
+
+    initPositionDisplayFolder() {
+        const positionFolder = this.gui.addFolder('Position Display')
+        
+        positionFolder.add({ 
+            enabled: this.positionDisplayActive 
+        }, 'enabled')
+        .name('Show Position Display')
+        .onChange(value => {
+            this.positionDisplayActive = value
+            if (this.positionDisplay) {
+                this.positionDisplay.style.display = value ? 'block' : 'none'
+            } else if (value) {
+                this.initPositionDisplay()
+            }
+        })
+        
+        positionFolder.add({ 
+            copy: () => {
+                if (!this.app.physicsManager || !this.app.physicsManager.controls) return;
+                
+                const player = this.app.physicsManager.controls;
+                
+                // Utiliser la même logique que dans updatePositionDisplay
+                let position = { x: 0, y: 0, z: 0 };
+                let rotation = { x: 0, y: 0, z: 0 };
+                
+                // Déterminer la position du joueur
+                if (player.position) {
+                    position = player.position;
+                }
+                else if (player.body && player.body.position) {
+                    position = player.body.position;
+                }
+                else if (typeof player.getObjectPosition === 'function') {
+                    position = player.getObjectPosition();
+                }
+                else if (typeof player.getObject === 'function' && player.getObject().position) {
+                    position = player.getObject().position;
+                }
+                else if (this.app.camera && this.app.camera.instance && this.app.camera.instance.position) {
+                    position = this.app.camera.instance.position;
+                }
+                
+                // Déterminer la rotation
+                if (player.rotation) {
+                    rotation = player.rotation;
+                }
+                else if (player.quaternion) {
+                    const euler = new Euler().setFromQuaternion(player.quaternion);
+                    rotation = { x: euler.x, y: euler.y, z: euler.z };
+                }
+                else if (player.getObject && typeof player.getObject === 'function' && player.getObject().rotation) {
+                    rotation = player.getObject().rotation;
+                }
+                else if (this.app.camera && this.app.camera.instance && this.app.camera.instance.rotation) {
+                    rotation = this.app.camera.instance.rotation;
+                }
+                
+                const positionString = `position: new Vector3(${position.x.toFixed(2)}, ${position.y.toFixed(2)}, ${position.z.toFixed(2)}), rotation: ${rotation.y.toFixed(2)}`;
+                
+                navigator.clipboard.writeText(positionString)
+                    .then(() => {
+                        const originalText = this.positionDisplay.innerHTML;
+                        this.positionDisplay.innerHTML += '<br><span style="color: #4CAF50">✓ Copied to clipboard!</span>';
+                        setTimeout(() => {
+                            this.positionDisplay.innerHTML = originalText;
+                        }, 1000);
+                    })
+                    .catch(err => {
+                        console.error('Could not copy text: ', err);
+                    });
+            }
+        }, 'copy')
+        .name('Copy Position & Rotation');
+        
+        positionFolder.close();
+    }
+
+    initStats() {
+        // Créer le conteneur principal pour tous les panneaux
+        const container = document.createElement('div');
+        container.style.cssText = 'position:absolute;top:0;left:0;display:flex;';
+        document.body.appendChild(container);
+        
+        // Créer le panneau pour les FPS (standard)
+        this.fpsPanel = new Stats();
+        this.fpsPanel.showPanel(0); // Panel 0 is FPS
+        this.fpsPanel.dom.style.cssText = 'position:relative;';
+        container.appendChild(this.fpsPanel.dom);
+        
+        // Créer un panneau personnalisé pour les triangles
+        this.trianglesContainer = document.createElement('div');
+        this.trianglesContainer.style.cssText = 'position:relative;width:80px;height:48px;cursor:pointer;opacity:0.9;background-color:rgba(0,0,0,0.7);';
+        
+        const triangleCanvas = document.createElement('canvas');
+        triangleCanvas.width = 74;
+        triangleCanvas.height = 30;
+        triangleCanvas.style.cssText = 'width:74px;height:30px;top:0px;left:3px;position:absolute;';
+        this.trianglesContainer.appendChild(triangleCanvas);
+        
+        this.triangleCtx = triangleCanvas.getContext('2d');
+        this.triangleCtx.fillStyle = 'rgb(0,0,0)';
+        this.triangleCtx.fillRect(0, 0, 74, 30);
+        
+        const triangleText = document.createElement('div');
+        triangleText.style.cssText = 'color:#fff;font-family:Helvetica,Arial,sans-serif;font-size:9px;font-weight:bold;line-height:15px;position:absolute;top:33px;width:74px;left:3px;text-align:center;';
+        triangleText.textContent = 'TRIANGLES';
+        this.trianglesContainer.appendChild(triangleText);
+        
+        this.triangleValueText = document.createElement('div');
+        this.triangleValueText.style.cssText = 'color:#000;font-family:Helvetica,Arial,sans-serif;font-size:9px;font-weight:bold;line-height:15px;position:absolute;top:1px;width:74px;left:3px;text-align:right;';
+        this.trianglesContainer.appendChild(this.triangleValueText);
+        
+        container.appendChild(this.trianglesContainer);
+        
+        // Créer un panneau personnalisé pour les appels de rendu
+        this.callsContainer = document.createElement('div');
+        this.callsContainer.style.cssText = 'position:relative;width:80px;height:48px;cursor:pointer;opacity:0.9;background-color:rgba(0,0,0,0.7);';
+        
+        const callsCanvas = document.createElement('canvas');
+        callsCanvas.width = 74;
+        callsCanvas.height = 30;
+        callsCanvas.style.cssText = 'width:74px;height:30px;top:0px;left:3px;position:absolute;';
+        this.callsContainer.appendChild(callsCanvas);
+        
+        this.callsCtx = callsCanvas.getContext('2d');
+        this.callsCtx.fillStyle = 'rgb(0,0,0)';
+        this.callsCtx.fillRect(0, 0, 74, 30);
+        
+        const callsText = document.createElement('div');
+        callsText.style.cssText = 'color:#f08;font-family:Helvetica,Arial,sans-serif;font-size:9px;font-weight:bold;line-height:15px;position:absolute;top:33px;width:74px;left:3px;text-align:center;';
+        callsText.textContent = 'CALLS';
+        this.callsContainer.appendChild(callsText);
+        
+        this.callsValueText = document.createElement('div');
+        this.callsValueText.style.cssText = 'color:#fff;font-family:Helvetica,Arial,sans-serif;font-size:9px;font-weight:bold;line-height:15px;position:absolute;top:1px;width:74px;left:3px;text-align:right;';
+        this.callsContainer.appendChild(this.callsValueText);
+        
+        container.appendChild(this.callsContainer);
+        
+        // Variables pour le suivi des données
+        this.triangleValues = [];
+        this.callsValues = [];
+        for (let i = 0; i < 74; i++) {
+            this.triangleValues.push(0);
+            this.callsValues.push(0);
+        }
+    }
+
+    initPysicsFolder() {
+        if (!this.app.physicsManager) return
+
+        const controlsFolder = this.gui.addFolder('Player Controls')
+        controlsFolder.add(this.app.physicsManager.controls, 'enabled', true).name('Enabled')
+        controlsFolder.add(this.app.physicsManager.controls, 'smoothWalk', true).name('Smooth Walk')
+        controlsFolder.add(this.app.physicsManager.controls, 'speed', 0, 10).name('Speed')
+        controlsFolder.add(this.app.physicsManager.controls, 'flyMode', true).name('Fly Mode').onChange((value) => {
+            this.app.physicsManager.controls.setFlyMode(value)
+        })
+        
+    }
+
+    initCameraFolder() {
+        if (!this.app.camera) return 
+        const museum = this.app.objectManager.get("Museum")
         this.cameraHelpers = []
         this.lightHelpers = []
         this.animationsClipsLines = []
@@ -935,16 +1228,213 @@ export default class Debug extends EventEmitter {
             this.updatePositionDisplay();
         }
     }
+                }
+            })
+    
+            if (positions.length === 0) return
+    
+            const geometry = new BufferGeometry().setFromPoints(positions)
+            const color = new Color(Math.random(), Math.random(), Math.random())
+            const material = new LineBasicMaterial({ color })
+            const line = new Line(geometry, material)
+    
+            this.app.scene.add(line)
+            this.animationsClipsLines.push(line)
+    
+            const label = this.createTextLabel(clip.name, positions[0])
+            this.animationsTextLabels.push(label)
+            this.app.scene.add(label)
+        })
+    }
 
-    destroy() {
-        this.gui.destroy()
-        this.gui = null
+    toogleAllAnimationClipsLines() {
+        if (!this.active) return
+
+        this.animationsClipsLines.forEach((clipline) => {
+            clipline.visible = !clipline.visible
+        })
+
+        this.animationsTextLabels.forEach((label) => {
+            label.visible = !label.visible
+        })
+    }
+
+    createTextLabel(text, position) {
+        const canvas = document.createElement('canvas')
+        canvas.width = 256
+        canvas.height = 64
+        const ctx = canvas.getContext('2d')
+        ctx.fillStyle = 'white'
+        ctx.font = '24px Arial'
+        ctx.fillText(text, 10, 40)
+    
+        const texture = new CanvasTexture(canvas)
+        texture.minFilter = LinearFilter
+    
+        const material = new SpriteMaterial({ map: texture, transparent: true })
+        const sprite = new Sprite(material)
+        sprite.scale.set(1, 0.25, 1)
+        sprite.position.copy(position)
+    
+        return sprite
+    }
+
+    showCameraHelper(object) {
+        object.scene.traverse((child) => {
+            if (child.isCamera) {
+                const helper = new AxesHelper(0.5)
+                helper.name = `camera-helper-${child.name}`
+                this.cameraHelpers.push({ camera: child, helper })
+                this.app.scene.add(helper)
+            }
+        })
+    }
+
+    toogleCameraHelpers() {
+        this.cameraHelpers.forEach(({ camera, helper }) => {
+            helper.visible = !helper.visible
+        })
+    }
+
+    createSpeakerHelper(object, scene = this.app.scene, position = null){
+        if (!this.active) return 
+        
+        const sphere = new Mesh(
+            new SphereGeometry(0.2, 16, 16),
+            new MeshBasicMaterial({ color: 0xffffff })
+        )
+        let pos = position ? position : object.position
+        sphere.position.copy(pos)
+        
+        const direction = new Vector3(0, 0, 1)
+        direction.applyQuaternion(object.quaternion)
+        const arrow = new ArrowHelper(direction, pos, 1, 0x00ff00)
+        scene.add(sphere)
+        scene.add(arrow)
+        this.speakersHelpers.push({ sphere, arrow })
+    }
+
+    toogleSpeakersHelpers() {
+        this.speakersHelpers.forEach(({ sphere, arrow }) => {
+            sphere.visible = !sphere.visible
+            arrow.visible = !arrow.visible
+        })
+    }
+
+    toogleCollisionsHelpers() {
+        this.app.objectManager.collisionWireframes.forEach((mesh) => {
+            mesh.visible = !mesh.visible
+        })
+    }
+
+    toogleBoidSpheressHelpers() {
+        this.app.objectManager.boidSpheres.forEach((mesh) => {
+            mesh.visible = !mesh.visible
+        })
+    }
+
+    toogleAllHelpers(){
+        this.toogleLightsHelpers()
+        this.toogleAllAnimationClipsLines()
+        this.toogleCameraHelpers()
+        this.toogleSpeakersHelpers()
+        this.toogleCollisionsHelpers()
+        this.toogleBoidSpheressHelpers()
+    }
+
+    update() {
+        if (this.active) {
+            this.cameraHelpers.forEach(({ camera, helper }) => {
+                camera.updateMatrixWorld(true);
+                helper.position.copy(camera.getWorldPosition(new Vector3()));
+                helper.quaternion.copy(camera.getWorldQuaternion(new Quaternion()));
+            });
+        }
+
+        if(this.statsActive) {
+            // Mise à jour du panneau FPS standard
+            if (this.fpsPanel) {
+                this.fpsPanel.update();
+            }
+            
+            // Mise à jour des panneaux personnalisés
+            if (this.app.renderer && this.app.renderer.instance) {
+                const renderer = this.app.renderer.instance;
+                
+                // Récupération des valeurs
+                const triangleCount = renderer.info.render.triangles;
+                const callsCount = renderer.info.render.calls;
+                
+                // Mise à jour du panneau des triangles
+                if (this.triangleCtx && this.triangleValueText) {
+                    // Décaler les valeurs
+                    this.triangleValues.shift();
+                    this.triangleValues.push(triangleCount);
+                    
+                    // Affichage du nombre
+                    this.triangleValueText.textContent = triangleCount;
+                    
+                    // Dessin du graphique
+                    this.triangleCtx.fillStyle = 'rgb(0,0,0)';
+                    this.triangleCtx.fillRect(0, 0, 74, 30);
+                    this.triangleCtx.fillStyle = 'rgb(0,255,255)';
+                    
+                    const maxTriangles = Math.max(...this.triangleValues, 100000);
+                    for (let i = 0; i < this.triangleValues.length; i++) {
+                        const h = Math.min(30, 30 * (this.triangleValues[i] / maxTriangles));
+                        this.triangleCtx.fillRect(i, 30 - h, 1, h);
+                    }
+                }
+                
+                // Mise à jour du panneau des appels
+                if (this.callsCtx && this.callsValueText) {
+                    // Décaler les valeurs
+                    this.callsValues.shift();
+                    this.callsValues.push(callsCount);
+                    
+                    // Affichage du nombre
+                    this.callsValueText.textContent = callsCount;
+                    
+                    // Dessin du graphique
+                    this.callsCtx.fillStyle = 'rgb(0,0,0)';
+                    this.callsCtx.fillRect(0, 0, 74, 30);
+                    this.callsCtx.fillStyle = 'rgb(255,0,128)';
+                    
+                    const maxCalls = Math.max(...this.callsValues, 1000);
+                    for (let i = 0; i < this.callsValues.length; i++) {
+                        const h = Math.min(30, 30 * (this.callsValues[i] / maxCalls));
+                        this.callsCtx.fillRect(i, 30 - h, 1, h);
+                    }
+                }
+            }
+        }
+
+        if(this.positionDisplayActive && this.positionDisplay) {
+            this.updatePositionDisplay();
+        }
+    }
+
+      destroy() {
+          this.gui.destroy()
+          this.gui = null
 
         if (this.positionDisplay) {
             document.body.removeChild(this.positionDisplay)
             this.positionDisplay = null
         }
 
+        if (this.positionDisplay) {
+            document.body.removeChild(this.positionDisplay)
+            this.positionDisplay = null
+        }
+
+        if (this.positionDisplay) {
+            document.body.removeChild(this.positionDisplay)
+            this.positionDisplay = null
+        }
+
+        this.app = null    
+    }
         this.app = null    
     }
 }
