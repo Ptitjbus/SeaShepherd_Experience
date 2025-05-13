@@ -749,17 +749,6 @@ body
   font-size: 24px;
 }
 
-/* Ajout d'un overlay semi-transparent */
-.choices-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.7); /* Fond noir semi-transparent */
-  z-index: 999; /* Juste en dessous du conteneur de choix */
-}
-
 /* Ajustement du z-index pour que les choix soient au-dessus de l'overlay */
 .choices-container {
   z-index: 1000;
