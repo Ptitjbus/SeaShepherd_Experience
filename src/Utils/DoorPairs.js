@@ -11,9 +11,10 @@ export default class DoorPair {
         this.isSliding = sliding
         this.rotation = rotation // Angle de rotation en radians
         
-        // Accéder au physics manager via l'instance d'App
+        // Accéder au physics manager et au sound manager via l'instance d'App
         this.app = new App()
         this.physicsManager = this.app.physicsManager
+        this.soundManager = this.app.soundManager
         
         // État des portes
         this.isOpen = false
@@ -21,6 +22,10 @@ export default class DoorPair {
         this.canBeOpened = true
         this.playerInRange = false
         this.canBeTriggeredByPlayer = true
+        
+        // Identifiants pour les sons de cette porte
+        this.doorOpenSoundId = `door_open_${Date.now()}_${Math.floor(Math.random() * 1000)}`
+        this.doorCloseSoundId = `door_close_${Date.now()}_${Math.floor(Math.random() * 1000)}`
         
         // Créer un conteneur parent pour faciliter la rotation
         this.container = new Object3D()
@@ -42,6 +47,9 @@ export default class DoorPair {
         
         // Créer les portes
         this.createDoors(colorLeft, colorRight)
+        
+        // Créer un haut-parleur virtuel pour les sons
+        this.createSpeaker()
     }
     
     createDoors(colorLeft, colorRight) {
@@ -205,6 +213,9 @@ export default class DoorPair {
         if (this.isOpen || this.isAnimating || !this.canBeOpened) return;
         
         this.isAnimating = true;
+        
+        // Jouer le son d'ouverture
+        this.playOpenSound();
 
         // Keep track of the animation progress
         let progress = 0;
@@ -244,6 +255,9 @@ export default class DoorPair {
         if (!this.isOpen || this.isAnimating) return;
         
         this.isAnimating = true;
+        
+        // Jouer le son de fermeture
+        this.playCloseSound();
         
         // Keep track of the animation progress
         let progress = 0;
@@ -310,7 +324,77 @@ export default class DoorPair {
         return distance < threshold;
     }
     
+    // Nouvelle méthode pour créer un haut-parleur virtuel
+    createSpeaker() {
+        // Créer un objet 3D invisible qui servira de haut-parleur
+        this.speaker = new Object3D()
+        this.speaker.position.set(0, this.height / 2, 0) // Placer au milieu de la porte
+        this.speaker.userData.is_speaker = true // Marquer comme haut-parleur pour le SoundManager
+        this.container.add(this.speaker)
+    }
+    
+    // Nouvelles méthodes pour les sons
+    playOpenSound() {
+        console.log('Attempting to play door open sound');
+        if (!this.soundManager) {
+            console.error('SoundManager not available');
+            return;
+        }
+        
+        // Arrêter le son de fermeture si en cours
+        this.soundManager.stopSound(this.doorCloseSoundId);
+        
+        console.log('Playing sound:', this.doorOpenSoundId, 'path:', '/audio/doors/open.mp3');
+        
+        // Jouer le son d'ouverture sur le haut-parleur
+        this.soundManager.playSoundOnSpeakers(
+            this.doorOpenSoundId,
+            '/audio/doors/open.mp3', // Chemin vers le son d'ouverture
+            {
+                volume: 0.4,
+                maxDistance: 15,
+                refDistance: 3,
+                rolloffFactor: 2
+            },
+            this.speaker // Assurez-vous de passer explicitement le haut-parleur
+        );
+        console.log('Sound play command sent');
+    }
+    
+    playCloseSound() {
+        console.log('Attempting to play door close sound');
+        if (!this.soundManager) {
+            console.error('SoundManager not available');
+            return;
+        }
+        
+        // Arrêter le son d'ouverture si en cours
+        this.soundManager.stopSound(this.doorOpenSoundId);
+        
+        console.log('Playing sound:', this.doorCloseSoundId, 'path:', '/audio/doors/close.mp3');
+        
+        // Jouer le son de fermeture sur le haut-parleur
+        this.soundManager.playSoundOnSpeakers(
+            this.doorCloseSoundId,
+            '/audio/doors/close.mp3', // Chemin vers le son de fermeture
+            {
+                volume: 0.5,
+                maxDistance: 15,
+                refDistance: 3,
+                rolloffFactor: 2
+            },
+            this.speaker // Assurez-vous de passer explicitement le haut-parleur
+        );
+        console.log('Sound play command sent');
+    }
+    
     dispose() {
+        // Arrêter les sons liés à cette porte
+        if (this.soundManager) {
+            this.soundManager.stopSound(this.doorOpenSoundId);
+            this.soundManager.stopSound(this.doorCloseSoundId);
+        }
+        
         if (this.leftBody && this.physicsManager) {
             this.physicsManager.removeBody(this.leftBody);
         }
@@ -319,7 +403,7 @@ export default class DoorPair {
             this.physicsManager.removeBody(this.rightBody);
         }
         
-        // Supprimer le conteneur de la scène (ce qui supprimera aussi les portes)
+        // Supprimer le conteneur de la scène (ce qui supprimera aussi les portes et le haut-parleur)
         if (this.container && this.scene) {
             this.scene.remove(this.container);
         }
@@ -328,5 +412,6 @@ export default class DoorPair {
         this.leftDoor = null;
         this.rightDoor = null;
         this.container = null;
+        this.speaker = null;
     }
 }
