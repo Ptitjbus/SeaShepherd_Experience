@@ -182,6 +182,30 @@ export default class App extends EventEmitter {
                 this.storyManager.initAquarium()
             }
         )
+
+        this.objectManager.addEventTrigger(
+            new Vector3(-55, 1, -68),
+            30, 10, 70,
+            () => {
+                this.storyManager.initCorridor()
+            }
+        )
+
+        this.objectManager.addEventTrigger(
+            new Vector3(-80, 1, -120),
+            20, 7, 10,
+            () => {
+                this.storyManager.initTurtleBottom()
+            }
+        )
+
+        this.objectManager.addEventTrigger(
+            new Vector3(-105, 1, -121),
+            10, 7, 10,
+            () => {
+                this.storyManager.initElevator()
+            }
+        )
     }
 
     async initMadias(){
@@ -330,7 +354,15 @@ export default class App extends EventEmitter {
                 loop: false,
                 muted: false,
                 duration: 12000 // en ms
-            }
+            },
+            'pub': { 
+                type: 'video', 
+                src: '/videos/1080p/pub.mp4', 
+                glitchType: 'small',
+                loop: false,
+                muted: true,
+                duration: 15000 // en ms
+            },
         })
     }
 }

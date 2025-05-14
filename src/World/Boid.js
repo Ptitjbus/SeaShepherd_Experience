@@ -387,4 +387,28 @@ export default class Boid {
         direction.add(this.mesh.position)
         this.mesh.lookAt(direction)
     }
+
+    destroy() {
+        // Remove the mesh from the scene
+        if (this.scene && this.mesh) {
+            this.scene.remove(this.mesh);
+        }
+
+        // Dispose of the geometry and material to free up memory
+        if (this.geometry) {
+            this.geometry.dispose();
+        }
+        if (this.mesh && this.mesh.material) {
+            if (Array.isArray(this.mesh.material)) {
+                this.mesh.material.forEach((material) => material.dispose());
+            } else {
+                this.mesh.material.dispose();
+            }
+        }
+
+        // Clear references
+        this.mesh = null;
+        this.geometry = null;
+        this.scene = null;
+    }
 }

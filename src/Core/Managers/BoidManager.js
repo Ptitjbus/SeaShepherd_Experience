@@ -65,4 +65,11 @@ export default class BoidManager {
       boid.update(delta, this.boids, this.obstacles)
     })
   }
+
+  destroy() {
+    this.boids.forEach(boid => {
+      boid.destroy(); // Assuming Boid has a destroy method to clean up resources
+    });
+    this.boids = [];
+  }
 }

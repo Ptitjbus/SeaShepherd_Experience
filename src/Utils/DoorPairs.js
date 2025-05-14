@@ -240,42 +240,45 @@ export default class DoorPair {
         });
     }
     
-    closeAnimated(duration = 1) {
-        if (!this.isOpen || this.isAnimating) return;
+    async closeAnimated(duration = 1) {
+        if (!this.isOpen || this.isAnimating) return false;
         
         this.isAnimating = true;
-        
-        // Keep track of the animation progress
-        let progress = 0;
-        const updateInterval = 0.1; // Update physics every 10% of animation
-        
-        gsap.to(this.leftDoor.position, {
-            x: this.leftInitialPos.x,
-            duration: duration,
-            ease: "power2.out",
-            onUpdate: () => {
-                // Calculate current progress
-                const currentProgress = gsap.getProperty(this.leftDoor.position, "x");
-                const normalizedProgress = 1 - (currentProgress - this.leftOpenPos.x) / 
-                                          (this.leftInitialPos.x - this.leftOpenPos.x);
-                
-                // Update physics every 10% of animation
-                if (normalizedProgress >= progress + updateInterval) {
-                    progress = Math.floor(normalizedProgress / updateInterval) * updateInterval;
-                    this.updatePhysicsBodies(); // Update both door physics bodies
+
+        return new Promise((resolve) => {
+            // Keep track of the animation progress
+            let progress = 0;
+            const updateInterval = 0.1; // Update physics every 10% of animation
+            
+            gsap.to(this.leftDoor.position, {
+                x: this.leftInitialPos.x,
+                duration: duration,
+                ease: "power2.out",
+                onUpdate: () => {
+                    // Calculate current progress
+                    const currentProgress = gsap.getProperty(this.leftDoor.position, "x");
+                    const normalizedProgress = 1 - (currentProgress - this.leftOpenPos.x) / 
+                                              (this.leftInitialPos.x - this.leftOpenPos.x);
+                    
+                    // Update physics every 10% of animation
+                    if (normalizedProgress >= progress + updateInterval) {
+                        progress = Math.floor(normalizedProgress / updateInterval) * updateInterval;
+                        this.updatePhysicsBodies(); // Update both door physics bodies
+                    }
                 }
-            }
-        });
-        
-        gsap.to(this.rightDoor.position, {
-            x: this.rightInitialPos.x,
-            duration: duration,
-            ease: "power2.out",
-            onComplete: () => {
-                this.isOpen = false;
-                this.isAnimating = false;
-                this.updatePhysicsBodies(); // Final update when fully closed
-            }
+            });
+            
+            gsap.to(this.rightDoor.position, {
+                x: this.rightInitialPos.x,
+                duration: duration,
+                ease: "power2.out",
+                onComplete: () => {
+                    this.isOpen = false;
+                    this.isAnimating = false;
+                    this.updatePhysicsBodies(); // Final update when fully closed
+                    resolve(true); // Resolve the promise when the animation is complete
+                }
+            });
         });
     }
     

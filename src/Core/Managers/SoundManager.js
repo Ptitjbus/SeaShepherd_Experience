@@ -85,6 +85,14 @@ export default class SoundManager {
         }
     }
 
+    removeSpeakersFromObject(object3D) {
+        // Filtrer les haut-parleurs qui ne sont pas dans l'objet spécifié
+        this.speakers = this.speakers.filter((speaker) => {
+            const isChild = object3D.scene.children.includes(speaker.object) || speaker.object.parent === object3D.scene
+            return !isChild
+        })
+    }
+
     updateListener() {
         const camera = this.app.camera
     

@@ -5,7 +5,7 @@ import { LayerShader } from "../../Shaders/LayerShader.js"
 import { BlackWhiteShader } from '../../Shaders/BlackWhiteShader.js'
 import CustomShaderMaterial from 'three-custom-shader-material/vanilla'
 import { MeshTransmissionMaterial, useFBO } from "@pmndrs/vanilla"
-import { disposeMaterial, disposeObject } from "../../Utils/Memory.js"
+import { disposeHierarchy, disposeMaterial, disposeObject } from "../../Utils/Memory.js"
 import * as CANNON from 'cannon-es'
 import BoidManager from "./BoidManager.js"
 
@@ -46,6 +46,9 @@ export default class ObjectManager {
 
         this.boidManagers = []
         this.boidSpheres = []
+
+        this.rebuildFrameCounter = 0
+        this.rebuildFrequency = 5
     }
 
     /**
@@ -65,7 +68,9 @@ export default class ObjectManager {
             material= null,
             castShadow = true,
             receiveShadow = true,
-            applyCaustics = false
+            applyCaustics = false,
+            playAnimation = true,
+            dynamicCollision = false
         } = options
     
         const cameras = []
@@ -84,6 +89,15 @@ export default class ObjectManager {
             if (child.isMesh) {
                 if (child.userData.collide) {
                     const body = this.createTrimeshBodyFromMesh(child)
+                    
+
+                    if (dynamicCollision) {
+                        body.type = CANNON.Body.KINEMATIC
+                        body.mass = 0
+                        body.updateMassProperties()
+                        body.recreateFrom = child
+                    }
+
                     this.app.physicsManager.world.addBody(body)
                     this.bodies.push(body)
                     if (this.app.debug.active) {
@@ -122,9 +136,11 @@ export default class ObjectManager {
         })
     
         mixer = new THREE.AnimationMixer(object.scene)
-        object.animations.forEach((clip) => {
-            mixer.clipAction(clip).play()
-        })
+        if(playAnimation){
+            object.animations.forEach((clip) => {
+                mixer.clipAction(clip).play()
+            })
+        }
     
         this.app.scene.add(object.scene)
     
@@ -290,6 +306,39 @@ export default class ObjectManager {
         return body
     }
 
+    removeCollisionsForObject(name) {
+        const storedObject = this.objects.get(name)
+        if (!storedObject) {
+            console.warn(`Object with name "${name}" not found.`)
+            return
+        }
+
+        storedObject.object.scene.traverse((child) => {
+            if (child.isMesh && child.userData.collide) {
+                // Trouve et retire le corps physique lié
+                const index = this.bodies.findIndex((body) => {
+                    return body.shapes.some((shape) => {
+                        return shape instanceof CANNON.Trimesh
+                    })
+                })
+
+                if (index !== -1) {
+                    const body = this.bodies[index]
+                    this.app.physicsManager.world.removeBody(body)
+                    this.bodies.splice(index, 1)
+                }
+
+                // Supprimer le wireframe de debug correspondant
+                const wireframe = this.collisionWireframes[index]
+                if (wireframe) {
+                    this.app.scene.remove(wireframe)
+                    this.collisionWireframes.splice(index, 1)
+                }
+            }
+        })
+    }
+
+
     createCustomShaderMaterial(baseMap){
         return new CustomShaderMaterial({
             baseMaterial: THREE.MeshPhysicalMaterial,
@@ -390,6 +439,131 @@ export default class ObjectManager {
         return found
     }
 
+    applyVideoToMultipleScreens(objectName, meshNames = [], mediaId, audioName = null) {
+        const stored = this.objects.get(objectName);
+        if (!stored) return;
+
+        const mediaData = this.app.mediaManager.mediaElements.get(mediaId);
+        if (!mediaData) return;
+
+        const video = mediaData.element;
+        video.muted = true;
+
+        const videoTexture = new THREE.VideoTexture(video);
+        videoTexture.minFilter = THREE.LinearFilter;
+        videoTexture.magFilter = THREE.LinearFilter;
+        videoTexture.format = THREE.RGBFormat;
+
+        const sharedMaterial = new THREE.MeshBasicMaterial({
+            map: videoTexture,
+            side: THREE.FrontSide
+        });
+
+        const targetMeshes = meshNames
+            .map(name => this.getItemFromObject(name, stored.object.scene))
+            .filter(Boolean);
+
+        targetMeshes.forEach(mesh => {
+            mesh.material?.dispose();
+            mesh.material = sharedMaterial;
+        });
+
+        const turnOn = async () => {
+            return new Promise(async (resolve) => {
+                video.currentTime = 0;
+
+                if (audioName) {
+                    this.app.soundManager.playSoundOnSpeakers(audioName, `audio/videos/${audioName}.mp3`, {
+                        loop: false,
+                        volume: 1,
+                        maxDistance: 5
+                    });
+                }
+
+                try {
+                    await video.play();
+                } catch (e) {
+                    console.error("Video playback error", e);
+                    return resolve(false);
+                }
+
+                setTimeout(() => {
+                    const blackMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
+                    targetMeshes.forEach(mesh => {
+                        mesh.material.dispose();
+                        mesh.material = blackMaterial;
+                    });
+
+                    if (audioName) {
+                        this.app.soundManager.stopSound(audioName);
+                    }
+
+                    resolve(true);
+                }, mediaData.config.duration);
+            });
+        };
+
+
+        const turnOff = async () => {
+            return new Promise((resolve) => {
+                video.pause();
+
+                const blackMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
+                targetMeshes.forEach(mesh => {
+                    mesh.material.dispose();
+                    mesh.material = blackMaterial;
+                });
+
+                if (audioName) {
+                    this.app.soundManager.stopSound(audioName);
+                }
+
+                resolve(true);
+            });
+        };
+
+        return { turnOn, turnOff };
+    }
+
+    /**
+     * Supprime un objet de la scène et libère la mémoire associée
+     * @param {String} name - Nom de l'objet à supprimer
+     */
+    remove(name) {
+        this.removeCollisionsForObject(name)
+        const storedObject = this.objects.get(name)
+        if (!storedObject) {
+            console.warn(`Object with name "${name}" not found.`)
+            return
+        }
+
+        this.app.soundManager.removeSpeakersFromObject(storedObject.object)
+
+        disposeHierarchy(storedObject.object.scene)
+
+        if (storedObject.mixer) {
+            storedObject.mixer.stopAllAction()
+            storedObject.mixer.uncacheRoot(storedObject.object.scene)
+            storedObject.mixer.uncacheClip(storedObject.animations)
+        }
+
+        this.objects.delete(name)
+    }
+
+    removeBoids() {
+        // Remove all boid managers
+        this.boidManagers.forEach((manager) => {
+            manager.destroy()
+        })
+        this.boidManagers = []
+
+        // Remove all boid spheres
+        this.boidSpheres.forEach((sphere) => {
+            this.app.scene.remove(sphere)
+        })
+        this.boidSpheres = []
+    }
+
     update(time) {
         this.meshTransmissionMaterial.time = time * 0.001
 
@@ -403,6 +577,30 @@ export default class ObjectManager {
             this.boidManagers.forEach((manager) => {
                 manager.update(time.delta)
             })
+        }
+
+        this.rebuildFrameCounter++
+        if (this.rebuildFrameCounter >= this.rebuildFrequency) {
+            this.rebuildFrameCounter = 0
+        
+            this.bodies.forEach((body, index) => {
+                 if (body.recreateFrom) {
+                     // Supprimer l'ancien body
+                     this.app.physicsManager.world.removeBody(body)
+     
+                     // Créer un nouveau body à partir du mesh animé
+                     const newBody = this.createTrimeshBodyFromMesh(body.recreateFrom)
+                     if (newBody) {
+                         newBody.type = CANNON.Body.KINEMATIC
+                         newBody.mass = 0
+                         newBody.updateMassProperties()
+                         newBody.recreateFrom = body.recreateFrom
+     
+                         this.bodies[index] = newBody
+                         this.app.physicsManager.world.addBody(newBody)
+                     }
+                 }
+             })
         }
 
         this.checkTriggers()

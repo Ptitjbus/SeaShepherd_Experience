@@ -33,6 +33,38 @@ export default [
         url: ''
     },
     {
+        name: 'Couloir',
+        type: 'gltf',
+        path: '/models/glb/Couloir_v3.glb',
+        license: '',
+        author: 'Kilian Rizzo',
+        url: ''
+    },
+    {
+        name: 'Aquaturtle',
+        type: 'gltf',
+        path: '/models/glb/Tortues_bas_V2.glb',
+        license: '',
+        author: 'Kilian Rizzo',
+        url: ''
+    },
+    {
+        name: 'Tortue',
+        type: 'gltf',
+        path: '/models/glb/Tortue_V1.glb',
+        license: '',
+        author: 'Kilian Rizzo',
+        url: ''
+    },
+    {
+        name: 'Elevator',
+        type: 'gltf',
+        path: '/models/glb/Ascenseur_v2.glb',
+        license: '',
+        author: 'Kilian Rizzo',
+        url: ''
+    },
+    {
         name: 'FishModel1',
         type: 'gltf',
         path: '/models/glb/fish.glb',

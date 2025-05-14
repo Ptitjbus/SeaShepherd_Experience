@@ -100,7 +100,22 @@ export default class DoorManager {
             
             return true;
         }
-        console.warn(`DoorManager: Impossible d'ouvrir la porte d'index ${index}, hors limites.`);
+        return false;
+    }
+
+    async triggerCloseDoorByIndex(index) {
+        if (index >= 0 && index < this.doorPairs.length) {
+            const door = this.doorPairs[index];
+            await door.closeAnimated();
+            
+            // Si cette porte était ouverte par script, la retirer de la liste
+            const index = this.scriptOpenedDoors.indexOf(nearest)
+            if (index !== -1) {
+                this.scriptOpenedDoors.splice(index, 1)
+            }
+            
+            return true;
+        }
         return false;
     }
 

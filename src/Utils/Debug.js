@@ -367,7 +367,7 @@ export default class Debug extends EventEmitter {
                 this.app.camera.switchCamera()
             }
             if (event.key === 'o') {
-                this.app.endExperience()
+                this.app.storyManager.endExperience()
             }
             if (event.key === 'p') {
                 this.app.eventsManager.displayAlert("Ceci est une popin d'information",'information')

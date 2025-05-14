@@ -71,9 +71,10 @@ export default class StoryManager {
     }
 
     async initAquarium(){
-        this.clearTasks()
+        this.clearTasks(true)
 
         this.activeTasks.push('aquarium')
+        this.app.doorManager.triggerCloseDoorByIndex(0)
         
         this.app.soundManager.playMusic('aquarium')
         await this.sleep(2000)
@@ -94,9 +95,122 @@ export default class StoryManager {
 
         if (!this.checkActiveTask('aquarium')) return
         await this.sleep(2000)
+        this.app.objectManager.add("Couloir", new THREE.Vector3(0, 0, 0))
         await this.app.soundManager.playVoiceLine('5.4_FINDAUPHIN')
         this.app.doorManager.triggerOpenDoorByIndex(1)
         this.activeTasks = this.activeTasks.filter(task => task !== 'aquarium')
+    }
+
+    async initCorridor(){
+        this.clearTasks()
+
+        this.activeTasks.push('corridor')
+        this.app.soundManager.attachToSpeakers()
+        this.app.soundManager.stopAllMusicSounds(true,false)
+        await this.app.doorManager.triggerCloseDoorByIndex(1)
+        await this.sleep(2000)
+        this.app.postProcessing.triggerGlitch()
+        this.app.objectManager.remove("Dauphins")
+        this.app.objectManager.removeBoids()
+
+        if (!this.checkActiveTask('corridor')) return
+        await this.app.soundManager.playVoiceLine('6.1_PUB')
+
+        if (!this.checkActiveTask('corridor')) return
+        await this.app.choicesManager.showChoices({
+            choice1: "Lancer la publicité",
+            choice2: "Ne pas supporter le musée"
+        }).then(async (choiceIndex) => {
+            if (choiceIndex === 2) {
+                await this.app.soundManager.playVoiceLine('6.2_VIDEO');
+            }
+        });
+
+        const screenControls = this.app.objectManager.applyVideoToMultipleScreens(
+            "Couloir",
+            ["Cube_1", "Cube013_1"],
+            "pub",
+            "pub"
+        )
+        if (!this.checkActiveTask('corridor')) return
+        await screenControls.turnOn()
+        this.app.postProcessing.triggerGlitch()
+        this.app.objectManager.add("Aquaturtle", new THREE.Vector3(0, 0, 0))
+        this.app.objectManager.add("Elevator", new THREE.Vector3(0, 0, 0), {
+            playAnimation : false,
+            dynamicCollision: true,
+        })
+        this.app.objectManager.add("Tortue", new THREE.Vector3(0, 0, 0))
+        this.app.postProcessing.triggerGlitch()
+
+        if (!this.checkActiveTask('corridor')) return
+        await this.app.soundManager.playVoiceLine('6.3_NARRATEURINCOMPREHENSION')
+
+        if (!this.checkActiveTask('corridor')) return
+        await this.app.choicesManager.showChoices({
+            choice1: "Oui, allons-y !",
+            choice2: "J'ai l'impression qu'on ne me dit pas tout"
+        }).then(async (choiceIndex) => {
+            if (choiceIndex === 1) {
+                await this.app.soundManager.playVoiceLine('6.4_CHOIX1');
+            } else {
+                await this.app.soundManager.playVoiceLine('6.5_CHOIX2');
+            }
+        });
+
+        await this.app.doorManager.triggerOpenDoorByIndex(2)
+    }
+
+    async initTurtleBottom(){
+        this.clearTasks()
+
+        this.activeTasks.push('aquaturtle')
+        this.app.soundManager.attachToSpeakers()
+        this.app.soundManager.stopAllMusicSounds(true,false)
+        await this.app.doorManager.triggerCloseDoorByIndex(2)
+        await this.sleep(2000)
+        this.app.postProcessing.triggerGlitch()
+        this.app.objectManager.remove("Couloir")
+
+        this.app.soundManager.playMusic('aquaturtles')
+
+        if (!this.checkActiveTask('aquaturtle')) return
+        await this.app.soundManager.playVoiceLine('7.1_TORTUES');
+    }
+
+    async initElevator(){
+        const elevator = this.app.objectManager.get("Elevator")
+        console.log(elevator)
+        elevator.animations.forEach((clip) => {
+            elevator.mixer.clipAction(clip).play()
+        })
+
+        if (!this.checkActiveTask('aquaturtle')) return
+        await this.app.soundManager.playVoiceLine('7.1_TORTUES2');
+
+        if (!this.checkActiveTask('aquaturtle')) return
+        this.app.mediaManager.playMediaWithGlitch('error1')
+        await this.app.soundManager.playVoiceLine('7.2_VIDEO')
+
+        if (!this.checkActiveTask('aquaturtle')) return
+        this.app.mediaManager.playMediaWithGlitch('bigvideo')
+        await this.app.soundManager.playVoiceLine('7.2_BUG')
+
+        if (!this.checkActiveTask('aquaturtle')) return
+        await this.app.choicesManager.showChoices({
+            choice1: "C'est trop mignon les tortues !",
+            choice2: "Connaître la vérité"
+        }).then(async (choiceIndex) => {
+            this.app.mediaManager.playMediaWithGlitch('bigvideo')
+        });
+        await this.app.soundManager.playVoiceLine('7.3_FAKENEWS')
+        this.app.postProcessing.triggerBigGlitch()
+
+        if (!this.checkActiveTask('aquaturtle')) return
+        this.app.mediaManager.playMediaWithGlitch('error1')
+        await this.app.soundManager.playVoiceLine('7.4_INTOX')
+        this.app.postProcessing.triggerGlitch()
+
     }
 
     async sleep(milliseconds) {
@@ -108,9 +222,11 @@ export default class StoryManager {
         return true
     }
 
-    async clearTasks(){
-        this.app.soundManager.stopAllCustomSounds(true,true)
-        this.app.soundManager.stopAllMusicSounds(true,true)
+    async clearTasks(forceStopSounds = false){
+        if(forceStopSounds){
+            this.app.soundManager.stopAllCustomSounds(true,true)
+            this.app.soundManager.stopAllMusicSounds(true,true)
+        }
         this.activeTasks = []
     }
 
@@ -118,14 +234,14 @@ export default class StoryManager {
         if (this.experienceEnded) return
         this.experienceEnded = true
 
-        this.endOverlay.classList.remove('hidden')
+        this.app.endOverlay.classList.remove('hidden')
 
-        void this.endOverlay.offsetWidth
+        void this.app.endOverlay.offsetWidth
 
-        this.canvas.style.opacity = '0'
+        this.app.canvas.style.opacity = '0'
 
         setTimeout(() => {
-            this.endOverlay.classList.add('visible')
+            this.app.endOverlay.classList.add('visible')
         }, 100)
     }
 

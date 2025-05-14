@@ -39,4 +39,72 @@ function disposeMaterial(material) {
     material.dispose()
 }
 
-export { disposeObject, disposeMaterial }
+function disposeHierarchy(node, removeFromParent = true) {
+    if (!node) return;
+
+    // Supprimer géométrie
+    if (node.geometry) {
+        node.geometry.dispose();
+        node.geometry = null;
+    }
+
+    // Supprimer matériel
+    if (node.material) {
+        if (Array.isArray(node.material)) {
+            node.material.forEach((mat) => {
+                cleanMaterial(mat);
+            });
+        } else {
+            cleanMaterial(node.material);
+        }
+        node.material = null;
+    }
+
+    // Supprimer les enfants récursivement
+    while (node.children.length > 0) {
+        disposeHierarchy(node.children[0]);
+        node.remove(node.children[0]);
+    }
+
+    // Supprimer de la scène
+    if (removeFromParent && node.parent) {
+        node.parent.remove(node);
+    }
+}
+
+function cleanMaterial(material) {
+    if (material.map) {
+        material.map.dispose();
+        material.map = null;
+    }
+
+    if (material.lightMap) {
+        material.lightMap.dispose();
+        material.lightMap = null;
+    }
+
+    if (material.bumpMap) {
+        material.bumpMap.dispose();
+        material.bumpMap = null;
+    }
+
+    if (material.normalMap) {
+        material.normalMap.dispose();
+        material.normalMap = null;
+    }
+
+    if (material.specularMap) {
+        material.specularMap.dispose();
+        material.specularMap = null;
+    }
+
+    if (material.envMap) {
+        material.envMap.dispose();
+        material.envMap = null;
+    }
+
+    material.dispose();
+}
+
+
+export { disposeObject, disposeMaterial, disposeHierarchy }
