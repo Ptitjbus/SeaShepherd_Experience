@@ -11,9 +11,10 @@ export default class DoorPair {
         this.isSliding = sliding
         this.rotation = rotation // Angle de rotation en radians
         
-        // Accéder au physics manager via l'instance d'App
+        // Accéder au physics manager et au sound manager via l'instance d'App
         this.app = new App()
         this.physicsManager = this.app.physicsManager
+        this.soundManager = this.app.soundManager
         
         // État des portes
         this.isOpen = false
@@ -21,6 +22,10 @@ export default class DoorPair {
         this.canBeOpened = true
         this.playerInRange = false
         this.canBeTriggeredByPlayer = true
+        
+        // Identifiants pour les sons de cette porte
+        this.doorOpenSoundId = `door_open_${Date.now()}_${Math.floor(Math.random() * 1000)}`
+        this.doorCloseSoundId = `door_close_${Date.now()}_${Math.floor(Math.random() * 1000)}`
         
         // Créer un conteneur parent pour faciliter la rotation
         this.container = new Object3D()
@@ -40,8 +45,15 @@ export default class DoorPair {
         this.leftBody = null
         this.rightBody = null
         
+        // Helpers de collision
+        this.leftCollisionHelper = null
+        this.rightCollisionHelper = null
+        
         // Créer les portes
         this.createDoors(colorLeft, colorRight)
+        
+        // Créer un haut-parleur virtuel pour les sons
+        this.createSpeaker()
     }
     
     createDoors(colorLeft, colorRight) {
@@ -157,6 +169,96 @@ export default class DoorPair {
             },
             this.rightDoor
         );
+        
+        // Ajouter des helpers de collision pour les portes si le mode debug est actif
+        if (this.app.debug && this.app.debug.active) {
+            this.createCollisionHelpers();
+        }
+    }
+    
+    createCollisionHelpers() {
+        if (!this.app.debug || !this.app.debug.active) return;
+        
+        // Supprimer les helpers existants s'il y en a
+        if (this.leftCollisionHelper) {
+            this.scene.remove(this.leftCollisionHelper);
+            this.leftCollisionHelper = null;
+        }
+        
+        if (this.rightCollisionHelper) {
+            this.scene.remove(this.rightCollisionHelper);
+            this.rightCollisionHelper = null;
+        }
+        
+        // Créer un wireframe pour la porte gauche
+        if (this.leftBody) {
+            const dims = this.leftBody.shapes[0].halfExtents;
+            const geometry = new BoxGeometry(dims.x * 2, dims.y * 2, dims.z * 2);
+            const material = new MeshBasicMaterial({ 
+                color: 0xff0000, 
+                wireframe: true,
+                transparent: true,
+                opacity: 0.7
+            });
+            this.leftCollisionHelper = new Mesh(geometry, material);
+            
+            // Positionner le helper à la position du corps physique
+            this.leftCollisionHelper.position.set(
+                this.leftBody.position.x,
+                this.leftBody.position.y,
+                this.leftBody.position.z
+            );
+            
+            // Appliquer la rotation du corps physique
+            this.leftCollisionHelper.quaternion.set(
+                this.leftBody.quaternion.x,
+                this.leftBody.quaternion.y,
+                this.leftBody.quaternion.z,
+                this.leftBody.quaternion.w
+            );
+            
+            this.scene.add(this.leftCollisionHelper);
+            
+            // Ajouter au tableau des wireframes de collision pour le toggling
+            if (this.app.objectManager && this.app.objectManager.collisionWireframes) {
+                this.app.objectManager.collisionWireframes.push(this.leftCollisionHelper);
+            }
+        }
+        
+        // Créer un wireframe pour la porte droite
+        if (this.rightBody) {
+            const dims = this.rightBody.shapes[0].halfExtents;
+            const geometry = new BoxGeometry(dims.x * 2, dims.y * 2, dims.z * 2);
+            const material = new MeshBasicMaterial({ 
+                color: 0xff0000, 
+                wireframe: true,
+                transparent: true,
+                opacity: 0.7
+            });
+            this.rightCollisionHelper = new Mesh(geometry, material);
+            
+            // Positionner le helper à la position du corps physique
+            this.rightCollisionHelper.position.set(
+                this.rightBody.position.x,
+                this.rightBody.position.y,
+                this.rightBody.position.z
+            );
+            
+            // Appliquer la rotation du corps physique
+            this.rightCollisionHelper.quaternion.set(
+                this.rightBody.quaternion.x,
+                this.rightBody.quaternion.y,
+                this.rightBody.quaternion.z,
+                this.rightBody.quaternion.w
+            );
+            
+            this.scene.add(this.rightCollisionHelper);
+            
+            // Ajouter au tableau des wireframes de collision pour le toggling
+            if (this.app.objectManager && this.app.objectManager.collisionWireframes) {
+                this.app.objectManager.collisionWireframes.push(this.rightCollisionHelper);
+            }
+        }
     }
     
     setRotation(angle) {
@@ -183,6 +285,43 @@ export default class DoorPair {
         
         // Create new physics bodies at current door positions
         this.createPhysicsBodies();
+        
+        // Mettre à jour les helpers
+        if (this.app.debug && this.app.debug.active) {
+            this.updateCollisionHelpers();
+        }
+    }
+    
+    updateCollisionHelpers() {
+        if (!this.app.debug || !this.app.debug.active) return;
+        
+        if (this.leftBody && this.leftCollisionHelper) {
+            this.leftCollisionHelper.position.set(
+                this.leftBody.position.x,
+                this.leftBody.position.y,
+                this.leftBody.position.z
+            );
+            this.leftCollisionHelper.quaternion.set(
+                this.leftBody.quaternion.x,
+                this.leftBody.quaternion.y,
+                this.leftBody.quaternion.z,
+                this.leftBody.quaternion.w
+            );
+        }
+        
+        if (this.rightBody && this.rightCollisionHelper) {
+            this.rightCollisionHelper.position.set(
+                this.rightBody.position.x,
+                this.rightBody.position.y,
+                this.rightBody.position.z
+            );
+            this.rightCollisionHelper.quaternion.set(
+                this.rightBody.quaternion.x,
+                this.rightBody.quaternion.y,
+                this.rightBody.quaternion.z,
+                this.rightBody.quaternion.w
+            );
+        }
     }
     
     setOpenable(canOpen) {
@@ -205,6 +344,9 @@ export default class DoorPair {
         if (this.isOpen || this.isAnimating || !this.canBeOpened) return;
         
         this.isAnimating = true;
+        
+        // Jouer le son d'ouverture
+        this.playOpenSound();
 
         // Keep track of the animation progress
         let progress = 0;
@@ -244,8 +386,10 @@ export default class DoorPair {
         if (!this.isOpen || this.isAnimating) return false;
         
         this.isAnimating = true;
-
+        
         return new Promise((resolve) => {
+
+            this.playCloseSound();
             // Keep track of the animation progress
             let progress = 0;
             const updateInterval = 0.1; // Update physics every 10% of animation
@@ -313,7 +457,77 @@ export default class DoorPair {
         return distance < threshold;
     }
     
+    // Nouvelle méthode pour créer un haut-parleur virtuel
+    createSpeaker() {
+        // Créer un objet 3D invisible qui servira de haut-parleur
+        this.speaker = new Object3D()
+        this.speaker.position.set(0, this.height / 2, 0) // Placer au milieu de la porte
+        this.speaker.userData.is_speaker = true // Marquer comme haut-parleur pour le SoundManager
+        this.container.add(this.speaker)
+    }
+    
+    // Nouvelles méthodes pour les sons
+    playOpenSound() {
+        console.log('Attempting to play door open sound');
+        if (!this.soundManager) {
+            console.error('SoundManager not available');
+            return;
+        }
+        
+        // Arrêter le son de fermeture si en cours
+        this.soundManager.stopSound(this.doorCloseSoundId);
+        
+        console.log('Playing sound:', this.doorOpenSoundId, 'path:', '/audio/doors/open.mp3');
+        
+        // Jouer le son d'ouverture sur le haut-parleur
+        this.soundManager.playSoundOnSpeakers(
+            this.doorOpenSoundId,
+            '/audio/doors/open.mp3', // Chemin vers le son d'ouverture
+            {
+                volume: 0.4,
+                maxDistance: 15,
+                refDistance: 3,
+                rolloffFactor: 2
+            },
+            this.speaker // Assurez-vous de passer explicitement le haut-parleur
+        );
+        console.log('Sound play command sent');
+    }
+    
+    playCloseSound() {
+        console.log('Attempting to play door close sound');
+        if (!this.soundManager) {
+            console.error('SoundManager not available');
+            return;
+        }
+        
+        // Arrêter le son d'ouverture si en cours
+        this.soundManager.stopSound(this.doorOpenSoundId);
+        
+        console.log('Playing sound:', this.doorCloseSoundId, 'path:', '/audio/doors/close.mp3');
+        
+        // Jouer le son de fermeture sur le haut-parleur
+        this.soundManager.playSoundOnSpeakers(
+            this.doorCloseSoundId,
+            '/audio/doors/close.mp3', // Chemin vers le son de fermeture
+            {
+                volume: 0.5,
+                maxDistance: 15,
+                refDistance: 3,
+                rolloffFactor: 2
+            },
+            this.speaker // Assurez-vous de passer explicitement le haut-parleur
+        );
+        console.log('Sound play command sent');
+    }
+    
     dispose() {
+        // Arrêter les sons liés à cette porte
+        if (this.soundManager) {
+            this.soundManager.stopSound(this.doorOpenSoundId);
+            this.soundManager.stopSound(this.doorCloseSoundId);
+        }
+        
         if (this.leftBody && this.physicsManager) {
             this.physicsManager.removeBody(this.leftBody);
         }
@@ -322,7 +536,30 @@ export default class DoorPair {
             this.physicsManager.removeBody(this.rightBody);
         }
         
-        // Supprimer le conteneur de la scène (ce qui supprimera aussi les portes)
+        // Supprimer les helpers de collision
+        if (this.leftCollisionHelper) {
+            this.scene.remove(this.leftCollisionHelper);
+            // Retirer du tableau de wireframes s'il existe
+            if (this.app.objectManager && this.app.objectManager.collisionWireframes) {
+                const index = this.app.objectManager.collisionWireframes.indexOf(this.leftCollisionHelper);
+                if (index !== -1) {
+                    this.app.objectManager.collisionWireframes.splice(index, 1);
+                }
+            }
+        }
+        
+        if (this.rightCollisionHelper) {
+            this.scene.remove(this.rightCollisionHelper);
+            // Retirer du tableau de wireframes s'il existe
+            if (this.app.objectManager && this.app.objectManager.collisionWireframes) {
+                const index = this.app.objectManager.collisionWireframes.indexOf(this.rightCollisionHelper);
+                if (index !== -1) {
+                    this.app.objectManager.collisionWireframes.splice(index, 1);
+                }
+            }
+        }
+        
+        // Supprimer le conteneur de la scène (ce qui supprimera aussi les portes et le haut-parleur)
         if (this.container && this.scene) {
             this.scene.remove(this.container);
         }
@@ -331,5 +568,8 @@ export default class DoorPair {
         this.leftDoor = null;
         this.rightDoor = null;
         this.container = null;
+        this.speaker = null;
+        this.leftCollisionHelper = null;
+        this.rightCollisionHelper = null;
     }
 }

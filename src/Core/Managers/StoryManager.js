@@ -1,4 +1,5 @@
 import App from '../../App'
+import { Object3D, Vector3, PlaneGeometry, MeshBasicMaterial, NoToneMapping, LinearSRGBColorSpace ,Color, Mesh, DoubleSide, VideoTexture, LinearFilter } from 'three'
 
 export default class StoryManager {
     constructor() {
@@ -13,6 +14,8 @@ export default class StoryManager {
     init() {}
 
     async startExperience() {
+        
+        
         if (this.experienceStarted) return
 
         this.experienceStarted = true
@@ -31,6 +34,7 @@ export default class StoryManager {
         if (!this.checkActiveTask('intro')) return
         
         await this.app.choicesManager.showChoices({
+            title: "J'imagine que vous mourez  d'envie de savoir qui je suis ?",
             choice1: "Dites moi",
             choice2: "Non pas vraiment"
         }).then(async (choiceIndex) => {
@@ -48,6 +52,7 @@ export default class StoryManager {
         if (!this.checkActiveTask('intro')) return
 
         await this.app.choicesManager.showChoices({
+            title: "Vous avez hâte, hein ....?",
             choice1: "Pour l'instant je suis pas convaincu …",
             choice2: "Ouais carrément !"
         }).then(async (choiceIndex) => {
@@ -57,6 +62,8 @@ export default class StoryManager {
                 await this.app.soundManager.playVoiceLine('3.3_CHOIX2');
             }
         });
+
+       
 
         if (!this.checkActiveTask('intro')) return
         this.app.soundManager.stopAllMusicSounds(true, true)
@@ -211,6 +218,147 @@ export default class StoryManager {
         await this.app.soundManager.playVoiceLine('7.4_INTOX')
         this.app.postProcessing.triggerGlitch()
 
+    }
+
+    async initEnd() {
+        this.clearTasks();
+        this.activeTasks.push('end');
+
+        const endRoomPosition = new Vector3(50, 0, -50); // Position plus éloignée, légèrement au-dessus du sol
+        
+        this.app.renderer.toneMapping = NoToneMapping;
+        this.app.renderer.outputColorSpace = LinearSRGBColorSpace;
+
+        if (this.app.scene.environment) {
+            this.app.scene.environment = null
+            this.app.scene.background = new Color(0x000000);
+        }
+
+        if (this.app.ocean) {
+            this.app.ocean.setColor(0x000000);
+
+            if (this.app.ocean.water && this.app.ocean.water.material) {
+                const waterUniforms = this.app.ocean.water.material.uniforms;
+
+                if (waterUniforms.waterColor) {
+                    waterUniforms.waterColor.value.setRGB(0, 0, 0.005);
+                }
+                
+                if (waterUniforms.sunColor) {
+                    waterUniforms.sunColor.value.setRGB(0, 0, 0);
+                }
+                
+                if (waterUniforms.distortionScale) {
+                    waterUniforms.distortionScale.value = 5.0; 
+                }
+                
+                if (waterUniforms.size) {
+                    waterUniforms.size.value = 2.0;
+                }
+                
+                if (this.app.ocean.water.material.opacity !== undefined) {
+                    this.app.ocean.water.material.opacity = 1.0;
+                }
+                
+                if (this.app.ocean.water.material.metalness !== undefined) {
+                    this.app.ocean.water.material.metalness = 0.9;
+                }
+                
+                if (this.app.ocean.water.material.roughness !== undefined) {
+                    this.app.ocean.water.material.roughness = 0.1;
+                }
+            }
+        }
+
+        this.app.scene.traverse(object => {
+            if (object.isLight && !object.name.includes('videoPanel')) {
+                object.intensity *= 0.3;
+            }
+        });
+
+        this.app.physicsManager.sphereBody.position.copy(endRoomPosition);
+        this.app.physicsManager.sphereBody.velocity.set(0, 0, 0);
+        
+        await this.sleep(500);
+        
+        const panelsContainer = new Object3D();
+        panelsContainer.name = "endPanelsContainer";
+        panelsContainer.position.copy(endRoomPosition);
+        this.app.scene.add(panelsContainer);
+        
+        const videos = [
+            { id: 'fishing-video', src: '/videos/720p/PUBDEMERDE.mp4' },
+            { id: 'dolphins-video', src: '/videos/720p/PUBDEMERDE.mp4' },
+            { id: 'turtle-video', src: '/videos/720p/PUBDEMERDE.mp4' }
+        ];
+        
+        const radius = 8;
+        const arcAngle = Math.PI * 0.5;
+        const panelWidth = 4;
+        const panelHeight = 6;
+        
+        for (let i = 0; i < 3; i++) {
+            const angle = -arcAngle/2 + (i * arcAngle/2);
+            
+            const x = radius * Math.sin(angle);
+            const z = -radius * Math.cos(angle);
+            
+            const video = document.createElement('video');
+            video.id = videos[i].id;
+            video.src = videos[i].src;
+            video.loop = true;
+            video.volume = 0.5
+            video.playsInline = true;
+            video.autoplay = true;
+            
+            const videoTexture = new VideoTexture(video);
+            videoTexture.minFilter = LinearFilter;
+            videoTexture.magFilter = LinearFilter;
+            
+            const panelGeometry = new PlaneGeometry(panelWidth, panelHeight);
+            const panelMaterial = new MeshBasicMaterial({
+                map: videoTexture,
+                side: DoubleSide
+            });
+            
+            const panel = new Mesh(panelGeometry, panelMaterial);
+            
+            panel.position.set(x, panelHeight / 2, z);
+            panel.rotation.y = Math.PI - angle;
+            panel.name = `videoPanel_${i}`;
+            
+            panelsContainer.add(panel);
+            
+            video.play().catch(e => console.error("Erreur lors de la lecture vidéo:", e));
+        }
+        
+        const triggerCenter = new Vector3(
+            endRoomPosition.x, 
+            endRoomPosition.y, 
+            endRoomPosition.z - 4
+        );
+        
+        const triggerRadius = 3;
+        this.app.objectManager.addEventTrigger(
+            triggerCenter,
+            triggerRadius * 2,
+            4,
+            triggerRadius * 2,
+            () => {
+                if (this.checkActiveTask('end')) {
+                    this.app.soundManager.playVoiceLine('final_message');
+                    //this.endExperience();
+                }
+            }
+        );
+        
+        // Jouer la musique d'ambiance pour la finale
+        this.app.soundManager.playMusic('end_ambience', { volume: 0.5 });
+        
+        // Voix explicative de l'exposition finale
+        await this.sleep(1000);
+        if (!this.checkActiveTask('end')) return;
+        await this.app.soundManager.playVoiceLine('6_FINAL_EXHIBIT');
     }
 
     async sleep(milliseconds) {
