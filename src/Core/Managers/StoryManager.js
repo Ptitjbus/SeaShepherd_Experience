@@ -1,6 +1,5 @@
 import App from '../../App'
-import { Object3D, Vector3, PlaneGeometry, MeshBasicMaterial, NoToneMapping, LinearSRGBColorSpace ,Color, Mesh, DoubleSide, VideoTexture, LinearFilter } from 'three'
-
+import * as THREE from 'three'
 export default class StoryManager {
     constructor() {
         this.app = new App()
@@ -224,14 +223,14 @@ export default class StoryManager {
         this.clearTasks();
         this.activeTasks.push('end');
 
-        const endRoomPosition = new Vector3(50, 0, -50); // Position plus éloignée, légèrement au-dessus du sol
+        const endRoomPosition = new THREE.Vector3(50, 0, -50); // Position plus éloignée, légèrement au-dessus du sol
         
-        this.app.renderer.toneMapping = NoToneMapping;
-        this.app.renderer.outputColorSpace = LinearSRGBColorSpace;
+        this.app.renderer.toneMapping = THREE.NoToneMapping;
+        this.app.renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
 
         if (this.app.scene.environment) {
             this.app.scene.environment = null
-            this.app.scene.background = new Color(0x000000);
+            this.app.scene.background = new THREE.Color(0x000000);
         }
 
         if (this.app.ocean) {
@@ -281,7 +280,7 @@ export default class StoryManager {
         
         await this.sleep(500);
         
-        const panelsContainer = new Object3D();
+        const panelsContainer = new THREE.Object3D();
         panelsContainer.name = "endPanelsContainer";
         panelsContainer.position.copy(endRoomPosition);
         this.app.scene.add(panelsContainer);
@@ -311,17 +310,17 @@ export default class StoryManager {
             video.playsInline = true;
             video.autoplay = true;
             
-            const videoTexture = new VideoTexture(video);
-            videoTexture.minFilter = LinearFilter;
-            videoTexture.magFilter = LinearFilter;
+            const videoTexture = new THREE.VideoTexture(video);
+            videoTexture.minFilter = THREE.LinearFilter;
+            videoTexture.magFilter = THREE.LinearFilter;
             
-            const panelGeometry = new PlaneGeometry(panelWidth, panelHeight);
-            const panelMaterial = new MeshBasicMaterial({
+            const panelGeometry = new THREE.PlaneGeometry(panelWidth, panelHeight);
+            const panelMaterial = new THREE.MeshBasicMaterial({
                 map: videoTexture,
-                side: DoubleSide
+                side: THREE.DoubleSide
             });
             
-            const panel = new Mesh(panelGeometry, panelMaterial);
+            const panel = new THREE.Mesh(panelGeometry, panelMaterial);
             
             panel.position.set(x, panelHeight / 2, z);
             panel.rotation.y = Math.PI - angle;
@@ -332,7 +331,7 @@ export default class StoryManager {
             video.play().catch(e => console.error("Erreur lors de la lecture vidéo:", e));
         }
         
-        const triggerCenter = new Vector3(
+        const triggerCenter = new THREE.Vector3(
             endRoomPosition.x, 
             endRoomPosition.y, 
             endRoomPosition.z - 4
