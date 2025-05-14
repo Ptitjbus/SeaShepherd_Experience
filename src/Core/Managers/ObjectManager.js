@@ -48,7 +48,7 @@ export default class ObjectManager {
         this.boidSpheres = []
 
         this.rebuildFrameCounter = 0
-        this.rebuildFrequency = 5
+        this.rebuildFrequency = 1
     }
 
     /**
@@ -112,7 +112,7 @@ export default class ObjectManager {
                         this.shaderMeshes.push(child)
                     }
 
-                    if (child.name.toLowerCase().includes('verre')) {
+                    if (child.userData.is_aquarium_glass) {
                         disposeMaterial(child.material)
                         child.material = this.meshTransmissionMaterial
                         child.material.buffer = this.fboMain.texture
@@ -626,7 +626,7 @@ export default class ObjectManager {
                         child.material.uniforms.uTime.value += time.delta * 0.4
                     }
     
-                    if (child.material.name.toLowerCase().includes("algue")) {
+                    if (child.material?.name?.toLowerCase().includes("algue")) {
                         const childPos = new THREE.Vector3().setFromMatrixPosition(child.matrixWorld)
     
                         const dx = targetPos.x - childPos.x

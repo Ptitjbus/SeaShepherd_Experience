@@ -23,6 +23,7 @@ export default class StoryManager {
 
         this.app.startOverlay.classList.add('hidden')
         this.app.canvas.style.opacity = '1'
+        this.app.soundManager.attachToSpeakers()
 
         this.app.soundManager.playMusic('background_intro')
 
@@ -147,6 +148,7 @@ export default class StoryManager {
             dynamicCollision: true,
         })
         this.app.objectManager.add("Tortue", new THREE.Vector3(0, 0, 0))
+        this.app.objectManager.add("AquaturtleHaut", new THREE.Vector3(0, 0, 0))
         this.app.postProcessing.triggerGlitch()
 
         if (!this.checkActiveTask('corridor')) return
@@ -179,9 +181,10 @@ export default class StoryManager {
         this.app.objectManager.remove("Couloir")
 
         this.app.soundManager.playMusic('aquaturtles')
+        // this.app.objectManager.add("BoatScene", new THREE.Vector3(0, 0, 0))
 
         if (!this.checkActiveTask('aquaturtle')) return
-        await this.app.soundManager.playVoiceLine('7.1_TORTUES');
+        await this.app.soundManager.playVoiceLine('7.1_TORTUES')
     }
 
     async initElevator(){
@@ -192,7 +195,8 @@ export default class StoryManager {
         })
 
         if (!this.checkActiveTask('aquaturtle')) return
-        await this.app.soundManager.playVoiceLine('7.1_TORTUES2');
+        await this.sleep(1000)
+        await this.app.soundManager.playVoiceLine('7.1_TORTUES2')
 
         if (!this.checkActiveTask('aquaturtle')) return
         this.app.mediaManager.playMediaWithGlitch('error1')
@@ -216,6 +220,25 @@ export default class StoryManager {
         this.app.mediaManager.playMediaWithGlitch('error1')
         await this.app.soundManager.playVoiceLine('7.4_INTOX')
         this.app.postProcessing.triggerGlitch()
+
+        // this.initBoat()
+
+    }
+
+    async initBoat(){
+        this.clearTasks()
+
+        this.activeTasks.push('boat')
+        this.app.soundManager.attachToSpeakers()
+        this.app.soundManager.stopAllMusicSounds(true,false)
+        await this.sleep(2000)
+        this.app.postProcessing.triggerGlitch()
+        this.app.objectManager.remove("AquaturtleHaut")
+        this.app.objectManager.remove("Elevator")
+        this.app.objectManager.remove("Tortue")
+        this.app.objectManager.remove("Aquaturtle")
+
+        this.app.objectManager.add("BoatScene", new THREE.Vector3(0, 0, 0))
 
     }
 

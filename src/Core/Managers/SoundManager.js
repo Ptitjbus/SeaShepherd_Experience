@@ -44,7 +44,7 @@ export default class SoundManager {
 
     initSound() {
         this.sound = new Howl({
-            src: ['audio/voices/1_INTRO.mp3'],
+            src: ['audio/voices/background_music.mp3'],
             loop: true,
             volume: 1.0,
             onload: () => this.attachToSpeakers()
@@ -299,83 +299,86 @@ export default class SoundManager {
             rolloffFactor: 1,
             vttSrc: null
         }
-        
+
         const finalOptions = { ...defaultOptions, ...options }
-        
-        // Si le son existe déjà, on l'arrête et on nettoie les sous-titres
+
+        // Cleanup
         if (this.customSounds[name]) {
             this.customSounds[name].forEach(sound => {
                 sound.stop()
                 sound.unload()
             })
-            
-            // Arrêter les sous-titres actifs
+
             if (this.subtitles[name]) {
                 clearTimeout(this.subtitles[name].timer)
                 delete this.subtitles[name]
                 this.hideSubtitle()
             }
         }
-        
+
         this.customSounds[name] = []
         const ids = []
-        
-        // Charger les sous-titres VTT si spécifiés
+
         let subtitleCues = []
         if (finalOptions.vttSrc) {
             subtitleCues = await this.loadVTT(finalOptions.vttSrc)
         }
-        
-        // Jouer le son sur chaque haut-parleur
-        this.speakers.forEach((speaker, index) => {
+
+        // Stocker toutes les instances et les promesses
+        const loadPromises = []
+        const soundsToPlay = []
+
+        this.speakers.forEach((speaker) => {
             const sound = new Howl({
                 src: Array.isArray(src) ? src : [src],
                 loop: finalOptions.loop,
                 volume: finalOptions.volume,
-                onend: () => {
-                    // Nettoyer les sous-titres à la fin du son
-                    if (this.subtitles[name]) {
-                        clearTimeout(this.subtitles[name].timer)
-                        delete this.subtitles[name]
-                        this.hideSubtitle()
-                    }
-                    
-                    // Appeler le callback onend original si fourni
-                    if (finalOptions.onend) finalOptions.onend();
+                autoplay: false,
+                onend: finalOptions.onend
+            })
+
+            this.customSounds[name].push(sound)
+
+            const loadPromise = new Promise((resolve) => {
+                sound.once('load', () => resolve(sound))
+            })
+
+            loadPromises.push(loadPromise)
+            soundsToPlay.push({ sound, speaker })
+        })
+
+        // Attendre que tous les sons soient prêts
+        const loadedSounds = await Promise.all(loadPromises)
+
+        // Synchroniser la lecture
+        const syncStart = () => {
+            loadedSounds.forEach((sound, index) => {
+                const id = sound.play()
+                ids.push(id)
+
+                const { position } = this.speakers[index]
+
+                sound.pos(position.x, position.y, position.z, id)
+                sound.pannerAttr({
+                    panningModel: 'HRTF',
+                    distanceModel: 'inverse',
+                    refDistance: finalOptions.refDistance,
+                    maxDistance: finalOptions.maxDistance,
+                    rolloffFactor: finalOptions.rolloffFactor
+                }, id)
+
+                if (index === 0 && subtitleCues.length > 0) {
+                    this.initSubtitlesForSound(name, sound, id, subtitleCues)
                 }
             })
-            
-            // Ajouter à notre collection
-            this.customSounds[name].push(sound)
-            
-            // Jouer le son
-            const id = sound.play()
-            ids.push(id)
-            
-            // Configurer la position spatiale
-            sound.pos(
-                speaker.position.x,
-                speaker.position.y,
-                speaker.position.z,
-                id
-            )
-            
-            sound.pannerAttr({
-                panningModel: 'HRTF',
-                distanceModel: 'inverse',
-                refDistance: finalOptions.refDistance,
-                maxDistance: finalOptions.maxDistance,
-                rolloffFactor: finalOptions.rolloffFactor
-            }, id)
-            
-            // Si c'est le premier haut-parleur et qu'on a des sous-titres, initialiser le système de sous-titres
-            if (index === 0 && subtitleCues.length > 0) {
-                this.initSubtitlesForSound(name, sound, id, subtitleCues)
-            }
-        })
-        
+        }
+
+        // Démarrage synchrone au frame suivant
+        requestAnimationFrame(syncStart)
+
         return ids
     }
+
 
     /**
      * Joue une musique sur tous les haut-parleurs de la scène
@@ -629,6 +632,7 @@ export default class SoundManager {
 
     async playVoiceLine(name) {
         this.stopAllCustomSounds()
+        console.log("play sound "+ name)
         return new Promise((resolve) => {
             this.playSoundOnSpeakers('voiceLine ' + name, `audio/voices/${name}.mp3`, {
                 volume: 10,
@@ -637,7 +641,7 @@ export default class SoundManager {
                 vttSrc: `audio/subtitles/${name}.vtt`,
                 onend: () => {
                     resolve('end');
-                }
+                },
             });
         });
     }
