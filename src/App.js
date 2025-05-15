@@ -109,6 +109,8 @@ export default class App extends EventEmitter {
         this.initMedias()
         
         this.setupUI()
+
+        window.appInstance = this
     }
 
     async initMedias() {
@@ -172,7 +174,7 @@ export default class App extends EventEmitter {
         this.doorManager.doorPairs[1].setRotation(0.42 * Math.PI/180)
 
         // Porte 3
-        this.doorManager.addDoorPair(new Vector3(-69, 0, -121))
+        this.doorManager.addDoorPair(new Vector3(-68.5, 0, -121))
         this.doorManager.doorPairs[2].setRotation(Math.PI/2)
 
         this.objectManager.addEventTrigger(

@@ -3,7 +3,7 @@ import { PlaneGeometry, Mesh, MeshBasicMaterial, VideoTexture, Vector3 } from 't
 
 export default class MediaManager {
     constructor() {
-        this.app = new App();
+        this.app = null;
         this.mediaElements = new Map();
         this.currentMedia = null;
         this.postProcessingManager = null;
@@ -16,6 +16,7 @@ export default class MediaManager {
     }
 
     init(scene) {
+        this.app = window.appInstance;
         this.scene = scene;
         
         // Commencer la boucle d'animation dès l'initialisation

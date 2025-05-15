@@ -12,7 +12,7 @@ export default class DoorPair {
         this.rotation = rotation // Angle de rotation en radians
         
         // Accéder au physics manager et au sound manager via l'instance d'App
-        this.app = new App()
+        this.app = window.appInstance
         this.physicsManager = this.app.physicsManager
         this.soundManager = this.app.soundManager
         
@@ -480,16 +480,16 @@ export default class DoorPair {
         console.log('Playing sound:', this.doorOpenSoundId, 'path:', '/audio/doors/open.mp3');
         
         // Jouer le son d'ouverture sur le haut-parleur
-        this.soundManager.playSoundOnSpeakers(
+        this.soundManager.playSoundOnSpeaker(
             this.doorOpenSoundId,
-            '/audio/doors/open.mp3', // Chemin vers le son d'ouverture
+            '/audio/doors/open.mp3',
             {
                 volume: 0.4,
                 maxDistance: 15,
                 refDistance: 3,
                 rolloffFactor: 2
             },
-            this.speaker // Assurez-vous de passer explicitement le haut-parleur
+            this.speaker
         );
         console.log('Sound play command sent');
     }
@@ -507,16 +507,16 @@ export default class DoorPair {
         console.log('Playing sound:', this.doorCloseSoundId, 'path:', '/audio/doors/close.mp3');
         
         // Jouer le son de fermeture sur le haut-parleur
-        this.soundManager.playSoundOnSpeakers(
+        this.soundManager.playSoundOnSpeaker(
             this.doorCloseSoundId,
-            '/audio/doors/close.mp3', // Chemin vers le son de fermeture
+            '/audio/doors/close.mp3',
             {
                 volume: 0.5,
                 maxDistance: 15,
                 refDistance: 3,
                 rolloffFactor: 2
             },
-            this.speaker // Assurez-vous de passer explicitement le haut-parleur
+            this.speaker
         );
         console.log('Sound play command sent');
     }
