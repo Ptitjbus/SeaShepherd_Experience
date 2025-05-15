@@ -237,6 +237,8 @@ export default class StoryManager {
 
         console.log("en haut")
 
+        this.app.objectManager.remove("Aquaturtle")
+
         // A COMMENTER POUR ALLER PLUS VITE
 
         if (!this.checkActiveTask('aquaturtle')) return

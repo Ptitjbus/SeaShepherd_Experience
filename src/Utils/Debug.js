@@ -510,6 +510,9 @@ export default class Debug extends EventEmitter {
             anisotropicBlur: mat.anisotropicBlur,
             color: `#${mat.color.getHexString()}`,
             specularIntensity: mat.specularIntensity,
+            depthTest: mat.depthTest,
+            depthWrite:  mat.depthWrite,
+            transparent: mat.transparent
         }
 
         const params = { ...defaultParams }
@@ -518,6 +521,9 @@ export default class Debug extends EventEmitter {
         glassFolder.add(params, '_transmission', 0, 1).onChange(value => mat._transmission = value).name('Transmission')
         glassFolder.add(params, 'roughness', 0, 1).onChange(value => mat.roughness = value).name('Roughness')
         glassFolder.add(params, 'specularIntensity', 0, 1).onChange(value => mat.specularIntensity = value).name('Specular Intensity')
+        glassFolder.add(params, 'depthTest', true).onChange(value => mat.depthTest = value).name('Depth Test')
+        glassFolder.add(params, 'depthWrite', true).onChange(value => mat.depthWrite = value).name('Depth Write')
+        glassFolder.add(params, 'transparent', true).onChange(value => mat.transparent = value).name('Transparent')
         
         glassFolder.addColor(params, 'color').onChange((value) => {
             mat.color.set(value)
@@ -531,6 +537,9 @@ export default class Debug extends EventEmitter {
                 mat.roughness = defaultParams.roughness
                 mat.color.set(defaultParams.color)
                 mat.specularIntensity = defaultParams.specularIntensity
+                mat.depthTest = defaultParams.depthTest
+                mat.depthWrite = defaultParams.depthWrite
+                mat.transparent = defaultParams.transparent
 
                 for (let controller of glassFolder.controllers) {
                     controller.updateDisplay()

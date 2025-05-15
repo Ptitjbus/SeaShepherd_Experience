@@ -1,4 +1,4 @@
-import { Scene, MeshStandardMaterial, Color, Vector3 } from "three"
+import { Scene, MeshStandardMaterial, Color, Vector3, NoToneMapping } from "three"
 import ObjectManager from './Core/Managers/ObjectManager.js'
 import AssetManager from "./Assets/AssetManager.js"
 import PostProcessingManager from "./Core/Managers/PostProcessingManager.js"
@@ -139,7 +139,7 @@ export default class App extends EventEmitter {
 
     initScene() {
         this.environment = new CustomEnvironment(this.scene, this.renderer.instance, '/hdri/ocan_sky.exr')
-        this.ocean = new Ocean(this.scene, this.renderer.instance)
+        // this.ocean = new Ocean(this.scene, this.renderer.instance)
         this.objectManager = new ObjectManager()
         this.soundManager = new SoundManager()
         this.soundManager.initSound()
@@ -161,7 +161,7 @@ export default class App extends EventEmitter {
         this.objectManager.addBoids(30, 15, new Vector3(-70, 5, -5))
         this.objectManager.addBoids(2, 6, new Vector3(-12, 1.5, -12))
 
-        this.objectManager.addPlane(new Vector3(0,2,0), 40)
+        // this.objectManager.addPlane(new Vector3(-105,44.5,-112), 50)
 
         this.doorManager = new DoorManager(this.scene)
          
@@ -230,12 +230,21 @@ export default class App extends EventEmitter {
         if (this.mediaManager) this.mediaManager.update(this.camera.mainCamera)
         if (this.soundManager) this.soundManager.updateListener()
         if (this.physicsManager) this.physicsManager.update(time.delta)
-
         if (this.doorManager) this.doorManager.update()
 
-        this.ocean.update(time.delta)
-        this.debug.update()
+        this.renderer.instance.setRenderTarget(this.renderer.renderTarget)
+        this.renderer.instance.render(this.scene, this.camera.mainCamera)
 
+        if (
+            this.objectManager.transmissionMeshes.length > 0 &&
+            this.objectManager.meshTransmissionMaterial.buffer === this.objectManager.fboMain.texture
+        ) {
+            this.renderer.instance.toneMapping = NoToneMapping
+            this.renderer.instance.setRenderTarget(this.objectManager.fboMain)
+            this.renderer.instance.render(this.scene, this.camera.mainCamera)
+        }
+
+        this.debug.update()
         if (this.enablePostProcessing) {
             this.postProcessing.render(this.camera.mainCamera)
         } else {

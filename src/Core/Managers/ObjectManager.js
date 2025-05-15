@@ -44,7 +44,9 @@ export default class ObjectManager {
             envMapIntensity: 1,
             clearcoat: 1,
             clearcoatRoughness: 0,
-            side: THREE.DoubleSide
+            side: THREE.BackSide,
+            depthTest: true,
+            depthWrite: false,
         })
 
         this.causticsTexture = new THREE.TextureLoader().load(
@@ -148,11 +150,15 @@ export default class ObjectManager {
                         this.transmissionMeshes.push(child)
                     }
 
+                    if (child.userData.is_water) {
+                        child.material = this.waterMaterial
+                        this.shaderMeshes.push(child)
+                    }
+
                     if (
                         child.material.name.toLowerCase().includes("algue") &&
                         child.isInstancedMesh
                     ) {
-                        console.log(child)
                         const material = this.createShadeDeformationrMaterial(child.material.map)
                         material.name = child.material.name
                         child.material = material
@@ -533,31 +539,31 @@ export default class ObjectManager {
                 value: this.app.camera.mainCamera.matrixWorld,
             },
             uMaxDepth: {
-                value: 8,
+                value: 4.5,
             },
             uColor1: {
-                value: new THREE.Color(0x00d5ff),
+                value: new THREE.Color(0x1494ad),
             },
             uColor2: {
-                value: new THREE.Color(0x0000ff),
+                value: new THREE.Color(0x010165),
             },
             uReflectionTexture: {
                 value: null,
             },
             uPlanarReflection: {
-                value: false,
+                value: true,
             },
             uFresnelFactor: {
-                value: 0.5,
+                value: 1,
             },
             uFoamDepth: {
-                value: 1.0,
+                value: 0.1,
             },
             uFoamTexture: {
                 value: foamTexture,
             },
             uFoamColor: {
-                value: new THREE.Color(0xffffff),
+                value: new THREE.Color(0x323234),
             },
             uSolidFoamColor: {
                 value: true,
@@ -569,11 +575,10 @@ export default class ObjectManager {
                 value: false,
             },
             uFoamTiling: {
-                value: 1.0,
+                value: 0.1,
             },
         }
 
-        console.log(this.waterUniformData)
         const waterMaterial = new THREE.ShaderMaterial();
         waterMaterial.uniforms = this.waterUniformData;
         waterMaterial.vertexShader = WaterShader.vertexShader;
@@ -590,13 +595,8 @@ export default class ObjectManager {
 
         const cam = this.app.camera.mainCamera;
 
-        // Ce qui ne change pas car c'est local
-        console.log("Camera local pos:", cam.position);
-
-        // Ce qui est réel
         const worldPos = new THREE.Vector3();
         cam.getWorldPosition(worldPos);
-        console.log("Camera world pos:", worldPos);
 
         cam.updateMatrixWorld(true);
         this.waterUniformData.uWorldMatrix.value.copy(cam.matrixWorld);
@@ -634,10 +634,7 @@ export default class ObjectManager {
 
     addPlane(position, size, color = 0xffffff) {
         const geometry = new THREE.PlaneGeometry(size, size)
-        const material = new THREE.ShaderMaterial();
-        material.uniforms = this.waterUniformData;
-        material.vertexShader = WaterShader.vertexShader;
-        material.fragmentShader = PerlinNoise.fragmentShader + WaterShader.fragmentShader;
+        const material = this.waterMaterial
 
         const plane = new THREE.Mesh(geometry, material)
         plane.rotateX(Math.PI * -0.5);
@@ -868,35 +865,6 @@ export default class ObjectManager {
                 }
             })
         })
-        if (
-            this.transmissionMeshes.length > 0 &&
-            this.meshTransmissionMaterial.buffer === this.fboMain.texture
-        ) {
-            // this.app.renderer.instance.toneMapping = THREE.NoToneMapping
-            // this.app.renderer.instance.setRenderTarget(this.fboMain)
-            // this.app.renderer.instance.render(
-            //     this.app.scene,
-            //     this.app.camera.mainCamera
-            // )
-        }
-
-        this.shaderMeshes.forEach((child) => {
-            if (child.userData.is_water ) {
-                console.log("caché")
-                child.visible = false;
-            }
-        });
-        this.app.renderer.instance.setRenderTarget(this.app.renderer.renderTarget);
-        this.app.renderer.instance.clippingPlanes = [this.clipPlane]
-        this.app.renderer.instance.render(this.app.scene, this.app.camera.mainCamera);
-        this.app.renderer.instance.setRenderTarget(null);
-        this.app.renderer.instance.render(this.app.scene, this.app.camera.mainCamera);
-        this.app.renderer.instance.clippingPlanes = []
-        this.shaderMeshes.forEach((child) => {
-            if (child.userData.is_water) {
-                child.visible = true;
-            }
-        });
     }
 
     destroy() {
