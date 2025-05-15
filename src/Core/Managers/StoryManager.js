@@ -21,6 +21,7 @@ export default class StoryManager {
         this.experienceStarted = true
 
         this.activeTasks.push('intro')
+        this.app.mediaManager.showRoomTitle('Accueil du musée');
 
         this.app.startOverlay.classList.add('hidden')
         this.app.canvas.style.opacity = '1'
@@ -83,7 +84,7 @@ export default class StoryManager {
         this.clearTasks(true)
 
         this.activeTasks.push('aquarium')
-        this.app.mediaManager.showRoomTitle('Salle des dauphins');
+        this.app.mediaManager.showRoomTitle('Aquarium des dauphins');
         this.app.doorManager.triggerCloseDoorByIndex(0)
         
         this.app.soundManager.playMusic('aquarium')
@@ -240,7 +241,7 @@ export default class StoryManager {
         console.log("en haut")
 
         // A COMMENTER POUR ALLER PLUS VITE
-
+        this.app.mediaManager.showRoomTitle('Tortues de Mayotte');
         if (!this.checkActiveTask('aquaturtle')) return
         await this.sleep(1000)
         await this.app.soundManager.playVoiceLine('7.1_TORTUES2')
