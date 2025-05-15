@@ -27,7 +27,22 @@ export default class ObjectManager {
         })
         this.meshTransmissionMaterial.specularIntensity = 0.05
         this.meshTransmissionMaterial.color = new THREE.Color(0x4175b9)
-        // this.meshTransmissionMaterial.envMap = this.app.environment.envMap
+        // this.meshTransmissionMaterial.envMap = this.app.environment.envMap algue
+
+        this.glassMaterial = new THREE.MeshPhysicalMaterial({
+            color: 0xffffff,
+            metalness: 0,
+            roughness: 0,
+            transmission: 0.5,
+            thickness: 0.4,
+            ior: 1,
+            transparent: true,
+            opacity: 0.3,
+            envMapIntensity: 1,
+            clearcoat: 1,
+            clearcoatRoughness: 0,
+            side: THREE.DoubleSide
+        })
 
         this.causticsTexture = new THREE.TextureLoader().load('/textures/caustic/caustic_detailled.jpg')
         this.causticsTexture.wrapS = this.causticsTexture.wrapT = THREE.RepeatWrapping
@@ -119,11 +134,20 @@ export default class ObjectManager {
                         this.transmissionMeshes.push(child)
                     }
 
-                    if (child.material.name.toLowerCase().includes("algue")) {
+                    if (
+                        child.material.name.toLowerCase().includes("algue") &&
+                        child.isInstancedMesh
+                    ) {
+                        console.log(child)
                         const material = this.createShadeDeformationrMaterial(child.material.map)
                         material.name = child.material.name
                         child.material = material
                         this.shaderMeshes.push(child)
+                    }
+
+                    if (child.material.name.toLowerCase().includes("verre")){
+                        disposeMaterial(child.material)
+                        child.material = this.glassMaterial
                     }
                 }
     
@@ -374,10 +398,13 @@ export default class ObjectManager {
               uDisplacement: { value: uDisplacementTexture },
               uStrength: { value: 0.4 },
               time: { value: 0 },
+              cameraPos: { value: this.app.physicsManager.sphereBody.position },
             },
             vertexShader: LayerShader.vertexShader,
             fragmentShader: LayerShader.fragmentShader,
+            side: THREE.DoubleSide,
             transparent: true,
+            defines: { USE_INSTANCING: '' }
           });
           return material
     }
@@ -567,12 +594,6 @@ export default class ObjectManager {
     update(time) {
         this.meshTransmissionMaterial.time = time * 0.001
 
-        const targetPos = new THREE.Vector3(
-            this.app.physicsManager.sphereBody.position.x,
-            this.app.physicsManager.sphereBody.position.y,
-            this.app.physicsManager.sphereBody.position.z
-        )
-
         if (this.boidManagers) {
             this.boidManagers.forEach((manager) => {
                 manager.update(time.delta)
@@ -626,15 +647,8 @@ export default class ObjectManager {
                         child.material.uniforms.uTime.value += time.delta * 0.4
                     }
     
-                    if (child.material?.name?.toLowerCase().includes("algue")) {
-                        const childPos = new THREE.Vector3().setFromMatrixPosition(child.matrixWorld)
-    
-                        const dx = targetPos.x - childPos.x
-                        const dz = targetPos.z - childPos.z
-                        const angle = Math.atan2(dx, dz)
-    
-                        // Appliquer la rotation uniquement sur Y
-                        child.rotation.y = angle
+                    if (child.material?.uniforms?.cameraPos) {
+                        child.material.uniforms.cameraPos.value.copy(this.app.physicsManager.sphereBody.position);
                     }
                 }
             })

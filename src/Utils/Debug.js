@@ -132,6 +132,7 @@ export default class Debug extends EventEmitter {
         this.initPopinsFolder()
         this.initWindowFolder()
         this.initTransmissionMaterialFolder()
+        this.initGlassMaterialFolder()
         this.initCausticMaterialFolder()
         this.initSoundPlayerFolder()
         this.initMediaPlayerFolder()  
@@ -492,6 +493,51 @@ export default class Debug extends EventEmitter {
         }, 'reset').name('Reset Parameters')
     
         transmissionFolder.close()
+    }
+
+    initGlassMaterialFolder() {
+        if (!this.app.objectManager.glassMaterial) return 
+
+        const glassFolder = this.gui.addFolder('Glass Material')
+        const mat = this.app.objectManager.glassMaterial
+
+        const defaultParams = {
+            thickness: mat.thickness,
+            _transmission: mat._transmission,
+            roughness: mat.roughness,
+            chromaticAberration: mat.chromaticAberration,
+            anisotropicBlur: mat.anisotropicBlur,
+            color: `#${mat.color.getHexString()}`,
+            specularIntensity: mat.specularIntensity,
+        }
+
+        const params = { ...defaultParams }
+
+        glassFolder.add(params, 'thickness', 0, 5).onChange(value => mat.thickness = value).name('Thickness')
+        glassFolder.add(params, '_transmission', 0, 1).onChange(value => mat._transmission = value).name('Transmission')
+        glassFolder.add(params, 'roughness', 0, 1).onChange(value => mat.roughness = value).name('Roughness')
+        glassFolder.add(params, 'specularIntensity', 0, 1).onChange(value => mat.specularIntensity = value).name('Specular Intensity')
+        
+        glassFolder.addColor(params, 'color').onChange((value) => {
+            mat.color.set(value)
+        })
+
+        glassFolder.add({
+            reset: () => {
+                Object.assign(params, defaultParams)
+                mat.thickness = defaultParams.thickness
+                mat._transmission = defaultParams._transmission
+                mat.roughness = defaultParams.roughness
+                mat.color.set(defaultParams.color)
+                mat.specularIntensity = defaultParams.specularIntensity
+
+                for (let controller of glassFolder.controllers) {
+                    controller.updateDisplay()
+                }
+            }
+        }, 'reset').name('Reset Parameters')
+    
+        glassFolder.close()
     }
 
     initCausticMaterialFolder() {

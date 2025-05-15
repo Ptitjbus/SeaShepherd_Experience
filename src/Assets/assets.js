@@ -35,7 +35,7 @@ export default [
     {
         name: 'Dauphins',
         type: 'gltf',
-        path: '/models/glb/Dauphins_v4.glb',
+        path: '/models/glb/Compressed_dauphins_v3.glb',
         license: '',
         author: 'Kilian Rizzo',
         url: ''
@@ -59,7 +59,7 @@ export default [
     {
         name: 'AquaturtleHaut',
         type: 'gltf',
-        path: '/models/glb/Tortues_haut_V2.glb',
+        path: '/models/glb/compressed_Tortues_haut_V2.glb',
         license: '',
         author: 'Kilian Rizzo',
         url: ''

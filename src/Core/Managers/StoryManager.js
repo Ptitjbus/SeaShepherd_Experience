@@ -27,12 +27,12 @@ export default class StoryManager {
 
         this.app.soundManager.playMusic('background_intro')
 
+        // A COMMENTER POUR ALLER PLUS VITE
+
         if (!this.checkActiveTask('intro')) return
-        
         await this.app.soundManager.playVoiceLine('1_INTRO')
 
         if (!this.checkActiveTask('intro')) return
-        
         await this.app.choicesManager.showChoices({
             title: "J'imagine que vous mourez  d'envie de savoir qui je suis ?",
             choice1: "Dites moi",
@@ -46,11 +46,9 @@ export default class StoryManager {
         });
 
         if (!this.checkActiveTask('intro')) return
-
         await this.app.soundManager.playVoiceLine('3.1_VOUSAVEZHATE')
 
         if (!this.checkActiveTask('intro')) return
-
         await this.app.choicesManager.showChoices({
             title: "Vous avez hâte, hein ....?",
             choice1: "Pour l'instant je suis pas convaincu …",
@@ -61,17 +59,20 @@ export default class StoryManager {
             } else {
                 await this.app.soundManager.playVoiceLine('3.3_CHOIX2');
             }
-        });
-
-       
+        })
 
         if (!this.checkActiveTask('intro')) return
         this.app.soundManager.stopAllMusicSounds(true, true)
         await this.app.mediaManager.playMediaWithGlitch('connexion')
+
         if (!this.checkActiveTask('intro')) return
         this.app.postProcessing.triggerGlitch()
+
         if (!this.checkActiveTask('intro')) return
         await this.app.soundManager.playVoiceLine('4_CONNEXION')
+
+        // ---
+        
         if (!this.checkActiveTask('intro')) return
         this.app.doorManager.triggerOpenDoorByIndex(0)
         this.activeTasks = this.activeTasks.filter(task => task !== 'intro')
@@ -84,6 +85,9 @@ export default class StoryManager {
         this.app.doorManager.triggerCloseDoorByIndex(0)
         
         this.app.soundManager.playMusic('aquarium')
+
+        // A COMMENTER POUR ALLER PLUS VITE
+
         await this.sleep(2000)
         if (!this.checkActiveTask('aquarium')) return
         await this.app.soundManager.playVoiceLine('5.1_DAUPHINS')
@@ -102,8 +106,16 @@ export default class StoryManager {
 
         if (!this.checkActiveTask('aquarium')) return
         await this.sleep(2000)
+
+        // ---
+
         this.app.objectManager.add("Couloir", new THREE.Vector3(0, 0, 0))
+
+        // A COMMENTER POUR ALLER PLUS VITE
+
         await this.app.soundManager.playVoiceLine('5.4_FINDAUPHIN')
+
+        // ---
         this.app.doorManager.triggerOpenDoorByIndex(1)
         this.activeTasks = this.activeTasks.filter(task => task !== 'aquarium')
     }
@@ -119,6 +131,8 @@ export default class StoryManager {
         this.app.postProcessing.triggerGlitch()
         this.app.objectManager.remove("Dauphins")
         this.app.objectManager.removeBoids()
+
+        // A COMMENTER POUR ALLER PLUS VITE
 
         if (!this.checkActiveTask('corridor')) return
         await this.app.soundManager.playVoiceLine('6.1_PUB')
@@ -141,6 +155,9 @@ export default class StoryManager {
         )
         if (!this.checkActiveTask('corridor')) return
         await screenControls.turnOn()
+
+        // ---
+
         this.app.postProcessing.triggerGlitch()
         this.app.objectManager.add("Aquaturtle", new THREE.Vector3(0, 0, 0))
         this.app.objectManager.add("Elevator", new THREE.Vector3(0, 0, 0), {
@@ -150,6 +167,8 @@ export default class StoryManager {
         this.app.objectManager.add("Tortue", new THREE.Vector3(0, 0, 0))
         this.app.objectManager.add("AquaturtleHaut", new THREE.Vector3(0, 0, 0))
         this.app.postProcessing.triggerGlitch()
+
+        // A COMMENTER POUR ALLER PLUS VITE
 
         if (!this.checkActiveTask('corridor')) return
         await this.app.soundManager.playVoiceLine('6.3_NARRATEURINCOMPREHENSION')
@@ -165,6 +184,8 @@ export default class StoryManager {
                 await this.app.soundManager.playVoiceLine('6.5_CHOIX2');
             }
         });
+
+        // ---
 
         await this.app.doorManager.triggerOpenDoorByIndex(2)
     }
@@ -182,17 +203,41 @@ export default class StoryManager {
 
         this.app.soundManager.playMusic('aquaturtles')
         // this.app.objectManager.add("BoatScene", new THREE.Vector3(0, 0, 0))
+        
+        // A COMMENTER POUR ALLER PLUS VITE
 
         if (!this.checkActiveTask('aquaturtle')) return
         await this.app.soundManager.playVoiceLine('7.1_TORTUES')
+    
+        // ---
     }
 
     async initElevator(){
         const elevator = this.app.objectManager.get("Elevator")
-        console.log(elevator)
-        elevator.animations.forEach((clip) => {
-            elevator.mixer.clipAction(clip).play()
-        })
+
+        // Jouer toutes les animations et attendre qu'elles soient terminées
+        await Promise.all(
+            elevator.animations.map((clip) => {
+            return new Promise((resolve) => {
+                const action = elevator.mixer.clipAction(clip)
+                action.reset()
+                action.setLoop(THREE.LoopOnce, 1)
+                action.clampWhenFinished = true
+                action.play()
+                // Résoudre la promesse à la fin de l'animation
+                elevator.mixer.addEventListener('finished', function onFinish(e) {
+                if (e.action === action) {
+                    elevator.mixer.removeEventListener('finished', onFinish)
+                    resolve()
+                }
+                })
+            })
+            })
+        )
+
+        console.log("en haut")
+
+        // A COMMENTER POUR ALLER PLUS VITE
 
         if (!this.checkActiveTask('aquaturtle')) return
         await this.sleep(1000)
@@ -220,6 +265,8 @@ export default class StoryManager {
         this.app.mediaManager.playMediaWithGlitch('error1')
         await this.app.soundManager.playVoiceLine('7.4_INTOX')
         this.app.postProcessing.triggerGlitch()
+
+        // ---
 
         // this.initBoat()
 

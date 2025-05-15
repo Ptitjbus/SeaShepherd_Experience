@@ -6,12 +6,41 @@ export const LayerShader = {
   },
 
   vertexShader: `
+    uniform vec3 cameraPos;
+    uniform float time;
+
     varying vec2 vUv;
+
+    mat4 getYRotationMatrix(float angle) {
+      float s = sin(angle);
+      float c = cos(angle);
+      return mat4(
+        c, 0.0, -s, 0.0,
+        0.0, 1.0, 0.0, 0.0,
+        s, 0.0, c, 0.0,
+        0.0, 0.0, 0.0, 1.0
+      );
+    }
 
     void main() {
       vUv = uv;
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-    } 
+
+      // Position de l'instance
+      vec3 instancePos = vec3(instanceMatrix[3][0], instanceMatrix[3][1], instanceMatrix[3][2]);
+
+      // Direction XZ vers la caméra
+      vec2 toCamera = normalize(cameraPos.xz - instancePos.xz);
+      float angle = atan(toCamera.x, toCamera.y);
+
+      // Rotation de la géométrie vers la caméra
+      mat4 rotationY = getYRotationMatrix(angle);
+
+      // Appliquer rotation en local, PUIS transformation d'instance
+      vec4 localPos = rotationY * vec4(position, 1.0);
+      vec4 worldPos = instanceMatrix * localPos;
+
+      gl_Position = projectionMatrix * modelViewMatrix * worldPos;
+    }
   `,
 
   fragmentShader: `
@@ -34,6 +63,7 @@ export const LayerShader = {
       vec2 displacedUv = vUv + vec2((displacement - 0.5) * uStrength, 0.0);
 
       vec4 color = texture2D(uTexture, displacedUv);
+      if (color.a < 0.5) discard;
       gl_FragColor = color;
     }
   `
