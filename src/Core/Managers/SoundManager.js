@@ -186,6 +186,62 @@ export default class SoundManager {
     }
     
     /**
+     * Joue un son spatialisé sur un speaker précis (Object3D)
+     * @param {string} name - Identifiant unique pour ce son
+     * @param {string|string[]} src - Chemin(s) vers le(s) fichier(s) audio
+     * @param {Object} options - Options supplémentaires pour le son
+     * @param {Object3D} speaker - Speaker cible
+     * @returns {number} ID du son joué
+     */
+    playSoundOnSpeaker(name, src, options = {}, speaker) {
+        const defaultOptions = {
+            loop: false,
+            volume: 1.0,
+            maxDistance: 10,
+            refDistance: 1,
+            rolloffFactor: 1,
+            onend: null
+        }
+        const finalOptions = { ...defaultOptions, ...options }
+
+        // Stop previous sound if exists
+        if (this.customSounds[name]) {
+            if (Array.isArray(this.customSounds[name])) {
+                this.customSounds[name].forEach(sound => sound.stop())
+            } else {
+                this.customSounds[name].stop()
+            }
+        }
+
+        const sound = new Howl({
+            src: Array.isArray(src) ? src : [src],
+            loop: finalOptions.loop,
+            volume: finalOptions.volume,
+            onend: finalOptions.onend
+        })
+
+        this.customSounds[name] = sound
+
+        const id = sound.play()
+
+        // Positionner le son sur le speaker
+        if (speaker && speaker.getWorldPosition) {
+            const pos = new Vector3()
+            speaker.getWorldPosition(pos)
+            sound.pos(pos.x, pos.y, pos.z, id)
+            sound.pannerAttr({
+                panningModel: 'HRTF',
+                distanceModel: 'inverse',
+                refDistance: finalOptions.refDistance,
+                maxDistance: finalOptions.maxDistance,
+                rolloffFactor: finalOptions.rolloffFactor
+            }, id)
+        }
+
+        return id
+    }
+
+    /**
      * Charge et parse un fichier WebVTT
      * @param {string} vttUrl - URL du fichier WebVTT
      * @returns {Promise<Array>} Tableau d'objets de sous-titres

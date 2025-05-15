@@ -1,9 +1,10 @@
+import { contain } from 'three/src/extras/TextureUtils.js';
 import App from '../../App';
 import { PlaneGeometry, Mesh, MeshBasicMaterial, VideoTexture, Vector3 } from 'three';
 
 export default class MediaManager {
     constructor() {
-        this.app = new App();
+        this.app = null;
         this.mediaElements = new Map();
         this.currentMedia = null;
         this.postProcessingManager = null;
@@ -16,6 +17,7 @@ export default class MediaManager {
     }
 
     init(scene) {
+        this.app = new App();
         this.scene = scene;
         
         // Commencer la boucle d'animation dès l'initialisation
@@ -239,5 +241,27 @@ export default class MediaManager {
         this.mediaElements.clear();
         this.scene = null;
         this.postProcessingManager = null;
+    }
+
+    // Ajoute cette méthode dans ta classe MediaManager (ou StoryManager si tu préfères)
+    showRoomTitle(title) {
+        const container = document.getElementById('room-title-container');
+        const titleElem = document.getElementById('room-title');
+        if (!container || !titleElem) return;
+
+        // Change le texte
+        titleElem.textContent = title;
+
+        // Affiche le conteneur
+        container.style.opacity = '1';
+        container.style.filter = 'blur(0px)';
+
+        // Masque après 2 secondes
+        setTimeout(() => {
+            setTimeout(() => {
+                container.style.opacity = '0';
+                container.style.filter = 'blur(5px)';
+            }, 500); // Laisse le temps à l'animation d'opacité si besoin
+        }, 2000);
     }
 }

@@ -2,7 +2,7 @@ import App from '../../App'
 import * as THREE from 'three'
 export default class StoryManager {
     constructor() {
-        this.app = new App()
+        this.app = null
         this.experienceStarted = false
 
         this.activeTasks = []
@@ -13,6 +13,7 @@ export default class StoryManager {
     init() {}
 
     async startExperience() {
+        this.app = new App();
         
         
         if (this.experienceStarted) return
@@ -20,6 +21,7 @@ export default class StoryManager {
         this.experienceStarted = true
 
         this.activeTasks.push('intro')
+        this.app.mediaManager.showRoomTitle('Accueil du musée');
 
         this.app.startOverlay.classList.add('hidden')
         this.app.canvas.style.opacity = '1'
@@ -28,7 +30,7 @@ export default class StoryManager {
         this.app.soundManager.playMusic('background_intro')
 
         // A COMMENTER POUR ALLER PLUS VITE
-
+        /*
         if (!this.checkActiveTask('intro')) return
         await this.app.soundManager.playVoiceLine('1_INTRO')
 
@@ -70,7 +72,7 @@ export default class StoryManager {
 
         if (!this.checkActiveTask('intro')) return
         await this.app.soundManager.playVoiceLine('4_CONNEXION')
-
+        */
         // ---
         
         if (!this.checkActiveTask('intro')) return
@@ -82,6 +84,7 @@ export default class StoryManager {
         this.clearTasks(true)
 
         this.activeTasks.push('aquarium')
+        this.app.mediaManager.showRoomTitle('Aquarium des dauphins');
         this.app.doorManager.triggerCloseDoorByIndex(0)
         
         this.app.soundManager.playMusic('aquarium')
@@ -240,7 +243,7 @@ export default class StoryManager {
         this.app.objectManager.remove("Aquaturtle")
 
         // A COMMENTER POUR ALLER PLUS VITE
-
+        this.app.mediaManager.showRoomTitle('Tortues de Mayotte');
         if (!this.checkActiveTask('aquaturtle')) return
         await this.sleep(1000)
         await this.app.soundManager.playVoiceLine('7.1_TORTUES2')

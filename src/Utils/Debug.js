@@ -368,35 +368,12 @@ export default class Debug extends EventEmitter {
             if (event.key === 'c') {
                 this.app.camera.switchCamera()
             }
-            if (event.key === 'o') {
-                this.app.storyManager.endExperience()
-            }
-            if (event.key === 'p') {
-                this.app.eventsManager.displayAlert("Ceci est une popin d'information",'information')
-            }
             if (event.key === 'm') {
                 this.app.physicsManager.controls.setFlyMode(!this.app.physicsManager.controls.flyMode)
             }
 
-            if(event.key === 'y'){
-                this.app.choicesManager.showChoices(
-                    {
-                        choice1: "Voir la vidéo",
-                        choice2: "Écouter le son"
-                    },
-                    (choiceIndex) => {
-                        if (choiceIndex === 1) {
-                            this.app.mediaManager.playMediaWithGlitch('error1')
-                        } else {
-                            this.app.soundManager.playSoundOnSpeakers('voiceLine 1', 'audio/voices/voice_test.m4a', {
-                                volume: 0.8,
-                                loop: false,
-                                maxDistance: 8,
-                                vttSrc: 'audio/subtitles/voice_test.vtt'
-                            })
-                        }
-                    }
-                )
+            if (event.key === 't') {
+                this.app.mediaManager.showRoomTitle('Salle des Dauphins')
             }
         })
     }
