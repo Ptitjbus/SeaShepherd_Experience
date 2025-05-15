@@ -371,7 +371,7 @@ export default class Debug extends EventEmitter {
                 this.app.storyManager.endExperience()
             }
             if (event.key === 'p') {
-                this.app.eventsManager.displayAlert("Ceci est une popin d'information",'information')
+                this.app.eventsManager.displayAlert("NOUS VOUS MONTRERONS CE QUE CE MUSÉE NE VEUT PAS VOUS DÉVOILER",'information')
             }
             if (event.key === 'm') {
                 this.app.physicsManager.controls.setFlyMode(!this.app.physicsManager.controls.flyMode)

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>POC sea shepherd</title>
     <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="https://use.typekit.net/sai4atz.css">
 </head>
 <body>
     <div class="loading-bar"></div>
@@ -51,10 +52,16 @@
     
     <!-- Container pour les dialogues -->
     <div id="dialog-container"></div>
+    <div class="dialog-key-hint" id="dialog-key-hint">
+        Appuyez sur <span class="key-letter">Entrée</span>
+    </div>
     
     <!-- Template pour les popins/dialogues -->
     <template id="dialog-template">
         <dialog class="system-dialog">
+            <div class="dialog-bg-image">
+                <img src="/images/popins/corners.svg" class="dialog-bg-logo">
+            </div> <!-- Ajouté ici -->
             <div class="dialog-header">
                 <img src="/images/logos/sea_shepherd_logo.svg" alt="Logo Sea Shepherd" class="dialog-logo">
             </div>

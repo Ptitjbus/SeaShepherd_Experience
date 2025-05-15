@@ -606,71 +606,124 @@ body
 
 /* style pour les popins */
 
+#dialog-container {
+  pointer-events: none;
+  user-select: none;
+}
+
 #dialog-container dialog {
   position: fixed;
   top: 15%;
-  left: calc(50% - 450px/2);
+  left: calc(50% - 245px);
   width: 450px;
+  height: 150px;
+
+  background-color: transparent;
   
   background-image: url('/images/popins/background.svg');
   background-repeat: no-repeat;
-  background-position: center;
+  /* background-position: center; */
   background-size: cover;
   
   padding: 25px;
-  color: #f0f0f0;
+  color: transparent;
   
+  border: 1px solid white;
   opacity: 0;
   transform: scale(0.95) translateY(30px);
   transition: opacity 0.4s cubic-bezier(.4,0,.2,1), transform 0.4s cubic-bezier(.4,0,.2,1);
   pointer-events: none;
+
+  font-family: "pf-videotext", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  user-select: none;
 }
 
 #dialog-container dialog.popin-visible {
   opacity: 1;
   transform: scale(1) translateY(0);
   pointer-events: auto;
+  user-select: none;
 }
 
-#dialog-container dialog::backdrop {
-  background-color: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(3px);
+#dialog-container dialog .dialog-bg-image {
+  padding: 7px 0 0 7px;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  user-select: none;
+}
+
+#dialog-container dialog > *:not(.dialog-bg-image) {
+  position: relative;
+  z-index: 1;
 }
 
 /* En-tête de la popin avec logo */
 #dialog-container dialog .dialog-header {
   display: flex;
   justify-content: center;
-  margin-bottom: 20px;
-  padding-bottom: 15px;
+  pointer-events: none;
+  user-select: none;
 }
 
 /* Style du logo Sea Shepherd */
 #dialog-container dialog .dialog-logo {
-  width: 120px;
-  height: 50px;
+  width: 95px;
+  height: 95px;
   object-fit: contain;
+  pointer-events: none;
+  user-select: none;
 }
 
 /* Cacher le texte du titre original */
 #dialog-container dialog .dialog-title {
   display: none;
+  pointer-events: none;
+  user-select: none;
 }
 
 /* Améliorer le style du contenu */
 #dialog-container dialog .dialog-content {
-  margin: 20px 0;
-  line-height: 1.6;
-  font-size: 16px;
+  font-size: 18px;
   text-align: center;
+  color: white;
+  text-transform: uppercase;
+  pointer-events: none;
+  user-select: none;
 }
 
-/* Style de l'indication pour la touche Entrée */
-#dialog-container dialog .dialog-hint {
-  text-align: center;
+#dialog-container dialog:focus {
+  outline: none;
+}
+
+.dialog-key-hint {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: calc(15% + 225px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
   font-size: 14px;
+  color: #fff;
   opacity: 0.7;
-  margin-top: 20px;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 0.02em;
+  user-select: none;
+  pointer-events: none;
+  z-index: 101;
+  opacity: 0;
+
+  transition: opacity 0.4s cubic-bezier(.4,0,.2,1), transform 0.4s cubic-bezier(.4,0,.2,1);
+}
+
+/* style pour la Page de fin */
+
+.end-overlay {
+    position: fixed;
 }
 
 /* style pour la Page de fin */

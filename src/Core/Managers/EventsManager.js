@@ -54,6 +54,9 @@ export default class EventsManager extends EventEmitter {
             this.activeDialogs = this.activeDialogs.filter(d => d.id !== dialogId);
             this.trigger('dialogClosed', dialogId);
         }, 400);
+
+        let keyhint = document.getElementById('dialog-key-hint');
+        keyhint.style.opacity = '0';
     }
     
     /**
@@ -77,26 +80,13 @@ export default class EventsManager extends EventEmitter {
         dialog.querySelector('.dialog-title').textContent = title || 'Sea Shepherd';
         dialog.querySelector('.dialog-content').innerHTML = displayMessage;
         
-        // Supprimer le bouton de fermeture s'il existe
-        const closeButton = dialog.querySelector('button[data-action="close"]');
-        if (closeButton) {
-            closeButton.remove();
-        }
-        
-        // Ajouter une indication pour l'utilisateur
-        const hint = document.createElement('p');
-        hint.className = 'dialog-hint';
-        hint.textContent = 'Appuyez sur Entrée pour continuer';
-        hint.style.textAlign = 'center';
-        hint.style.fontSize = '14px';
-        hint.style.opacity = '0.7';
-        hint.style.marginTop = '20px';
-        dialog.appendChild(hint);
-        
         // Ajouter une classe basée sur le type
         if (type) {
             dialog.classList.add(`type-${type}`);
         }
+
+        let keyhint = document.getElementById('dialog-key-hint');
+        keyhint.style.opacity = '1';
 
         // Ajouter au conteneur
         this.dialogContainer.appendChild(dialog);
@@ -116,6 +106,12 @@ export default class EventsManager extends EventEmitter {
         });
 
         this.trigger('dialogShown', dialogId);
+
+        // Attendre la fin de l'animation avant de fermer
+        setTimeout(() => {
+            this.closeDialog(dialogId);
+        }, 2000);
+
         return dialogId;
     }
 
