@@ -117,17 +117,6 @@ export default class App extends EventEmitter {
         await this.preloadMedias()
     }
 
-    setupUI() {
-        this.startOverlay = document.querySelector('.start-overlay')
-        this.startButton = document.querySelector('.start-button')
-        this.endOverlay = document.querySelector('.end-overlay')
-                
-        this.startButton.addEventListener('click', (e) => {
-            e.preventDefault()
-            this.storyManager.startExperience()
-        })
-    }
-
     assetsLoadCompleteHandler() {
         this.initScene()
         this.postProcessing = new PostProcessingManager(this.renderer.instance, this.scene, this.camera.mainCamera)
@@ -223,7 +212,7 @@ export default class App extends EventEmitter {
                 
         this.startButton.addEventListener('click', (e) => {
             e.preventDefault()
-            this.storyManager.startExperience()
+            this.storyManager.resumeExperience()
         })
     }
 
