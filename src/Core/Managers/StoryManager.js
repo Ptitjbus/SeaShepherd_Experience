@@ -13,19 +13,28 @@ export default class StoryManager {
     init() {}
 
     async resumeExperience() {
+        this.app = new App();
+
         const savedStep = this.loadProgress();
         if (!savedStep) {
             this.startExperience();
         }
 
+        this.app.startOverlay.classList.add('hidden')
+        this.app.canvas.style.opacity = '1'
+        this.app.soundManager.attachToSpeakers()
+
         switch (savedStep) {
         case 'aquarium':
+            this.teleportPlayerTo(new THREE.Vector3(-14, 0, 0))
             this.initAquarium();
             break;
         case 'corridor':
+            this.teleportPlayerTo(new THREE.Vector3(-51, 0, 30.78))
             this.initCorridor();
             break;
         case 'aquaturtle':
+            this.teleportPlayerTo(new THREE.Vector3(-72, 0, -121))
             this.initTurtleBottom();
             break;
         case 'boat':
@@ -41,8 +50,6 @@ export default class StoryManager {
     }
     
     async startExperience() {
-        this.app = new App();
-        
         
         if (this.experienceStarted) return
 
@@ -50,10 +57,6 @@ export default class StoryManager {
 
         this.activeTasks.push('intro')
         this.app.mediaManager.showRoomTitle('Accueil du musée');
-
-        this.app.startOverlay.classList.add('hidden')
-        this.app.canvas.style.opacity = '1'
-        this.app.soundManager.attachToSpeakers()
 
         this.app.soundManager.playMusic('background_intro')
 
@@ -384,8 +387,7 @@ export default class StoryManager {
             }
         });
 
-        this.app.physicsManager.sphereBody.position.copy(endRoomPosition);
-        this.app.physicsManager.sphereBody.velocity.set(0, 0, 0);
+        this.teleportPlayerTo(endRoomPosition);
         
         await this.sleep(500);
         
@@ -550,5 +552,10 @@ export default class StoryManager {
         } catch (error) {
             console.error('Erreur lors de la suppression de la progression:', error);
         }
+    }
+
+    teleportPlayerTo(position) {
+        this.app.physicsManager.sphereBody.position.copy(position);
+        this.app.physicsManager.sphereBody.velocity.set(0, 0, 0);
     }
 }
