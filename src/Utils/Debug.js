@@ -370,6 +370,10 @@ export default class Debug extends EventEmitter {
             if (event.key === 'm') {
                 this.app.physicsManager.controls.setFlyMode(!this.app.physicsManager.controls.flyMode)
             }
+
+            if (event.key === 't') {
+                this.app.mediaManager.showRoomTitle('Salle des Dauphins')
+            }
         })
     }
 

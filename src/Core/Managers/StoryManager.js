@@ -29,7 +29,7 @@ export default class StoryManager {
         this.app.soundManager.playMusic('background_intro')
 
         // A COMMENTER POUR ALLER PLUS VITE
-
+        /*
         if (!this.checkActiveTask('intro')) return
         await this.app.soundManager.playVoiceLine('1_INTRO')
 
@@ -71,7 +71,7 @@ export default class StoryManager {
 
         if (!this.checkActiveTask('intro')) return
         await this.app.soundManager.playVoiceLine('4_CONNEXION')
-
+        */
         // ---
         
         if (!this.checkActiveTask('intro')) return
@@ -83,6 +83,7 @@ export default class StoryManager {
         this.clearTasks(true)
 
         this.activeTasks.push('aquarium')
+        this.app.mediaManager.showRoomTitle('Salle des dauphins');
         this.app.doorManager.triggerCloseDoorByIndex(0)
         
         this.app.soundManager.playMusic('aquarium')
