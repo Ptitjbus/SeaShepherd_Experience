@@ -2,7 +2,25 @@ import EventEmitter from './EventEmitter'
 import App from '../App'
 import GUI from 'lil-gui'
 import Stats from 'three/addons/libs/stats.module.js'
-import { Vector3, Color, BufferGeometry, LineBasicMaterial, Line, AxesHelper, ArrowHelper, Quaternion, SphereGeometry, MeshBasicMaterial, Mesh, CanvasTexture, LinearFilter, SpriteMaterial, Sprite, PointLightHelper, Euler } from 'three'
+import { 
+    Vector3, 
+    Color, 
+    BufferGeometry, 
+    LineBasicMaterial, 
+    Line, 
+    AxesHelper, 
+    ArrowHelper, 
+    Quaternion, 
+    SphereGeometry, 
+    MeshBasicMaterial, 
+    Mesh, 
+    CanvasTexture, 
+    LinearFilter, 
+    SpriteMaterial, 
+    Sprite, 
+    PointLightHelper, 
+    Euler 
+} from 'three'
 
 export default class Debug extends EventEmitter {
     constructor() {
@@ -56,53 +74,38 @@ export default class Debug extends EventEmitter {
     
         const player = this.app.physicsManager.controls;
         
-        // Déterminer la position du joueur en explorant différentes possibilités
         let position = { x: 0, y: 0, z: 0 };
         let rotation = { x: 0, y: 0, z: 0 };
         
-        // Option 1: Accès direct aux propriétés
         if (player.position) {
             position = player.position;
-        }
-        // Option 2: Accès via le corps physique
-        else if (player.body && player.body.position) {
+        } else if (player.body && player.body.position) {
             position = player.body.position;
-        }
-        // Option 3: Accès via une méthode spécifique
-        else if (typeof player.getObjectPosition === 'function') {
+        } else if (typeof player.getObjectPosition === 'function') {
             position = player.getObjectPosition();
-        }
-        else if (typeof player.getObject === 'function' && player.getObject().position) {
+        } else if (typeof player.getObject === 'function' && player.getObject().position) {
             position = player.getObject().position;
-        }
-        // Option 4: Accès via la caméra
-        else if (this.app.camera && this.app.camera.instance && this.app.camera.instance.position) {
+        } else if (this.app.camera && this.app.camera.instance && this.app.camera.instance.position) {
             position = this.app.camera.instance.position;
         }
         
-        // Vérifier si le joueur a une rotation accessible
         if (player.rotation) {
             rotation = player.rotation;
-        }
-        else if (player.quaternion) {
+        } else if (player.quaternion) {
             const euler = new Euler().setFromQuaternion(player.quaternion);
             rotation = { x: euler.x, y: euler.y, z: euler.z };
-        }
-        else if (player.getObject && typeof player.getObject === 'function' && player.getObject().rotation) {
+        } else if (player.getObject && typeof player.getObject === 'function' && player.getObject().rotation) {
             rotation = player.getObject().rotation;
-        }
-        else if (this.app.camera && this.app.camera.instance && this.app.camera.instance.rotation) {
+        } else if (this.app.camera && this.app.camera.instance && this.app.camera.instance.rotation) {
             rotation = this.app.camera.instance.rotation;
         }
     
-        // Convertir les angles en degrés pour une meilleure lisibilité
         const rotationDegrees = {
             x: (rotation.x * 180 / Math.PI).toFixed(2),
             y: (rotation.y * 180 / Math.PI).toFixed(2),
             z: (rotation.z * 180 / Math.PI).toFixed(2)
         };
         
-        // Mise à jour de l'affichage
         this.positionDisplay.innerHTML = `
             <strong>Position:</strong>
             X: ${position.x.toFixed(2)}
@@ -129,6 +132,7 @@ export default class Debug extends EventEmitter {
         this.initPopinsFolder()
         this.initWindowFolder()
         this.initTransmissionMaterialFolder()
+        this.initGlassMaterialFolder()
         this.initCausticMaterialFolder()
         this.initSoundPlayerFolder()
         this.initMediaPlayerFolder()  
@@ -159,39 +163,29 @@ export default class Debug extends EventEmitter {
                 
                 const player = this.app.physicsManager.controls;
                 
-                // Utiliser la même logique que dans updatePositionDisplay
                 let position = { x: 0, y: 0, z: 0 };
                 let rotation = { x: 0, y: 0, z: 0 };
                 
-                // Déterminer la position du joueur
                 if (player.position) {
                     position = player.position;
-                }
-                else if (player.body && player.body.position) {
+                } else if (player.body && player.body.position) {
                     position = player.body.position;
-                }
-                else if (typeof player.getObjectPosition === 'function') {
+                } else if (typeof player.getObjectPosition === 'function') {
                     position = player.getObjectPosition();
-                }
-                else if (typeof player.getObject === 'function' && player.getObject().position) {
+                } else if (typeof player.getObject === 'function' && player.getObject().position) {
                     position = player.getObject().position;
-                }
-                else if (this.app.camera && this.app.camera.instance && this.app.camera.instance.position) {
+                } else if (this.app.camera && this.app.camera.instance && this.app.camera.instance.position) {
                     position = this.app.camera.instance.position;
                 }
                 
-                // Déterminer la rotation
                 if (player.rotation) {
                     rotation = player.rotation;
-                }
-                else if (player.quaternion) {
+                } else if (player.quaternion) {
                     const euler = new Euler().setFromQuaternion(player.quaternion);
                     rotation = { x: euler.x, y: euler.y, z: euler.z };
-                }
-                else if (player.getObject && typeof player.getObject === 'function' && player.getObject().rotation) {
+                } else if (player.getObject && typeof player.getObject === 'function' && player.getObject().rotation) {
                     rotation = player.getObject().rotation;
-                }
-                else if (this.app.camera && this.app.camera.instance && this.app.camera.instance.rotation) {
+                } else if (this.app.camera && this.app.camera.instance && this.app.camera.instance.rotation) {
                     rotation = this.app.camera.instance.rotation;
                 }
                 
@@ -216,18 +210,15 @@ export default class Debug extends EventEmitter {
     }
 
     initStats() {
-        // Créer le conteneur principal pour tous les panneaux
         const container = document.createElement('div');
         container.style.cssText = 'position:absolute;top:0;left:0;display:flex;';
         document.body.appendChild(container);
         
-        // Créer le panneau pour les FPS (standard)
         this.fpsPanel = new Stats();
-        this.fpsPanel.showPanel(0); // Panel 0 is FPS
+        this.fpsPanel.showPanel(0);
         this.fpsPanel.dom.style.cssText = 'position:relative;';
         container.appendChild(this.fpsPanel.dom);
         
-        // Créer un panneau personnalisé pour les triangles
         this.trianglesContainer = document.createElement('div');
         this.trianglesContainer.style.cssText = 'position:relative;width:80px;height:48px;cursor:pointer;opacity:0.9;background-color:rgba(0,0,0,0.7);';
         
@@ -252,7 +243,6 @@ export default class Debug extends EventEmitter {
         
         container.appendChild(this.trianglesContainer);
         
-        // Créer un panneau personnalisé pour les appels de rendu
         this.callsContainer = document.createElement('div');
         this.callsContainer.style.cssText = 'position:relative;width:80px;height:48px;cursor:pointer;opacity:0.9;background-color:rgba(0,0,0,0.7);';
         
@@ -277,7 +267,6 @@ export default class Debug extends EventEmitter {
         
         container.appendChild(this.callsContainer);
         
-        // Variables pour le suivi des données
         this.triangleValues = [];
         this.callsValues = [];
         for (let i = 0; i < 74; i++) {
@@ -296,12 +285,11 @@ export default class Debug extends EventEmitter {
         controlsFolder.add(this.app.physicsManager.controls, 'flyMode', true).name('Fly Mode').onChange((value) => {
             this.app.physicsManager.controls.setFlyMode(value)
         })
-        
     }
 
     initCameraFolder() {
         if (!this.app.camera) return 
-        const museum = this.app.objectManager.get("Museum")
+        const museum = this.app.objectManager.get("Dauphins")
 
         const cameraFolder = this.gui.addFolder('Camera')
         cameraFolder.add(this.app.camera, 'breathing', true).name('Breathing')
@@ -355,6 +343,11 @@ export default class Debug extends EventEmitter {
             }
         }, 'showBoidShperesHelpers').name('Toogle boids helpers')
         debugFolder.add({
+            showTriggerWireframeHelpers: () => {
+                this.toogleTriggerHelpers()
+            }
+        }, 'showTriggerWireframeHelpers').name('Toogle trigger helpers')
+        debugFolder.add({
             toogleAllHelpers: () => {
                 this.toogleAllHelpers()
             }
@@ -362,7 +355,7 @@ export default class Debug extends EventEmitter {
     }
 
     initShortcutsFolder() {
-        const museum = this.app.objectManager.get("Museum")
+        const museum = this.app.objectManager.get("Dauphins")
         window.addEventListener('keydown', (event) => {
             event.preventDefault()
 
@@ -376,29 +369,25 @@ export default class Debug extends EventEmitter {
                 this.app.camera.switchCamera()
             }
             if (event.key === 'o') {
-                this.app.endExperience()
+                this.app.storyManager.endExperience()
             }
-            if (event.key === 'i') {
+            if (event.key === 'p') {
                 this.app.eventsManager.displayAlert("Ceci est une popin d'information",'information')
             }
             if (event.key === 'm') {
                 this.app.physicsManager.controls.setFlyMode(!this.app.physicsManager.controls.flyMode)
             }
 
-            if(event.key === 'u'){
+            if(event.key === 'y'){
                 this.app.choicesManager.showChoices(
                     {
-                        choice1: "Option A",
-                        choice2: "Option B"
+                        choice1: "Voir la vidéo",
+                        choice2: "Écouter le son"
                     },
                     (choiceIndex) => {
                         if (choiceIndex === 1) {
-                            this.app.eventsManager.displayAlert("Vous avez choisi l'option A", 'information')
-
                             this.app.mediaManager.playMediaWithGlitch('error1')
                         } else {
-                            this.app.eventsManager.displayAlert("Vous avez choisi l'option B", 'information')
-
                             this.app.soundManager.playSoundOnSpeakers('voiceLine 1', 'audio/voices/voice_test.m4a', {
                                 volume: 0.8,
                                 loop: false,
@@ -507,6 +496,51 @@ export default class Debug extends EventEmitter {
         transmissionFolder.close()
     }
 
+    initGlassMaterialFolder() {
+        if (!this.app.objectManager.glassMaterial) return 
+
+        const glassFolder = this.gui.addFolder('Glass Material')
+        const mat = this.app.objectManager.glassMaterial
+
+        const defaultParams = {
+            thickness: mat.thickness,
+            _transmission: mat._transmission,
+            roughness: mat.roughness,
+            chromaticAberration: mat.chromaticAberration,
+            anisotropicBlur: mat.anisotropicBlur,
+            color: `#${mat.color.getHexString()}`,
+            specularIntensity: mat.specularIntensity,
+        }
+
+        const params = { ...defaultParams }
+
+        glassFolder.add(params, 'thickness', 0, 5).onChange(value => mat.thickness = value).name('Thickness')
+        glassFolder.add(params, '_transmission', 0, 1).onChange(value => mat._transmission = value).name('Transmission')
+        glassFolder.add(params, 'roughness', 0, 1).onChange(value => mat.roughness = value).name('Roughness')
+        glassFolder.add(params, 'specularIntensity', 0, 1).onChange(value => mat.specularIntensity = value).name('Specular Intensity')
+        
+        glassFolder.addColor(params, 'color').onChange((value) => {
+            mat.color.set(value)
+        })
+
+        glassFolder.add({
+            reset: () => {
+                Object.assign(params, defaultParams)
+                mat.thickness = defaultParams.thickness
+                mat._transmission = defaultParams._transmission
+                mat.roughness = defaultParams.roughness
+                mat.color.set(defaultParams.color)
+                mat.specularIntensity = defaultParams.specularIntensity
+
+                for (let controller of glassFolder.controllers) {
+                    controller.updateDisplay()
+                }
+            }
+        }, 'reset').name('Reset Parameters')
+    
+        glassFolder.close()
+    }
+
     initCausticMaterialFolder() {
         const causticFolder = this.gui.addFolder('Caustic Materials')
         const causticMaterials = []
@@ -582,24 +616,9 @@ export default class Debug extends EventEmitter {
         const soundPlayerFolder = this.gui.addFolder('Sound Player')
         soundPlayerFolder.add({
             playSoundOnSpeakers: () => {
-                this.app.soundManager.playSoundOnSpeakers('voiceLine 1', 'audio/voices/1-INTRO.mp3', {
-                    volume: 3,
-                    loop: false,
-                    maxDistance: 8,
-                    vttSrc: 'audio/subtitles/PADG_INTRO_1.vtt'
-                })
+                this.app.soundManager.playVoiceLine('1_INTRO')
             }
-        }, 'playSoundOnSpeakers').name('Play Sound 1 on speakers')
-        soundPlayerFolder.add({
-            playSoundOnSpeakers: () => {
-                this.app.soundManager.playSoundOnSpeakers('voiceLine 1', 'audio/voices/1-INTRO.mp3', {
-                    volume: 3,
-                    loop: false,
-                    maxDistance: 8,
-                    vttSrc: 'audio/subtitles/PADG_INTRO_1.vtt'
-                })
-            }
-        }, 'playSoundOnSpeakers').name('Play Sound 2 on speakers')
+        }, 'playSoundOnSpeakers').name('Play intro on speakers')
         soundPlayerFolder.add(this.app.soundManager, 'stopAll').name('Stop All Sounds')
         soundPlayerFolder.close()
     }
@@ -609,18 +628,30 @@ export default class Debug extends EventEmitter {
 
         const videoFolder = this.gui.addFolder('Video')
         videoFolder.add({
-            playVideo: () => {
+            playSmallVideo: () => {
                 this.app.mediaManager.playMediaWithGlitch('error1')
             }
-        }, 'playVideo').name('Jouer une vidéo')
+        }, 'playSmallVideo').name('Petite vidéo')
+
+        videoFolder.add({
+            playBigVideo: () => {
+                this.app.mediaManager.playMediaWithGlitch('bigvideo')
+            }
+        }, 'playBigVideo').name('Grosse vidéo')
+
+        videoFolder.add({
+            playConnexionVideo: () => {
+                this.app.mediaManager.playMediaWithGlitch('connexion')
+            }
+        }, 'playConnexionVideo').name('Vidéo connexion')
 
         const choicesFolder = this.gui.addFolder('Choices')
         choicesFolder.add({
             showChoice1: () => {
                 this.app.choicesManager.showChoices(
                     {
-                        choice1: "Option A",
-                        choice2: "Option B"
+                        choice1: "Pour l'instant je suis pas convaincu …",
+                        choice2: "qsibqsdiqusd"
                     },
                     (choiceIndex) => {
                         if (choiceIndex === 1) {
@@ -630,7 +661,7 @@ export default class Debug extends EventEmitter {
                         } else {
                             this.app.eventsManager.displayAlert("Vous avez choisi l'option B", 'information')
 
-                            this.app.soundManager.playSoundOnSpeakers('voiceLine 1', 'audio/voices/1-INTRO.mp3', {
+                            this.app.soundManager.playSoundOnSpeakers('voiceLine 1', 'audio/voices/1_INTRO.mp3', {
                                 volume: 3,
                                 loop: false,
                                 maxDistance: 8,
@@ -705,6 +736,35 @@ export default class Debug extends EventEmitter {
         })
     
         boidsFolder.close()
+
+        const doorsFolder = this.gui.addFolder('Doors')
+
+        doorsFolder.add({
+            unlockDoor: () => {
+                this.app.doorManager.doorPairs[0].setOpenable(true)
+            }
+        }, 'unlockDoor').name('Unlock la porte')
+
+        doorsFolder.add({
+            lockDoor: () => {
+                this.app.doorManager.doorPairs[0].setOpenable(false)
+            }
+        }, 'lockDoor').name('Lock la porte')
+
+
+        doorsFolder.add({
+            openDoor: () => {
+                this.app.doorManager.triggerOpenDoorByIndex(0)
+            }
+        }, 'openDoor').name('Ouvrir la porte')
+
+        doorsFolder.add({
+            closeDoor: () => {
+                this.app.doorManager.triggerCloseDoorByIndex(0)
+            }
+        }, 'closeDoor').name('Fermer la porte') 
+
+        doorsFolder.close()
     }
 
     initWaterShader(){
@@ -740,7 +800,6 @@ export default class Debug extends EventEmitter {
 
     }
     
-
     displayLightsHelpers() {
         if (!this.active) return
         
@@ -887,6 +946,12 @@ export default class Debug extends EventEmitter {
         })
     }
 
+    toogleTriggerHelpers(){
+        this.app.objectManager.triggersWireframes.forEach((mesh) => {
+            mesh.visible = !mesh.visible
+        })
+    }
+
     toogleAllHelpers(){
         this.toogleLightsHelpers()
         this.toogleAllAnimationClipsLines()
@@ -894,6 +959,7 @@ export default class Debug extends EventEmitter {
         this.toogleSpeakersHelpers()
         this.toogleCollisionsHelpers()
         this.toogleBoidSpheressHelpers()
+        this.toogleTriggerHelpers()
     }
 
     update() {
@@ -906,29 +972,22 @@ export default class Debug extends EventEmitter {
         }
 
         if(this.statsActive) {
-            // Mise à jour du panneau FPS standard
             if (this.fpsPanel) {
                 this.fpsPanel.update();
             }
             
-            // Mise à jour des panneaux personnalisés
             if (this.app.renderer && this.app.renderer.instance) {
                 const renderer = this.app.renderer.instance;
                 
-                // Récupération des valeurs
                 const triangleCount = renderer.info.render.triangles;
                 const callsCount = renderer.info.render.calls;
                 
-                // Mise à jour du panneau des triangles
                 if (this.triangleCtx && this.triangleValueText) {
-                    // Décaler les valeurs
                     this.triangleValues.shift();
                     this.triangleValues.push(triangleCount);
                     
-                    // Affichage du nombre
                     this.triangleValueText.textContent = triangleCount;
                     
-                    // Dessin du graphique
                     this.triangleCtx.fillStyle = 'rgb(0,0,0)';
                     this.triangleCtx.fillRect(0, 0, 74, 30);
                     this.triangleCtx.fillStyle = 'rgb(0,255,255)';
@@ -940,16 +999,12 @@ export default class Debug extends EventEmitter {
                     }
                 }
                 
-                // Mise à jour du panneau des appels
                 if (this.callsCtx && this.callsValueText) {
-                    // Décaler les valeurs
                     this.callsValues.shift();
                     this.callsValues.push(callsCount);
                     
-                    // Affichage du nombre
                     this.callsValueText.textContent = callsCount;
                     
-                    // Dessin du graphique
                     this.callsCtx.fillStyle = 'rgb(0,0,0)';
                     this.callsCtx.fillRect(0, 0, 74, 30);
                     this.callsCtx.fillStyle = 'rgb(255,0,128)';
@@ -969,12 +1024,26 @@ export default class Debug extends EventEmitter {
     }
 
     destroy() {
-        this.gui.destroy()
-        this.gui = null
+        if (this.gui) {
+            this.gui.destroy()
+            this.gui = null
+        }
 
         if (this.positionDisplay) {
             document.body.removeChild(this.positionDisplay)
             this.positionDisplay = null
+        }
+
+        if (this.fpsPanel && this.fpsPanel.dom && this.fpsPanel.dom.parentNode) {
+            this.fpsPanel.dom.parentNode.removeChild(this.fpsPanel.dom)
+        }
+
+        if (this.trianglesContainer && this.trianglesContainer.parentNode) {
+            this.trianglesContainer.parentNode.removeChild(this.trianglesContainer)
+        }
+
+        if (this.callsContainer && this.callsContainer.parentNode) {
+            this.callsContainer.parentNode.removeChild(this.callsContainer)
         }
 
         this.app = null    

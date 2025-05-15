@@ -24,6 +24,11 @@ export default class Ocean {
     scene.add(this.water)
   }
 
+  setColor(hexColor) {
+    this.water.material.uniforms.waterColor.value.set(hexColor)
+    this.water.material.uniforms.sunColor.value.set(hexColor)
+  }
+
   update(delta) {
     this.water.material.uniforms['time'].value += delta
   }

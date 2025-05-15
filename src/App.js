@@ -1,12 +1,12 @@
 import { Scene, MeshStandardMaterial, Color, Vector3 } from "three"
+import ObjectManager from './Core/Managers/ObjectManager.js'
+import AssetManager from "./Assets/AssetManager.js"
+import PostProcessingManager from "./Core/Managers/PostProcessingManager.js"
 import EventEmitter from "./Utils/EventEmitter"
 import CanvasSize from "./Core/CanvasSize"
 import Camera from "./Core/Camera"
 import Renderer from "./Core/Renderer"
 import { AnimationLoop } from "./Core/AnimationLoop"
-import ObjectManager from './Core/Managers/ObjectManager.js'
-import AssetManager from "./Assets/AssetManager.js"
-import PostProcessingManager from "./Core/Managers/PostProcessingManager.js" 
 import Debug from "./Utils/Debug"
 import Ocean from './World/Ocean.js'
 import EventsManager from './Core/Managers/EventsManager'
@@ -16,6 +16,7 @@ import CustomEnvironment from './World/CustomEnvironment.js'
 import { ChoicesManager } from "./Core/Managers/ChoicesManager.js"
 import DoorManager from './Core/Managers/DoorManager.js'
 import PhysicsManager from "./Core/Managers/PhysicsManager.js"
+import StoryManager from "./Core/Managers/StoryManager.js"
 
 let myAppInstance = null
 
@@ -73,6 +74,8 @@ export default class App extends EventEmitter {
 
         this.physicsManager = null
 
+        this.storyManager = null
+
         this.init()
     }
 
@@ -102,14 +105,13 @@ export default class App extends EventEmitter {
         this.mediaManager.init(this.scene)
 
         this.choicesManager = new ChoicesManager()
-        
-        // Précharger les médias après avoir initialisé le MediaManager
-        this.initMadias()
+        this.storyManager = new StoryManager()
+        this.initMedias()
         
         this.setupUI()
     }
 
-    async initMadias(){
+    async initMedias() {
         await this.preloadMedias()
     }
 
@@ -120,47 +122,8 @@ export default class App extends EventEmitter {
                 
         this.startButton.addEventListener('click', (e) => {
             e.preventDefault()
-            this.startExperience()
+            this.storyManager.startExperience()
         })
-    }
-
-    startExperience() {
-        if (this.experienceStarted) return
-        
-        this.experienceStarted = true
-        
-        this.startOverlay.classList.add('hidden')
-        
-        this.canvas.style.opacity = '1'
-        // this.camera.switchCamera()
-
-        // this.soundManager.resumeAll()
-
-        if (this.museumMixer) {
-            this.museumMixer.stopAllAction()
-            
-            const museum = this.assetManager.getItem('Museum')
-            museum.animations.forEach((clip) => {
-                this.museumMixer.clipAction(clip).reset().play()
-            })
-        }
-    
-        this.playMuseumAnimation = !this.playMuseumAnimation
-    }
-
-    endExperience() {
-        if (this.experienceEnded) return
-        this.experienceEnded = true
-        
-        this.endOverlay.classList.remove('hidden')
-        
-        void this.endOverlay.offsetWidth
-        
-        this.canvas.style.opacity = '0'
-        
-        setTimeout(() => {
-            this.endOverlay.classList.add('visible')
-        }, 100)
     }
 
     assetsLoadCompleteHandler() {
@@ -171,7 +134,7 @@ export default class App extends EventEmitter {
         this.canvas.style.opacity = '1'
         this.animationLoop.start()
         this.debug.init()
-        this.debug.showAnimationClipLine(this.assetManager.getItem('Museum'))
+        this.debug.showAnimationClipLine(this.assetManager.getItem('Dauphins'))
     }
 
     initScene() {
@@ -181,7 +144,7 @@ export default class App extends EventEmitter {
         this.soundManager = new SoundManager()
         this.soundManager.initSound()
 
-        const museum = this.objectManager.add("Museum", new Vector3(0, 0, 0), {
+        const museum = this.objectManager.add("Dauphins", new Vector3(0, 0, 0), {
             applyCaustics: true
         })
 
@@ -205,17 +168,61 @@ export default class App extends EventEmitter {
         // Porte 1
         this.doorManager.addDoorPair(new Vector3(-8.01, 0, 0.05))
         this.doorManager.doorPairs[0].setRotation(Math.PI/2)
-        this.doorManager.doorPairs[0].setOpenable(true)
 
         // Porte 2
         this.doorManager.addDoorPair(new Vector3(-50.86, 0, -30.36))
         this.doorManager.doorPairs[1].setRotation(0.42 * Math.PI/180)
-        this.doorManager.doorPairs[1].setOpenable(true)
 
         // Porte 3
         this.doorManager.addDoorPair(new Vector3(-67, 0, -121), 6, 9)
         this.doorManager.doorPairs[2].setRotation(Math.PI/2)
-        this.doorManager.doorPairs[2].setOpenable(true)
+
+        this.objectManager.addEventTrigger(
+            new Vector3(-40, 1, -5),
+            40, 7, 20,
+            () => {
+                this.storyManager.initAquarium()
+            }
+        )
+
+        this.objectManager.addEventTrigger(
+            new Vector3(-55, 1, -68),
+            30, 10, 70,
+            () => {
+                this.storyManager.initCorridor()
+            }
+        )
+
+        this.objectManager.addEventTrigger(
+            new Vector3(-80, 1, -120),
+            20, 7, 10,
+            () => {
+                this.storyManager.initTurtleBottom()
+            }
+        )
+
+        this.objectManager.addEventTrigger(
+            new Vector3(-105, 1, -121),
+            10, 7, 10,
+            () => {
+                this.storyManager.initElevator()
+            }
+        )
+    }
+
+    async initMadias(){
+        await this.preloadMedias()
+    }
+
+    setupUI() {
+        this.startOverlay = document.querySelector('.start-overlay')
+        this.startButton = document.querySelector('.start-button')
+        this.endOverlay = document.querySelector('.end-overlay')
+                
+        this.startButton.addEventListener('click', (e) => {
+            e.preventDefault()
+            this.storyManager.startExperience()
+        })
     }
 
     update(time) {
@@ -238,7 +245,7 @@ export default class App extends EventEmitter {
 
     destroy() {
         if (this.startButton) {
-            this.startButton.removeEventListener('click', this.startExperience)
+            this.startButton.removeEventListener('click', this.storyManager.startExperience)
         }
 
         if (this.eventsManager) {
@@ -261,9 +268,7 @@ export default class App extends EventEmitter {
             }
         })
         
-
         this.postProcessing = null  
-
 
         this.camera.destroy()
         this.camera = null
@@ -272,8 +277,12 @@ export default class App extends EventEmitter {
         this.renderer = null
 
         this.scene = null
-        this.sky.destroy()
-        this.sky = null
+        
+        if (this.sky) {
+            this.sky.destroy()
+            this.sky = null
+        }
+        
         this.ocean.destroy()
         this.ocean = null
         this.objectManager.destroy()
@@ -281,7 +290,10 @@ export default class App extends EventEmitter {
         this.debug.destroy()
         this.debug = null
 
-        this.soundManager.destroy()
+        if (this.soundManager) {
+            this.soundManager.destroy()
+            this.soundManager = null
+        }
 
         this.animationLoop.off('update')
         this.animationLoop = null
@@ -297,18 +309,29 @@ export default class App extends EventEmitter {
         this.endOverlay = null
 
         this.canvas = null
-        this.soundManager.destroy()
-        this.soundManager = null
-        this.mediaManager.destroy()
-        this.mediaManager = null
-        this.choicesManager.destroy()
-        this.choicesManager = null
+        
+        if (this.mediaManager) {
+            this.mediaManager.destroy()
+            this.mediaManager = null
+        }
+        
+        if (this.choicesManager) {
+            this.choicesManager.destroy()
+            this.choicesManager = null
+        }
+        
+        if (this.storyManager) {
+            // Ajoutez une méthode destroy au StoryManager si nécessaire
+            if (typeof this.storyManager.destroy === 'function') {
+                this.storyManager.destroy()
+            }
+            this.storyManager = null
+        }
 
         myAppInstance = null
     }
 
-    async preloadMedias()
-    {
+    async preloadMedias() {
         this.mediaManager.preloadMedia({
             'error1': { 
                 type: 'video', 
@@ -317,7 +340,31 @@ export default class App extends EventEmitter {
                 loop: false,
                 muted: false,
                 duration: 2000 // en ms
-            }
+            },
+            'bigvideo': { 
+                type: 'video', 
+                src: '/videos/720p/bigvideo.webm', 
+                glitchType: 'big',
+                loop: false,
+                muted: false,
+                duration: 15000 // en ms
+            },
+            'connexion': { 
+                type: 'video', 
+                src: '/videos/1080p/connexion.webm', 
+                glitchType: 'small',
+                loop: false,
+                muted: false,
+                duration: 12000 // en ms
+            },
+            'pub': { 
+                type: 'video', 
+                src: '/videos/1080p/pub.mp4', 
+                glitchType: 'small',
+                loop: false,
+                muted: true,
+                duration: 15000 // en ms
+            },
         })
     }
 }

@@ -62,10 +62,10 @@ export default class MediaManager {
         });
     }
 
-    playMedia(id) {
+    async playMedia(id) {
         if (!this.mediaElements.has(id)) {
             console.error(`MediaManager: Media with id ${id} not found`);
-            return;
+            return false;
         }
 
         const mediaData = this.mediaElements.get(id);
@@ -105,7 +105,12 @@ export default class MediaManager {
 
             // Play the video
             element.currentTime = 0;
-            element.play().catch(e => console.error("Failed to play video:", e));
+            try {
+                await element.play();
+            } catch (e) {
+                console.error("Failed to play video:", e);
+                return false;
+            }
             
             // Trigger the glitch effect
             if (this.postProcessingManager) {
@@ -123,13 +128,27 @@ export default class MediaManager {
             // Forcer une première mise à jour de position
             this.updateMediaPosition();
 
-            // Set a timeout to hide the media after the specified duration
-            if (config.duration) {
-                setTimeout(() => {
+            // Return a promise that resolves when the video ends
+            return new Promise((resolve) => {
+                const onEnded = () => {
+                    element.removeEventListener('ended', onEnded);
                     this.hideMedia(id);
-                }, config.duration);
-            }
+                    resolve(true);
+                };
+                element.addEventListener('ended', onEnded);
+
+                // Set a timeout to hide the media after the specified duration (if provided)
+                if (config.duration) {
+                    setTimeout(() => {
+                        element.removeEventListener('ended', onEnded);
+                        this.hideMedia(id);
+                        resolve(true);
+                    }, config.duration);
+                }
+            });
         }
+
+        return false;
     }
 
     hideMedia(id) {
@@ -194,8 +213,8 @@ export default class MediaManager {
     }
 
     // Add a convenience method to play media and trigger glitch simultaneously
-    playMediaWithGlitch(id) {
-        this.playMedia(id);
+    async playMediaWithGlitch(id) {
+        await this.playMedia(id);
     }
 
     destroy() {
