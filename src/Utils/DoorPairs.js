@@ -12,7 +12,7 @@ export default class DoorPair {
         this.rotation = rotation // Angle de rotation en radians
         
         // Accéder au physics manager et au sound manager via l'instance d'App
-        this.app = window.appInstance
+        this.app = new App();
         this.physicsManager = this.app.physicsManager
         this.soundManager = this.app.soundManager
         

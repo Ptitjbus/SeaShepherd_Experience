@@ -2,7 +2,7 @@ import App from '../../App'
 import * as THREE from 'three'
 export default class StoryManager {
     constructor() {
-        this.app = new App()
+        this.app = null
         this.experienceStarted = false
 
         this.activeTasks = []
@@ -13,6 +13,7 @@ export default class StoryManager {
     init() {}
 
     async startExperience() {
+        this.app = new App();
         
         
         if (this.experienceStarted) return

@@ -16,7 +16,7 @@ export default class MediaManager {
     }
 
     init(scene) {
-        this.app = window.appInstance;
+        this.app = new App();
         this.scene = scene;
         
         // Commencer la boucle d'animation dès l'initialisation
