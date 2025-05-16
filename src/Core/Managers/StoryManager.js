@@ -30,10 +30,9 @@ export default class StoryManager {
             this.initAquarium();
             break;
         case 'corridor':
-            this.app.objectManager.add("Couloir", new THREE.Vector3(0, 0, 0))
-            this.removeDolphinsRoom()
-            this.teleportPlayerTo(new THREE.Vector3(-51, 0, 30.78))
             this.initCorridor();
+            this.app.objectManager.add("Couloir", new THREE.Vector3(0, 0, 0))
+            this.teleportPlayerTo(new THREE.Vector3(-51, 0, 30.78));
             break;
         case 'aquaturtle':
             this.createTurtlesBottom()
