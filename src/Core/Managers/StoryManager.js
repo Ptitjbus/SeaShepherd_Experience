@@ -32,7 +32,7 @@ export default class StoryManager {
         case 'corridor':
             this.initCorridor();
             this.app.objectManager.add("Couloir", new THREE.Vector3(0, 0, 0))
-            this.teleportPlayerTo(new THREE.Vector3(-51, 0, 30.78));
+            this.teleportPlayerTo(new THREE.Vector3(-51, 0, 34.55));
             break;
         case 'aquaturtle':
             this.createTurtlesBottom()
