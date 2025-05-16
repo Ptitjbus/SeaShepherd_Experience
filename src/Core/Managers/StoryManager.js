@@ -70,7 +70,7 @@ export default class StoryManager {
         this.app.soundManager.playMusic('background_intro')
 
         // A COMMENTER POUR ALLER PLUS VITE
-        /*
+
         if (!this.checkActiveTask('intro')) return
         await this.app.soundManager.playVoiceLine('1_INTRO')
 
@@ -112,7 +112,7 @@ export default class StoryManager {
 
         if (!this.checkActiveTask('intro')) return
         await this.app.soundManager.playVoiceLine('4_CONNEXION')
-        */
+
         // ---
         
         if (!this.checkActiveTask('intro')) return
@@ -132,7 +132,7 @@ export default class StoryManager {
         this.app.soundManager.playMusic('aquarium')
 
         // A COMMENTER POUR ALLER PLUS VITE
-        /*
+
         await this.sleep(2000)
         if (!this.checkActiveTask('aquarium')) return
         await this.app.soundManager.playVoiceLine('5.1_DAUPHINS')
@@ -151,7 +151,7 @@ export default class StoryManager {
 
         if (!this.checkActiveTask('aquarium')) return
         await this.sleep(2000)
-        */
+
         // ---
 
         this.app.objectManager.add("Couloir", new THREE.Vector3(0, 0, 0))

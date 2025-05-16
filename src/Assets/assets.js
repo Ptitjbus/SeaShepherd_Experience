@@ -51,7 +51,7 @@ export default [
     {
         name: 'Aquaturtle',
         type: 'gltf',
-        path: '/models/glb/Tortues_bas_V2.glb',
+        path: '/models/glb/Tortues_bas_V3_optimize.glb',
         license: '',
         author: 'Kilian Rizzo',
         url: ''
@@ -59,7 +59,7 @@ export default [
     {
         name: 'AquaturtleHaut',
         type: 'gltf',
-        path: '/models/glb/Tortues_haut_V3.glb',
+        path: '/models/glb/Tortues_haut_V5_optimize.glb',
         license: '',
         author: 'Kilian Rizzo',
         url: ''
