@@ -125,6 +125,7 @@ export default class Debug extends EventEmitter {
         this.displayLightsHelpers()
 
         this.initPysicsFolder()
+        this.initAudioFolder()
         this.initCameraFolder()
         this.initDebugFolder()
         this.initShortcutsFolder()
@@ -411,6 +412,29 @@ export default class Debug extends EventEmitter {
             }
         }, 'showWarningPopin').name('Afficher Warning Popin')
         popinsFolder.close()
+    }
+
+    initAudioFolder() {
+        const audioFolder = this.gui.addFolder('Audio')
+        const params = {
+            voiceLine: '1_INTRO',
+            play: () => {
+                this.app.soundManager.playSoundOnSpeakers(
+                    params.voiceLine,
+                    `audio/voices/${params.voiceLine}.mp3`,
+                    {
+                        volume: 3,
+                        loop: false,
+                        maxDistance: 8,
+                        vttSrc: `audio/subtitles/${params.voiceLine}.vtt`
+                    }
+                )
+            }
+        }
+        audioFolder.add(params, 'voiceLine').name('VoiceLine')
+        audioFolder.add(params, 'play').name('Play VoiceLine')
+       
+        audioFolder.close()
     }
 
     initWindowFolder() {
