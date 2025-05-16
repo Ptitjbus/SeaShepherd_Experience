@@ -30,10 +30,14 @@ export default class StoryManager {
             this.initAquarium();
             break;
         case 'corridor':
+            this.app.objectManager.add("Couloir", new THREE.Vector3(0, 0, 0))
+            this.removeDolphinsRoom()
             this.teleportPlayerTo(new THREE.Vector3(-51, 0, 30.78))
             this.initCorridor();
             break;
         case 'aquaturtle':
+            this.createTurtlesBottom()
+
             this.teleportPlayerTo(new THREE.Vector3(-72, 0, -121))
             this.initTurtleBottom();
             break;
@@ -113,6 +117,7 @@ export default class StoryManager {
 
     async initAquarium(){
         this.clearTasks(true)
+
         this.saveProgress('aquarium')
 
         this.activeTasks.push('aquarium')
@@ -165,8 +170,7 @@ export default class StoryManager {
         await this.app.doorManager.triggerCloseDoorByIndex(1)
         await this.sleep(2000)
         this.app.postProcessing.triggerGlitch()
-        this.app.objectManager.remove("Dauphins")
-        this.app.objectManager.removeBoids()
+        this.removeDolphinsRoom()
 
         // A COMMENTER POUR ALLER PLUS VITE
 
@@ -195,13 +199,7 @@ export default class StoryManager {
         // ---
 
         this.app.postProcessing.triggerGlitch()
-        this.app.objectManager.add("Aquaturtle", new THREE.Vector3(0, 0, 0))
-        this.app.objectManager.add("Elevator", new THREE.Vector3(0, 0, 0), {
-            playAnimation : false,
-            dynamicCollision: true,
-        })
-        this.app.objectManager.add("Tortue", new THREE.Vector3(0, 0, 0))
-        this.app.objectManager.add("AquaturtleHaut", new THREE.Vector3(0, 0, 0))
+        this.createTurtlesBottom()
         this.app.postProcessing.triggerGlitch()
 
         // A COMMENTER POUR ALLER PLUS VITE
@@ -557,5 +555,20 @@ export default class StoryManager {
     teleportPlayerTo(position) {
         this.app.physicsManager.sphereBody.position.copy(position);
         this.app.physicsManager.sphereBody.velocity.set(0, 0, 0);
+    }
+
+    removeDolphinsRoom() {
+        this.app.objectManager.remove("Dauphins")
+        this.app.objectManager.removeBoids()
+    }
+
+    createTurtlesBottom() {
+        this.app.objectManager.add("Aquaturtle", new THREE.Vector3(0, 0, 0))
+        this.app.objectManager.add("Elevator", new THREE.Vector3(0, 0, 0), {
+            playAnimation : false,
+            dynamicCollision: true,
+        })
+        this.app.objectManager.add("Tortue", new THREE.Vector3(0, 0, 0))
+        this.app.objectManager.add("AquaturtleHaut", new THREE.Vector3(0, 0, 0))
     }
 }
