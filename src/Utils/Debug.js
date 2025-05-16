@@ -139,6 +139,7 @@ export default class Debug extends EventEmitter {
         this.initBoidsFolder()
         this.initPositionDisplayFolder()
         this.initWaterShader()
+        this.displayLoadAndTeleportationButtons()
     }
 
     initPositionDisplayFolder() {
@@ -784,6 +785,31 @@ export default class Debug extends EventEmitter {
 
         folder.close()
 
+    }
+
+    displayLoadAndTeleportationButtons() {
+        const folder = this.gui.addFolder('Load & Teleportation')
+        folder.add({
+            load: () => {
+                this.app.storyManager.saveManager.loadProgress()
+            }
+        }, 'load').name('Load')
+
+        folder.add({
+            teleport: () => {
+                const position = prompt('Enter position (x,y,z):')
+                if (position) {
+                    const coords = position.split(',').map(s => Number(s.trim()))
+                    if (coords.length === 3 && coords.every(n => !isNaN(n))) {
+                        this.app.storyManager.teleportPlayerTo(new Vector3(...coords))
+                    } else {
+                        alert('Invalid input. Please enter 3 numbers separated by commas, e.g. 1,2,3')
+                    }
+                }
+            }
+        }, 'teleport').name('Teleport')
+
+        folder.close()
     }
     
     displayLightsHelpers() {

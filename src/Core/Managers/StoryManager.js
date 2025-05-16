@@ -1,11 +1,13 @@
 import App from '../../App'
 import * as THREE from 'three'
+import { SaveManager } from './SaveManager'
 export default class StoryManager {
     constructor() {
         this.app = null
         this.experienceStarted = false
 
         this.activeTasks = []
+        this.saveManager = new SaveManager()
 
         this.init()
     }
@@ -15,7 +17,7 @@ export default class StoryManager {
     async resumeExperience() {
         this.app = new App();
 
-        const savedStep = this.loadProgress();
+        const savedStep = this.saveManager.loadProgress();
         if (!savedStep) {
             this.startExperience();
         }
@@ -121,7 +123,7 @@ export default class StoryManager {
     async initAquarium(){
         this.clearTasks(true)
 
-        this.saveProgress('aquarium')
+        this.saveManager.saveProgress('aquarium')
 
         this.activeTasks.push('aquarium')
         this.app.mediaManager.showRoomTitle('Aquarium des dauphins');
@@ -165,7 +167,7 @@ export default class StoryManager {
 
     async initCorridor(){
         this.clearTasks()
-        this.saveProgress('corridor')
+        this.saveManager.saveProgress('corridor')
 
         this.activeTasks.push('corridor')
         this.app.soundManager.attachToSpeakers()
@@ -229,7 +231,7 @@ export default class StoryManager {
 
     async initTurtleBottom(){
         this.clearTasks()
-        this.saveProgress('aquaturtle')
+        this.saveManager.saveProgress('aquaturtle')
 
         this.activeTasks.push('aquaturtle')
         this.app.soundManager.attachToSpeakers()
@@ -315,7 +317,7 @@ export default class StoryManager {
     async initBoat(){
         this.clearTasks()
 
-        this.saveProgress('boat')
+        this.saveManager.saveProgress('boat')
         this.activeTasks.push('boat')
         this.app.soundManager.attachToSpeakers()
         this.app.soundManager.stopAllMusicSounds(true,false)
@@ -333,7 +335,7 @@ export default class StoryManager {
     async initEnd() {
         this.clearTasks();
 
-        this.saveProgress('end')
+        this.saveManager.saveProgress('end')
         this.activeTasks.push('end');
 
         const endRoomPosition = new THREE.Vector3(50, 0, -50); // Position plus éloignée, légèrement au-dessus du sol
@@ -492,7 +494,7 @@ export default class StoryManager {
     endExperience() {
         if (this.experienceEnded) return
         this.experienceEnded = true
-        this.clearProgress();
+        this.saveManager.clearProgress();
 
         this.app.endOverlay.classList.remove('hidden')
 
@@ -506,54 +508,6 @@ export default class StoryManager {
     }
 
     destroy() {}
-
-    saveProgress(step) {
-        try {
-            const savedData = {
-                step: step,
-                timestamp: new Date().getTime()
-            };
-            localStorage.setItem('seaShepherdProgress', JSON.stringify(savedData));
-            console.log(`Progression sauvegardée: ${step}`);
-        } catch (error) {
-            console.error('Erreur lors de la sauvegarde de la progression:', error);
-        }
-    }
-
-    loadProgress() {
-        try {
-            const savedData = localStorage.getItem('seaShepherdProgress');
-            if (!savedData) return null;
-            
-            const parsedData = JSON.parse(savedData);
-            
-            // Vérifier si la sauvegarde date de moins de 7 jours
-            const currentTime = new Date().getTime();
-            const savedTime = parsedData.timestamp || 0;
-            const maxAge = 7 * 24 * 60 * 60 * 1000; // 7 jours en millisecondes
-            
-            if (currentTime - savedTime > maxAge) {
-                console.log('Sauvegarde expirée, suppression...');
-                this.clearProgress();
-                return null;
-            }
-            
-            console.log(`Progression chargée: ${parsedData.step}`);
-            return parsedData.step;
-        } catch (error) {
-            console.error('Erreur lors du chargement de la progression:', error);
-            return null;
-        }
-    }
-    
-    clearProgress() {
-        try {
-            localStorage.removeItem('seaShepherdProgress');
-            console.log('Progression effacée');
-        } catch (error) {
-            console.error('Erreur lors de la suppression de la progression:', error);
-        }
-    }
 
     teleportPlayerTo(position) {
         this.app.physicsManager.sphereBody.position.copy(position);
