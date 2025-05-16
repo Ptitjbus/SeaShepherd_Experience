@@ -28,11 +28,14 @@ export default class StoryManager {
         case 'aquarium':
             this.activeTasks = this.activeTasks.filter(task => task !== 'intro')
             this.teleportPlayerTo(new THREE.Vector3(-14, 0, 0))
-            this.initAquarium();
             break;
         case 'corridor':
             this.initCorridor();
-            this.app.objectManager.add("Couloir", new THREE.Vector3(0, 0, 0))
+
+            if (!this.app.objectManager.get("Couloir")) {
+                this.app.objectManager.add("Couloir", new THREE.Vector3(0, 0, 0))
+            }
+
             this.teleportPlayerTo(new THREE.Vector3(-51, 0, -35.55));
             break;
         case 'aquaturtle':
