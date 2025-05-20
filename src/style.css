@@ -54,23 +54,48 @@ body
   user-select: none;
 }
 
-.start-button {
+/* ====== Base commune pour tous les boutons ====== */
+.btn-base {
   position: relative;
   background-color: transparent;
   color: #FFE7B0;
   font-family: "rafaella", sans-serif;
-  padding: 88px;
-  font-size: 32px;
   border: none;
   cursor: pointer;
   line-height: 12px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
   transition: all 0.3s ease;
+  user-select: none;
+  text-transform: uppercase;
+  font-weight: bold;
+  text-align: center;
+  outline: none;
+  display: inline-block;
   background-image: url("/images/ui/primary_button.svg");
   background-repeat: no-repeat;
-  user-select: none;
   background-position: center 48%;
+  background-size: contain;
+  box-shadow: none;
 }
+
+/* ====== Bouton principal de démarrage ====== */
+.start-button {
+  padding: 88px;
+  font-size: 32px;
+  color: #FFE7B0;
+}
+
+/* ====== Boutons de choix ====== */
+.choice-button {
+  padding: 12px 24px;
+  font-size: 32px;
+  min-width: 220px;
+  color: white;
+  border-radius: 8px;
+  background-color: transparent;
+  box-shadow: none;
+  border: none;
+}
+
 .hidden {
     opacity: 0 !important;
     pointer-events: none !important;
@@ -312,48 +337,6 @@ body
   width: calc(100% - 92px); /* 100% de largeur moins 46px de chaque côté */
   padding: 0 46px;
   box-sizing: border-box;
-}
-
-.choice-button {
-  padding: 12px 24px;
-  background: rgba(25, 4, 86, 0.3); /* Fond de base transparent */
-  background: linear-gradient(90deg, 
-                rgba(25, 4, 86, 0.3) 100%, 
-                rgba(73, 60, 255, 0.3) 100%);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 32px;
-  cursor: pointer;
-  font-weight: bold;
-  text-transform: uppercase;
-  transition: all 0.3s ease;
-  position: relative;
-  min-width: 220px;
-  text-align: center;
-  
-  /* Effet glassmorphisme renforcé */
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-}
-
-.choice-button:hover {
-  background: linear-gradient(90deg, 
-                rgba(25, 4, 86, 0.45) 100%, 
-                rgba(73, 60, 255, 0.45) 100%);
-  box-shadow: 0 8px 32px 0 rgba(73, 60, 255, 0.5);
-  transform: translateY(-2px);
-  border: 1px solid rgba(255, 255, 255, 0.35);
-}
-
-.choice-button:active {
-  transform: translateY(0);
-  box-shadow: 0 4px 16px 0 rgba(31, 38, 135, 0.25);
-  background: linear-gradient(90deg, 
-                rgba(25, 4, 86, 0.5) 0%, 
-                rgba(73, 60, 255, 0.5) 100%);
 }
 
 .key-hint {

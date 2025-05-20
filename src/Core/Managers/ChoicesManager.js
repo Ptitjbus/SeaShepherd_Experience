@@ -78,8 +78,8 @@ export class ChoicesManager {
             button1Wrapper.style.position = 'relative';
             
             const button1 = document.createElement('button');
-            button1.classList.add('choice-button');
-            button1.textContent = options.choice1;
+            button1.classList.add('choice-button', 'btn-base');
+            button1.innerHTML = `<span>${options.choice1}</span>`;
             button1.clickHandler = () => {
                 this.handleChoice(1, resolve);
             };
@@ -96,8 +96,8 @@ export class ChoicesManager {
             button2Wrapper.style.position = 'relative';
             
             const button2 = document.createElement('button');
-            button2.classList.add('choice-button');
-            button2.textContent = options.choice2;
+            button2.classList.add('choice-button', 'btn-base'); 
+            button2.innerHTML = `<span>${options.choice2}</span>`;
             button2.clickHandler = () => {
                 this.handleChoice(2, resolve);
             };

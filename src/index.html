@@ -19,7 +19,7 @@
             <img src="/images/logos/dysmeria_logo.svg" alt="Logo Dysmeria" class="dysmeria-logo">
         </h1>
 
-        <button class="start-button"> <span> Débuter l'expérience </span> </button>
+        <button class="btn-base start-button" id="start-experience-btn"> <span> Débuter l'expérience </span> </button>
     </div>
 
     <div class="end-overlay hidden">
@@ -63,6 +63,11 @@
         </dialog>
     </template>
  
-    <script type="module" src="./script.js"></script>
+    <script type="module" src="./script.js">
+        const videoManager = new VideoManager();
+        document.getElementById('start-experience-btn').addEventListener('click', () => {
+            videoManager.showAndPlayVideo('/chemin/vers/ta/video.mp4');
+        });
+    </script>
 </body>
 </html>
