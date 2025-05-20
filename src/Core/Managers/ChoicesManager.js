@@ -97,7 +97,7 @@ export class ChoicesManager {
             
             const button2 = document.createElement('button');
             button2.classList.add('choice-button', 'btn-base'); 
-            button2.innerHTML = `<span>${options.choice2}</span>`;
+            button2.innerHTML = `<span class='choice-label'>${options.choice2}</span>`;
             button2.clickHandler = () => {
                 this.handleChoice(2, resolve);
             };

@@ -65,7 +65,6 @@ body
   line-height: 12px;
   transition: all 0.3s ease;
   user-select: none;
-  text-transform: uppercase;
   font-weight: bold;
   text-align: center;
   outline: none;
@@ -86,14 +85,40 @@ body
 
 /* ====== Boutons de choix ====== */
 .choice-button {
-  padding: 12px 24px;
-  font-size: 32px;
-  min-width: 220px;
-  color: white;
-  border-radius: 8px;
-  background-color: transparent;
-  box-shadow: none;
+  position: relative;
+  background: none;
   border: none;
+  color: white;
+  font-size: 24px;
+  padding: 18px 18px;           /* Augmente le padding horizontal */
+  z-index: 1;
+  width: 500px;
+  max-width: 90vw;
+  min-width: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.choice-button::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: url("/images/ui/primary_button.svg");
+  background-size: contain;         /* Utilise contain pour ne jamais couper les ornements */
+  background-repeat: no-repeat;
+  background-position: center;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: 8px;
+}
+
+.choice-label {
+  display: block;
+  width: 100%;
+  text-align: center;
 }
 
 .hidden {
@@ -151,7 +176,6 @@ body
 
   font-family: "pf-videotext", sans-serif;
   font-weight: 400;
-  font-style: normal;
   user-select: none;
 }
 
@@ -351,7 +375,7 @@ body
 
 .key-letter {
   font-weight: bold;
-  margin-left: 24px;
+  margin-left: 8px;
   background-color: #493CFF;
   box-shadow: 1px 1px 0px 2px #084170;
   color: white;
