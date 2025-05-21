@@ -74,12 +74,6 @@ export default class PhysicsManager {
         this.controls = new PointerLockControlsCannon(this.app.camera.mainCamera, this.sphereBody)
         this.controls.canJump = false
         
-        this.controls.getObject().position.x = 30
-        this.controls.getObject().position.y = 1.4
-        this.controls.getObject().position.z = 0
-        this.sphereBody.position.set(30, 1.4, 0);
-        
-        this.controls.getObject().rotation.y = Math.PI / 2; // Rotate 90 degrees to the left
         this.app.scene.add(this.controls.getObject())
 
         this.app.canvas.addEventListener('click', () => {

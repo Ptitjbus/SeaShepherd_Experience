@@ -48,6 +48,8 @@ export default class AssetManager extends EventEmitter {
         this.initVideoLoader()
 
         this.loaders = {}
+
+        this.loadingBarElement = document.querySelector('.loading-bar')
         
         this.loaders.texture = new THREE.TextureLoader(this.loadingManager)
         
@@ -68,6 +70,9 @@ export default class AssetManager extends EventEmitter {
         this.loadingManager = new THREE.LoadingManager(
             // Loaded callback
             () => {
+                console.log("loadingManager loaded")
+                this.loadingBarElement.style.width = `100%`;
+                this.loadingBarElement.style.opacity = 0
                 this.loadingComplete = true
                 this.videoManager.notifyAssetsLoaded()
             },
@@ -75,7 +80,7 @@ export default class AssetManager extends EventEmitter {
             // Progress callback 
             (itemUrl, itemsLoaded, itemsTotal) => {
                 const progressRatio = itemsLoaded / itemsTotal
-                this.videoManager.updateLoadingProgress(progressRatio)
+                this.videoManager.updateLoadingProgress(progressRatio, this.loadingBarElement)
             }
         )
         
@@ -185,14 +190,22 @@ export default class AssetManager extends EventEmitter {
     }
 
     getItem(name) {
-        // Check if it's a gltf material
-        if (this.items[name].scene
-            && this.items[name].scene.getObjectByName('pbr_node')
-            && this.items[name].scene.getObjectByName('pbr_node').material) {
-                return this.items[name].scene.getObjectByName('pbr_node').material
+        const item = this.items[name]
+    
+        // Vérifie que c'est bien un GLTF avec un pbr_node
+        if (
+            item &&
+            item.scene &&
+            typeof item.scene.getObjectByName === 'function'
+        ) {
+            const pbrNode = item.scene.getObjectByName('pbr_node')
+            if (pbrNode && pbrNode.material) {
+                return pbrNode.material
+            }
         }
-
-        return this.items[name]
+    
+        // Retourne l'item tel quel sinon (utile pour HDR, textures, etc.)
+        return item
     }
 
     destroy() {

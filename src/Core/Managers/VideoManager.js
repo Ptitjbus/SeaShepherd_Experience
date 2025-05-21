@@ -15,12 +15,7 @@ export default class VideoManager extends EventEmitter {
         this.init();
     }
     
-    init() {
-        // Masquer le loader existant s'il existe
-        const existingLoader = document.querySelector('.loading-bar');
-        if (existingLoader) {
-            existingLoader.style.display = 'none';
-        }
+    init() { 
         
         // Créer le conteneur pour la vidéo en plein écran
         this.videoContainer = document.createElement('div');
@@ -139,7 +134,7 @@ export default class VideoManager extends EventEmitter {
     }
     
     startVideo() {
-        if (!this.isVideoPlaying) {
+        if (!this.isVideoPlaying && !this.videoEnded) {
             console.log('Starting video playback');
             this.isVideoPlaying = true;
             
@@ -200,9 +195,11 @@ export default class VideoManager extends EventEmitter {
         this.checkReadyToStart();
     }
     
-    updateLoadingProgress(progress) {
-        // Nous n'affichons plus la barre de chargement
-        console.log(`Chargement: ${Math.round(progress * 100)}%`);
+    updateLoadingProgress(progress, loadingBarElement) {
+        // Calculer une progression combinée
+        const videoProgress = this.videoElement ? (this.videoElement.currentTime / this.videoElement.duration) : 0;
+        const combinedProgress = (videoProgress + progress) / 2;
+        loadingBarElement.style.width = `${combinedProgress * 100}%`;
     }
     
     notifyAssetsLoaded() {
@@ -213,8 +210,13 @@ export default class VideoManager extends EventEmitter {
     
     checkReadyToStart() {
         console.log(`Check ready - Video ended: ${this.videoEnded}, Assets loaded: ${this.assetsLoaded}`);
+        if (this.app.debug.active && this.assetsLoaded) {
+            this.videoEnded = true;
+            this.hideVideoScreen();
+            this.trigger('ready');
+        }
         // Démarrer l'expérience quand la vidéo est terminée ET les ressources sont chargées
-        if (this.videoEnded && this.assetsLoaded) {
+        if (!this.app.debug.active &&this.videoEnded && this.assetsLoaded) {
             this.hideVideoScreen();
             this.trigger('ready');
         }
@@ -235,14 +237,13 @@ export default class VideoManager extends EventEmitter {
             if (this.videoContainer && this.videoContainer.parentNode) {
                 this.videoContainer.parentNode.removeChild(this.videoContainer);
             }
-        }, 1000);
+        }, this.app.debug.active ? 0 : 1000);
     }
     
     destroy() {
         if (this.videoElement) {
             this.videoElement.pause();
             this.videoElement.removeAttribute('src');
-            this.videoElement.load();
             this.videoElement = null;
         }
         

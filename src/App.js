@@ -124,20 +124,16 @@ export default class App extends EventEmitter {
         this.mediaManager.connectToPostProcessingManager(this.postProcessing)
         this.canvas.style.opacity = '1'
         this.animationLoop.start()
+        this.storyManager.startOrResume()
         this.debug.init()
         this.debug.showAnimationClipLine(this.assetManager.getItem('Dauphins'))
     }
 
     initScene() {
-        this.environment = new CustomEnvironment(this.scene, this.renderer.instance, '/hdri/ocan_sky.exr')
+        this.environment = new CustomEnvironment()
         // this.ocean = new Ocean(this.scene, this.renderer.instance)
         this.objectManager = new ObjectManager()
         this.soundManager = new SoundManager()
-        this.soundManager.initSound()
-
-        const museum = this.objectManager.add("Dauphins", new Vector3(0, 0, 0), {
-            applyCaustics: true
-        })
 
         this.objectManager.addPointLight(new Vector3(-20, 6, 8), 0xf7c164, 30.0)
 
@@ -177,8 +173,8 @@ export default class App extends EventEmitter {
         )
 
         this.objectManager.addEventTrigger(
-            new Vector3(-55, 1, -68),
-            30, 10, 70,
+            new Vector3(-50, 1, -53),
+            20, 10, 30,
             () => {
                 this.storyManager.initCorridor()
             }
@@ -186,7 +182,7 @@ export default class App extends EventEmitter {
 
         this.objectManager.addEventTrigger(
             new Vector3(-80, 1, -120),
-            20, 7, 10,
+            15, 7, 20,
             () => {
                 this.storyManager.initTurtleBottom()
             }
@@ -212,7 +208,16 @@ export default class App extends EventEmitter {
                 
         this.startButton.addEventListener('click', (e) => {
             e.preventDefault()
-            this.storyManager.resumeExperience()
+
+            this.startOverlay.classList.add('hidden')
+            this.canvas.style.opacity = '1'
+            this.soundManager.attachToSpeakers()
+
+            if(!this.storyManager.savedStep || this.storyManager.savedStep === 'intro'){
+                this.storyManager.startExperience()
+            }
+
+            this.physicsManager.controls.lock()
         })
     }
 

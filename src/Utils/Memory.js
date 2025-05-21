@@ -39,7 +39,7 @@ function disposeMaterial(material) {
     material.dispose()
 }
 
-function disposeHierarchy(node, removeFromParent = true) {
+async function disposeHierarchy(node, removeFromParent = true) {
     if (!node) return;
 
     // Supprimer géométrie
@@ -51,18 +51,18 @@ function disposeHierarchy(node, removeFromParent = true) {
     // Supprimer matériel
     if (node.material) {
         if (Array.isArray(node.material)) {
-            node.material.forEach((mat) => {
-                cleanMaterial(mat);
-            });
+            for (const mat of node.material) {
+                await cleanMaterial(mat);
+            }
         } else {
-            cleanMaterial(node.material);
+            await cleanMaterial(node.material);
         }
         node.material = null;
     }
 
     // Supprimer les enfants récursivement
     while (node.children.length > 0) {
-        disposeHierarchy(node.children[0]);
+        await disposeHierarchy(node.children[0]);
         node.remove(node.children[0]);
     }
 
@@ -72,38 +72,38 @@ function disposeHierarchy(node, removeFromParent = true) {
     }
 }
 
-function cleanMaterial(material) {
+async function cleanMaterial(material) {
     if (material.map) {
-        material.map.dispose();
+        await material.map.dispose();
         material.map = null;
     }
 
     if (material.lightMap) {
-        material.lightMap.dispose();
+        await material.lightMap.dispose();
         material.lightMap = null;
     }
 
     if (material.bumpMap) {
-        material.bumpMap.dispose();
+        await material.bumpMap.dispose();
         material.bumpMap = null;
     }
 
     if (material.normalMap) {
-        material.normalMap.dispose();
+        await material.normalMap.dispose();
         material.normalMap = null;
     }
 
     if (material.specularMap) {
-        material.specularMap.dispose();
+        await material.specularMap.dispose();
         material.specularMap = null;
     }
 
     if (material.envMap) {
-        material.envMap.dispose();
+        await material.envMap.dispose();
         material.envMap = null;
     }
 
-    material.dispose();
+    await material.dispose();
 }
 
 

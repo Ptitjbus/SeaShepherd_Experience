@@ -94,11 +94,16 @@ export default class ObjectManager {
      */
     add(name, position, options = {}) {
         const object = this.app.assetManager.getItem(name)
+
+        if (!object) {
+            console.warn(`Object with name "${name}" not found.`)
+            return
+        }
+
         const {
             material = null,
             castShadow = true,
             receiveShadow = true,
-            applyCaustics = false,
             playAnimation = true,
             dynamicCollision = false
         } = options
@@ -707,7 +712,7 @@ export default class ObjectManager {
                 video.currentTime = 0;
 
                 if (audioName) {
-                    this.app.soundManager.playSoundOnSpeakers(audioName, `audio/videos/${audioName}.mp3`, {
+                    this.app.soundManager.playSoundOnSpeakers(audioName, `audio/musics/${audioName}.mp3`, {
                         loop: false,
                         volume: 1,
                         maxDistance: 5
@@ -763,7 +768,7 @@ export default class ObjectManager {
      * Supprime un objet de la scène et libère la mémoire associée
      * @param {String} name - Nom de l'objet à supprimer
      */
-    remove(name) {
+    async remove(name) {
         this.removeCollisionsForObject(name)
         const storedObject = this.objects.get(name)
         if (!storedObject) {
@@ -773,7 +778,7 @@ export default class ObjectManager {
 
         this.app.soundManager.removeSpeakersFromObject(storedObject.object)
 
-        disposeHierarchy(storedObject.object.scene)
+        await disposeHierarchy(storedObject.object.scene)
 
         if (storedObject.mixer) {
             storedObject.mixer.stopAllAction()

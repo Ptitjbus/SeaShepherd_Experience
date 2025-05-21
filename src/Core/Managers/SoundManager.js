@@ -5,7 +5,6 @@ import { Vector3 } from 'three'
 export default class SoundManager {
     constructor() {
         this.app = new App()
-        this.sound = null
         this.soundIds = []
         this.customSounds = {}
         this.musics = {}
@@ -42,15 +41,6 @@ export default class SoundManager {
         }
     }
 
-    initSound() {
-        this.sound = new Howl({
-            src: ['audio/musics/background_music.mp3'],
-            loop: true,
-            volume: 1.0,
-            onload: () => this.attachToSpeakers()
-        })
-    }
-
     attachToSpeakers() {
         this.app.scene.traverse((child) => {
             if (child.userData.is_speaker) {
@@ -64,25 +54,8 @@ export default class SoundManager {
                     object: child,
                     position: worldPosition.clone()
                 })
-
-                const id = this.sound.play()
-                
-                this.sound.pos(position.x, position.y, position.z, id)
-                this.sound.pannerAttr({
-                    panningModel: 'HRTF',
-                    distanceModel: 'inverse',
-                    refDistance: 1,
-                    maxDistance: 5,
-                    rolloffFactor: 1
-                }, id)
-
-                this.soundIds.push(id)
             }
         })
-
-        if (this.isPaused){
-            this.pauseAll()
-        }
     }
 
     removeSpeakersFromObject(object3D) {
@@ -107,24 +80,6 @@ export default class SoundManager {
         Howler.pos(position.x, position.y, position.z)
         Howler.orientation(
             orientation.x, orientation.y, orientation.z)
-    }
-
-    pauseAll() {
-        if (this.sound && this.soundIds.length > 0) {
-            this.soundIds.forEach((id) => {
-                this.sound.pause(id)
-            })
-            this.isPaused = true
-        }
-    }
-
-    resumeAll() {
-        if (this.sound && this.soundIds.length > 0 && this.isPaused) {
-            this.soundIds.forEach((id) => {
-                this.sound.play(id)
-            })
-            this.isPaused = false
-        }
     }
 
     /**
@@ -720,9 +675,6 @@ export default class SoundManager {
      * Arrête tous les sons
      */
     stopAll() {
-        if (this.sound) {
-            this.sound.stop()
-        }
         this.stopAllCustomSounds()
         this.stopAllMusicSounds()
     }
@@ -742,8 +694,5 @@ export default class SoundManager {
         })
         this.customSounds = {}
         
-        if (this.sound) {
-            this.sound.unload()
-        }
     }
 }

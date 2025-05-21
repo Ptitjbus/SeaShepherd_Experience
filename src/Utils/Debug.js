@@ -42,6 +42,9 @@ export default class Debug extends EventEmitter {
     }
 
     init(){
+        if(this.active || this.statsActive) {
+            this.app = new App()
+        }
         if(this.active) {
             this.initGUI()
         }
@@ -301,7 +304,6 @@ export default class Debug extends EventEmitter {
             trigger: () => {
                 if (museum) {
                     museum.playAnimations = !museum.playAnimations
-                    this.app.soundManager.isPaused ? this.app.soundManager.resumeAll() : this.app.soundManager.pauseAll()
                 }
             }
         }, 'trigger').name('Play/Pause Animation')
@@ -364,7 +366,6 @@ export default class Debug extends EventEmitter {
             if (event.key === ' ') {
                 if (museum) {
                     museum.playAnimations = !museum.playAnimations
-                    this.app.soundManager.isPaused ? this.app.soundManager.resumeAll() : this.app.soundManager.pauseAll()
                 }
             }
             if (event.key === 'c') {

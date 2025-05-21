@@ -1,32 +1,32 @@
-import * as THREE from 'three'
-import { EXRLoader } from 'three/examples/jsm/loaders/EXRLoader.js'
+import { EquirectangularReflectionMapping, PMREMGenerator } from 'three'
+import App from '../App'
 
 export default class CustomEnvironment {
-  constructor(scene, renderer, pathToExr) {
-    this.scene = scene
-    this.renderer = renderer
-    this.pathToExr = pathToExr
+    constructor() {
+        this.app = new App()
+        this.scene = this.app.scene
+        this.renderer = this.app.renderer.instance
+        this.assetManager = this.app.assetManager
 
-    this.envMap = null
+        this.setEnvironment()
+    }
 
-    this.initEnvMap()
-  }
+    setEnvironment() {
+        const envTexture = this.assetManager.getItem('studioHDR') // nom selon assets.js
+        if (!envTexture) {
+            console.warn('CustomEnvironment: HDR texture not found')
+            return
+        }
 
-  initEnvMap() {
-    const loader = new EXRLoader()
-    loader.load(this.pathToExr, (texture) => {
-      texture.mapping = THREE.EquirectangularReflectionMapping
+        envTexture.mapping = EquirectangularReflectionMapping
 
-      const pmremGenerator = new THREE.PMREMGenerator(this.renderer)
-      pmremGenerator.compileEquirectangularShader()
+        const pmremGenerator = new PMREMGenerator(this.renderer)
+        const envMap = pmremGenerator.fromEquirectangular(envTexture).texture
 
-      this.envMap = pmremGenerator.fromEquirectangular(texture).texture
+        this.scene.environment = envMap
+        this.scene.background = envMap
 
-      this.scene.environment = this.envMap
-      this.scene.background = this.envMap
-
-      texture.dispose()
-      pmremGenerator.dispose()
-    })
-  }
+        envTexture.dispose()
+        pmremGenerator.dispose()
+    }
 }

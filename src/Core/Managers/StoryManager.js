@@ -3,59 +3,48 @@ import * as THREE from 'three'
 import { SaveManager } from './SaveManager'
 export default class StoryManager {
     constructor() {
-        this.app = null
+        this.app = new App()
         this.experienceStarted = false
 
         this.activeTasks = []
         this.saveManager = new SaveManager()
-
+        this.savedStep = null
         this.init()
     }
 
-    init() {}
-
-    async resumeExperience() {
-        this.app = new App();
-
-        const savedStep = this.saveManager.loadProgress();
-        if (!savedStep) {
-            this.startExperience();
-        }
-
-        this.app.startOverlay.classList.add('hidden')
-        this.app.canvas.style.opacity = '1'
-        this.app.soundManager.attachToSpeakers()
-
-        switch (savedStep) {
-        case 'aquarium':
-            this.activeTasks = this.activeTasks.filter(task => task !== 'intro')
-            this.teleportPlayerTo(new THREE.Vector3(-14, 0, 0))
-            break;
-        case 'corridor':
-            this.initCorridor();
-
-            if (!this.app.objectManager.get("Couloir")) {
-                this.app.objectManager.add("Couloir", new THREE.Vector3(0, 0, 0))
-            }
-
-            this.teleportPlayerTo(new THREE.Vector3(-51, 0, -35.55));
-            break;
-        case 'aquaturtle':
-            this.createTurtlesBottom()
-
-            this.teleportPlayerTo(new THREE.Vector3(-72, 0, -121))
-            this.initTurtleBottom();
-            break;
-        case 'boat':
-            this.initBoat();
-            break;
-        case 'end':
-            this.initEnd();
-            break;
-        default:
-            // Si l'étape n'est pas reconnue, démarrer depuis le début
-            this.startExperience();
+    init(){
+        this.savedStep = this.saveManager.loadProgress()
     }
+
+    async startOrResume() {
+        if (!this.savedStep) {
+            this.app.objectManager.add("Dauphins", new THREE.Vector3(0, 0, 0))
+            this.teleportPlayerTo(new THREE.Vector3(30, 1.3, 0), new THREE.Vector3(0, Math.PI / 2, 0))
+            return
+        }
+        switch (this.savedStep) {
+            case 'aquarium':
+                this.app.objectManager.add("Dauphins", new THREE.Vector3(0, 0, 0))
+                this.teleportPlayerTo(new THREE.Vector3(-14, 1.3, 0), new THREE.Vector3(0, Math.PI / 2, 0))
+                break;
+            case 'corridor':
+                this.app.objectManager.add("Couloir", new THREE.Vector3(0, 0, 0))
+                this.teleportPlayerTo(new THREE.Vector3(-51, 1.3, -35.55))
+                break;
+            case 'aquaturtle':
+                this.createTurtlesBottom()
+                this.teleportPlayerTo(new THREE.Vector3(-72, 1.3, -121), new THREE.Vector3(0, Math.PI / 2, 0))
+                break;
+            case 'boat':
+                this.initBoat();
+                break;
+            case 'end':
+                this.initEnd();
+                break;
+            default:
+                this.app.objectManager.add("Dauphins", new THREE.Vector3(0, 0, 0))
+                this.teleportPlayerTo(new THREE.Vector3(30, 1.3, 0), new THREE.Vector3(0, Math.PI / 2, 0))
+        }
     }
     
     async startExperience() {
@@ -65,8 +54,9 @@ export default class StoryManager {
         this.experienceStarted = true
 
         this.activeTasks.push('intro')
+        await this.sleep(2000)
+        
         this.app.mediaManager.showRoomTitle('Accueil du musée');
-
         this.app.soundManager.playMusic('background_intro')
 
         // A COMMENTER POUR ALLER PLUS VITE
@@ -121,13 +111,9 @@ export default class StoryManager {
     }
 
     async initAquarium(){
-        this.clearTasks(true)
+        await this.initRoom('aquarium')
 
-        this.saveManager.saveProgress('aquarium')
-
-        this.activeTasks.push('aquarium')
         this.app.mediaManager.showRoomTitle('Aquarium des dauphins');
-        this.app.doorManager.triggerCloseDoorByIndex(0)
         
         this.app.soundManager.playMusic('aquarium')
 
@@ -166,16 +152,7 @@ export default class StoryManager {
     }
 
     async initCorridor(){
-        this.clearTasks()
-        this.saveManager.saveProgress('corridor')
-
-        this.activeTasks.push('corridor')
-        this.app.soundManager.attachToSpeakers()
-        this.app.soundManager.stopAllMusicSounds(true,false)
-        await this.app.doorManager.triggerCloseDoorByIndex(1)
-        await this.sleep(2000)
-        this.app.postProcessing.triggerGlitch()
-        this.removeDolphinsRoom()
+        await this.initRoom('corridor')
 
         // A COMMENTER POUR ALLER PLUS VITE
 
@@ -230,16 +207,7 @@ export default class StoryManager {
     }
 
     async initTurtleBottom(){
-        this.clearTasks()
-        this.saveManager.saveProgress('aquaturtle')
-
-        this.activeTasks.push('aquaturtle')
-        this.app.soundManager.attachToSpeakers()
-        this.app.soundManager.stopAllMusicSounds(true,false)
-        await this.app.doorManager.triggerCloseDoorByIndex(2)
-        await this.sleep(2000)
-        this.app.postProcessing.triggerGlitch()
-        this.app.objectManager.remove("Couloir")
+        await this.initRoom('aquaturtle')
 
         this.app.soundManager.playMusic('aquaturtles')
         // this.app.objectManager.add("BoatScene", new THREE.Vector3(0, 0, 0))
@@ -275,9 +243,8 @@ export default class StoryManager {
             })
         )
 
-        console.log("en haut")
-
         this.app.objectManager.remove("Aquaturtle")
+        this.app.objectManager.remove("Tortue")
 
         // A COMMENTER POUR ALLER PLUS VITE
         this.app.mediaManager.showRoomTitle('Tortues de Mayotte');
@@ -315,18 +282,7 @@ export default class StoryManager {
     }
 
     async initBoat(){
-        this.clearTasks()
-
-        this.saveManager.saveProgress('boat')
-        this.activeTasks.push('boat')
-        this.app.soundManager.attachToSpeakers()
-        this.app.soundManager.stopAllMusicSounds(true,false)
-        await this.sleep(2000)
-        this.app.postProcessing.triggerGlitch()
-        this.app.objectManager.remove("AquaturtleHaut")
-        this.app.objectManager.remove("Elevator")
-        this.app.objectManager.remove("Tortue")
-        this.app.objectManager.remove("Aquaturtle")
+        await this.initRoom('boat')
 
         this.app.objectManager.add("BoatScene", new THREE.Vector3(0, 0, 0))
 
@@ -509,14 +465,16 @@ export default class StoryManager {
 
     destroy() {}
 
-    teleportPlayerTo(position) {
-        this.app.physicsManager.sphereBody.position.copy(position);
+    teleportPlayerTo(position, rotation = new THREE.Vector3(0, 0, 0)) {
+        console.log("teleportPlayerTo", position)
+        this.app.physicsManager.controls.getObject().position.x = position.x
+        this.app.physicsManager.controls.getObject().position.y = position.y
+        this.app.physicsManager.controls.getObject().position.z = position.z
+        this.app.physicsManager.controls.getObject().rotation.x = rotation.x
+        this.app.physicsManager.controls.getObject().rotation.y = rotation.y
+        this.app.physicsManager.controls.getObject().rotation.z = rotation.z
+        this.app.physicsManager.sphereBody.position.set(position.x, position.y, position.z);
         this.app.physicsManager.sphereBody.velocity.set(0, 0, 0);
-    }
-
-    removeDolphinsRoom() {
-        this.app.objectManager.remove("Dauphins")
-        this.app.objectManager.removeBoids()
     }
 
     createTurtlesBottom() {
@@ -526,6 +484,59 @@ export default class StoryManager {
             dynamicCollision: true,
         })
         this.app.objectManager.add("Tortue", new THREE.Vector3(0, 0, 0))
-        this.app.objectManager.add("AquaturtleHaut", new THREE.Vector3(0, 0, 0))
+    }
+
+    async initRoom(roomName){
+        console.log("initRoom", roomName)
+        switch(roomName){
+            case 'intro':
+                this.activeTasks.push(roomName)
+                break
+            case 'aquarium':
+                this.clearTasks(true)
+                this.activeTasks.push(roomName)
+                this.saveManager.saveProgress(roomName)
+                this.app.doorManager.triggerCloseDoorByIndex(0)
+                break
+            case 'corridor':
+                this.clearTasks()
+                this.activeTasks.push(roomName)
+                this.saveManager.saveProgress(roomName)
+                this.app.soundManager.attachToSpeakers()
+                this.app.soundManager.stopAllMusicSounds(true,false)
+                this.app.doorManager.triggerCloseDoorByIndex(1)
+                await this.sleep(2000)
+                this.app.postProcessing.triggerGlitch()
+                this.app.objectManager.remove("Dauphins")
+                this.app.objectManager.removeBoids()
+                break
+            case 'aquaturtle':
+                this.clearTasks()
+                this.saveManager.saveProgress(roomName)
+                this.activeTasks.push(roomName)
+                this.app.soundManager.attachToSpeakers()
+                this.app.soundManager.stopAllMusicSounds(true,false)
+                this.app.doorManager.triggerCloseDoorByIndex(2)
+                await this.sleep(2000)
+                this.app.postProcessing.triggerGlitch()
+                this.app.objectManager.remove("Dauphins")
+                this.app.objectManager.removeBoids()
+                this.app.objectManager.remove("Couloir")
+                break
+            case 'boat':
+                this.clearTasks()
+                this.saveManager.saveProgress(roomName)
+                this.activeTasks.push(roomName)
+                this.app.soundManager.attachToSpeakers()
+                this.app.soundManager.stopAllMusicSounds(true,false)
+                this.app.postProcessing.triggerGlitch()
+                this.app.objectManager.remove("Dauphins")
+                this.app.objectManager.removeBoids()
+                this.app.objectManager.remove("Couloir")
+                this.app.objectManager.remove("Aquaturtle")
+                this.app.objectManager.remove("Elevator")
+                this.app.objectManager.remove("Tortue")
+                this.app.objectManager.remove("AquaturtleHaut")
+        }
     }
 }
