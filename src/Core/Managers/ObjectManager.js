@@ -36,15 +36,9 @@ export default class ObjectManager {
             color: 0xffffff,
             metalness: 0,
             roughness: 0,
-            transmission: 0.5,
-            thickness: 0.4,
-            ior: 1,
             transparent: true,
             opacity: 0.3,
-            envMapIntensity: 1,
-            clearcoat: 1,
-            clearcoatRoughness: 0,
-            side: THREE.BackSide,
+            side: THREE.DoubleSide,
             depthTest: true,
             depthWrite: false,
         })
@@ -170,7 +164,7 @@ export default class ObjectManager {
                         this.shaderMeshes.push(child)
                     }
 
-                    if (child.material.name.toLowerCase().includes("verre")){
+                    if (child.material.name.toLowerCase().includes("verre") && !child.userData.is_aquarium_glass){
                         disposeMaterial(child.material)
                         child.material = this.glassMaterial
                     }

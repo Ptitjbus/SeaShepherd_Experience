@@ -222,6 +222,7 @@ export default class StoryManager {
 
     async initElevator(){
         const elevator = this.app.objectManager.get("Elevator")
+        this.app.objectManager.add("AquaturtleHaut", new THREE.Vector3(0, 0, 0))
 
         // Jouer toutes les animations et attendre qu'elles soient terminées
         await Promise.all(
@@ -250,15 +251,15 @@ export default class StoryManager {
         this.app.mediaManager.showRoomTitle('Tortues de Mayotte');
         if (!this.checkActiveTask('aquaturtle')) return
         await this.sleep(1000)
-        await this.app.soundManager.playVoiceLine('7.1_TORTUES2')
+        await this.app.soundManager.playVoiceLine('7.2_TORTUES')
 
         if (!this.checkActiveTask('aquaturtle')) return
         this.app.mediaManager.playMediaWithGlitch('error1')
-        await this.app.soundManager.playVoiceLine('7.2_VIDEO')
+        await this.app.soundManager.playVoiceLine('7.3_VIDEO')
 
         if (!this.checkActiveTask('aquaturtle')) return
         this.app.mediaManager.playMediaWithGlitch('bigvideo')
-        await this.app.soundManager.playVoiceLine('7.2_BUG')
+        await this.app.soundManager.playVoiceLine('7.4_VIDEO')
 
         if (!this.checkActiveTask('aquaturtle')) return
         await this.app.choicesManager.showChoices({
@@ -267,12 +268,12 @@ export default class StoryManager {
         }).then(async (choiceIndex) => {
             this.app.mediaManager.playMediaWithGlitch('bigvideo')
         });
-        await this.app.soundManager.playVoiceLine('7.3_FAKENEWS')
+        await this.app.soundManager.playVoiceLine('7.5_FAKENEWS')
         this.app.postProcessing.triggerBigGlitch()
 
         if (!this.checkActiveTask('aquaturtle')) return
         this.app.mediaManager.playMediaWithGlitch('error1')
-        await this.app.soundManager.playVoiceLine('7.4_INTOX')
+        await this.app.soundManager.playVoiceLine('7.6_INTOX')
         this.app.postProcessing.triggerGlitch()
 
         // ---
