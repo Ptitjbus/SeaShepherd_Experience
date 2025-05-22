@@ -9,17 +9,20 @@
 </head>
 <body>
     <div class="loading-bar"></div>
-    <div id="info">
+    <div id="info btn-base">
         ZQSD pour bouger - Shift pour aller plus vite
     </div>
     <canvas class="webgl"></canvas>
     
     <div class="start-overlay">
-        <h1>
-            <img src="/images/logos/dysmeria_logo.svg" alt="Logo Dysmeria" class="dysmeria-logo">
-        </h1>
+        <div class="header-container">
+            <h1>
+                <img src="/images/logos/dysmeria_logo.svg" alt="Logo Dysmeria" class="dysmeria-logo">
+            </h1>
+            <p>Une visite pas comme les autres</p>
+        </div>
 
-        <button class="btn-base start-button" id="start-experience-btn"> <span> Débuter l'expérience </span> </button>
+        <button class="btn-base start-button" id="start-experience-btn"> Débuter l'expérience <img src="./images/ui/enter_key_hint.svg" class="key-letter"/> </button>
     </div>
 
     <div class="end-overlay hidden">
@@ -45,10 +48,6 @@
     
     <!-- Container pour les dialogues -->
     <div id="dialog-container"></div>
-    <div class="dialog-key-hint" id="dialog-key-hint">
-        Appuyez sur <span class="key-letter">Entrée</span>
-    </div>
-    
     <!-- Template pour les popins/dialogues -->
     <template id="dialog-template">
         <dialog class="system-dialog">
