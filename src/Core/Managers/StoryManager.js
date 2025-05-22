@@ -1,6 +1,7 @@
 import App from '../../App'
 import * as THREE from 'three'
 import { SaveManager } from './SaveManager'
+
 export default class StoryManager {
     constructor() {
         this.app = new App()
@@ -9,10 +10,14 @@ export default class StoryManager {
         this.activeTasks = []
         this.saveManager = new SaveManager()
         this.savedStep = null
+        this.endPanels = null
+        this.activePanelIndex = null
+        this.experienceEnded = false
+
         this.init()
     }
 
-    init(){
+    init() {
         this.savedStep = this.saveManager.loadProgress()
     }
 
@@ -46,20 +51,17 @@ export default class StoryManager {
                 this.teleportPlayerTo(new THREE.Vector3(30, 1.3, 0), new THREE.Vector3(0, Math.PI / 2, 0))
         }
     }
-    
+
     async startExperience() {
-        
         if (this.experienceStarted) return
 
         this.experienceStarted = true
 
         this.activeTasks.push('intro')
         await this.sleep(2000)
-        
+
         this.app.mediaManager.showRoomTitle('Accueil du musée');
         this.app.soundManager.playMusic('background_intro')
-
-        // A COMMENTER POUR ALLER PLUS VITE
 
         if (!this.checkActiveTask('intro')) return
         await this.app.soundManager.playVoiceLine('1_INTRO')
@@ -103,21 +105,17 @@ export default class StoryManager {
         if (!this.checkActiveTask('intro')) return
         await this.app.soundManager.playVoiceLine('4_CONNEXION')
 
-        // ---
-        
         if (!this.checkActiveTask('intro')) return
         this.app.doorManager.triggerOpenDoorByIndex(0)
         this.activeTasks = this.activeTasks.filter(task => task !== 'intro')
     }
 
-    async initAquarium(){
+    async initAquarium() {
         await this.initRoom('aquarium')
 
         this.app.mediaManager.showRoomTitle('Aquarium des dauphins');
-        
-        this.app.soundManager.playMusic('aquarium')
 
-        // A COMMENTER POUR ALLER PLUS VITE
+        this.app.soundManager.playMusic('aquarium')
 
         await this.sleep(2000)
         if (!this.checkActiveTask('aquarium')) return
@@ -138,23 +136,16 @@ export default class StoryManager {
         if (!this.checkActiveTask('aquarium')) return
         await this.sleep(2000)
 
-        // ---
-
         this.app.objectManager.add("Couloir", new THREE.Vector3(0, 0, 0))
-
-        // A COMMENTER POUR ALLER PLUS VITE
 
         await this.app.soundManager.playVoiceLine('5.4_FINDAUPHIN')
 
-        // ---
         this.app.doorManager.triggerOpenDoorByIndex(1)
         this.activeTasks = this.activeTasks.filter(task => task !== 'aquarium')
     }
 
-    async initCorridor(){
+    async initCorridor() {
         await this.initRoom('corridor')
-
-        // A COMMENTER POUR ALLER PLUS VITE
 
         if (!this.checkActiveTask('corridor')) return
         await this.app.soundManager.playVoiceLine('6.1_PUB')
@@ -178,13 +169,9 @@ export default class StoryManager {
         if (!this.checkActiveTask('corridor')) return
         await screenControls.turnOn()
 
-        // ---
-
         this.app.postProcessing.triggerGlitch()
         this.createTurtlesBottom()
         this.app.postProcessing.triggerGlitch()
-
-        // A COMMENTER POUR ALLER PLUS VITE
 
         if (!this.checkActiveTask('corridor')) return
         await this.app.soundManager.playVoiceLine('6.3_NARRATEURINCOMPREHENSION')
@@ -201,53 +188,43 @@ export default class StoryManager {
             }
         });
 
-        // ---
-
         await this.app.doorManager.triggerOpenDoorByIndex(2)
     }
 
-    async initTurtleBottom(){
+    async initTurtleBottom() {
         await this.initRoom('aquaturtle')
 
         this.app.soundManager.playMusic('aquaturtles')
-        // this.app.objectManager.add("BoatScene", new THREE.Vector3(0, 0, 0))
-        
-        // A COMMENTER POUR ALLER PLUS VITE
 
         if (!this.checkActiveTask('aquaturtle')) return
         await this.app.soundManager.playVoiceLine('7.1_TORTUES')
-    
-        // ---
     }
 
-    async initElevator(){
+    async initElevator() {
         const elevator = this.app.objectManager.get("Elevator")
         this.app.objectManager.add("AquaturtleHaut", new THREE.Vector3(0, 0, 0))
 
-        // Jouer toutes les animations et attendre qu'elles soient terminées
         await Promise.all(
             elevator.animations.map((clip) => {
-            return new Promise((resolve) => {
-                const action = elevator.mixer.clipAction(clip)
-                action.reset()
-                action.setLoop(THREE.LoopOnce, 1)
-                action.clampWhenFinished = true
-                action.play()
-                // Résoudre la promesse à la fin de l'animation
-                elevator.mixer.addEventListener('finished', function onFinish(e) {
-                if (e.action === action) {
-                    elevator.mixer.removeEventListener('finished', onFinish)
-                    resolve()
-                }
+                return new Promise((resolve) => {
+                    const action = elevator.mixer.clipAction(clip)
+                    action.reset()
+                    action.setLoop(THREE.LoopOnce, 1)
+                    action.clampWhenFinished = true
+                    action.play()
+                    elevator.mixer.addEventListener('finished', function onFinish(e) {
+                        if (e.action === action) {
+                            elevator.mixer.removeEventListener('finished', onFinish)
+                            resolve()
+                        }
+                    })
                 })
-            })
             })
         )
 
         this.app.objectManager.remove("Aquaturtle")
         this.app.objectManager.remove("Tortue")
 
-        // A COMMENTER POUR ALLER PLUS VITE
         this.app.mediaManager.showRoomTitle('Tortues de Mayotte');
         if (!this.checkActiveTask('aquaturtle')) return
         await this.sleep(1000)
@@ -275,18 +252,12 @@ export default class StoryManager {
         this.app.mediaManager.playMediaWithGlitch('error1')
         await this.app.soundManager.playVoiceLine('7.6_INTOX')
         this.app.postProcessing.triggerGlitch()
-
-        // ---
-
-        // this.initBoat()
-
     }
 
-    async initBoat(){
+    async initBoat() {
         await this.initRoom('boat')
 
         this.app.objectManager.add("BoatScene", new THREE.Vector3(0, 0, 0))
-
     }
 
     async initEnd() {
@@ -295,50 +266,14 @@ export default class StoryManager {
         this.saveManager.saveProgress('end')
         this.activeTasks.push('end');
 
-        const endRoomPosition = new THREE.Vector3(50, 0, -50); // Position plus éloignée, légèrement au-dessus du sol
-        
+        const endRoomPosition = new THREE.Vector3(50, 0, -50);
+
         this.app.renderer.toneMapping = THREE.NoToneMapping;
         this.app.renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
 
         if (this.app.scene.environment) {
             this.app.scene.environment = null
             this.app.scene.background = new THREE.Color(0x000000);
-        }
-
-        if (this.app.ocean) {
-            this.app.ocean.setColor(0x000000);
-
-            if (this.app.ocean.water && this.app.ocean.water.material) {
-                const waterUniforms = this.app.ocean.water.material.uniforms;
-
-                if (waterUniforms.waterColor) {
-                    waterUniforms.waterColor.value.setRGB(0, 0, 0.005);
-                }
-                
-                if (waterUniforms.sunColor) {
-                    waterUniforms.sunColor.value.setRGB(0, 0, 0);
-                }
-                
-                if (waterUniforms.distortionScale) {
-                    waterUniforms.distortionScale.value = 5.0; 
-                }
-                
-                if (waterUniforms.size) {
-                    waterUniforms.size.value = 2.0;
-                }
-                
-                if (this.app.ocean.water.material.opacity !== undefined) {
-                    this.app.ocean.water.material.opacity = 1.0;
-                }
-                
-                if (this.app.ocean.water.material.metalness !== undefined) {
-                    this.app.ocean.water.material.metalness = 0.9;
-                }
-                
-                if (this.app.ocean.water.material.roughness !== undefined) {
-                    this.app.ocean.water.material.roughness = 0.1;
-                }
-            }
         }
 
         this.app.scene.traverse(object => {
@@ -348,31 +283,36 @@ export default class StoryManager {
         });
 
         this.teleportPlayerTo(endRoomPosition);
-        
+
         await this.sleep(500);
-        
+
         const panelsContainer = new THREE.Object3D();
         panelsContainer.name = "endPanelsContainer";
         panelsContainer.position.copy(endRoomPosition);
         this.app.scene.add(panelsContainer);
-        
+
         const videos = [
             { id: 'fishing-video', src: '/videos/720p/PUBDEMERDE.mp4' },
             { id: 'dolphins-video', src: '/videos/720p/PUBDEMERDE.mp4' },
             { id: 'turtle-video', src: '/videos/720p/PUBDEMERDE.mp4' }
         ];
-        
+
         const radius = 8;
         const arcAngle = Math.PI * 0.5;
         const panelWidth = 4;
         const panelHeight = 6;
-        
+
+        let panel1, panel2, panel3;
+
+        const loader = new THREE.TextureLoader();
+        const labelTexture = loader.load('images/ui/test_enter.png'); // Ton image "Appuyez sur Entrée"
+
         for (let i = 0; i < 3; i++) {
-            const angle = -arcAngle/2 + (i * arcAngle/2);
-            
+            const angle = -arcAngle / 2 + (i * arcAngle / 2);
+
             const x = radius * Math.sin(angle);
             const z = -radius * Math.cos(angle);
-            
+
             const video = document.createElement('video');
             video.id = videos[i].id;
             video.src = videos[i].src;
@@ -380,52 +320,80 @@ export default class StoryManager {
             video.volume = 0.5
             video.playsInline = true;
             video.autoplay = true;
-            
+
             const videoTexture = new THREE.VideoTexture(video);
             videoTexture.minFilter = THREE.LinearFilter;
             videoTexture.magFilter = THREE.LinearFilter;
-            
+
             const panelGeometry = new THREE.PlaneGeometry(panelWidth, panelHeight);
             const panelMaterial = new THREE.MeshBasicMaterial({
                 map: videoTexture,
                 side: THREE.DoubleSide
             });
-            
+
             const panel = new THREE.Mesh(panelGeometry, panelMaterial);
-            
+
             panel.position.set(x, panelHeight / 2, z);
             panel.rotation.y = Math.PI - angle;
             panel.name = `videoPanel_${i}`;
-            
+
+            panel.lookAt(0, panel.position.y, 0); // Oriente le panel vers le centre de la scène (ou vers la caméra si tu veux)
+
             panelsContainer.add(panel);
-            
+
             video.play().catch(e => console.error("Erreur lors de la lecture vidéo:", e));
+
+            const spriteMaterial = new THREE.SpriteMaterial({ map: labelTexture, transparent: true });
+            const sprite = new THREE.Sprite(spriteMaterial);
+            sprite.scale.set(2, 0.6, 1); // adapte la taille à ton besoin
+
+            // Place le sprite juste devant le panel
+            sprite.position.set(0, 0, -0.05); // 5cm derrière le panel
+            panel.add(sprite);
+
+            // Cache le sprite au début
+            sprite.visible = false;
+
+            // Stocke le sprite pour chaque panel
+            if (!this.panelSprites) this.panelSprites = [];
+            this.panelSprites.push(sprite);
+
+            const labelGeometry = new THREE.PlaneGeometry(2, 0.6); // adapte la taille si besoin
+            const labelMaterial = new THREE.MeshBasicMaterial({
+                map: labelTexture,
+                transparent: true,
+                depthTest: false // optionnel, pour éviter les soucis de z-fighting
+            });
+            const labelMesh = new THREE.Mesh(labelGeometry, labelMaterial);
+
+            // Place le label juste devant le panel, centré
+            labelMesh.position.set(0, 0, 0.15); // 11cm devant le panel
+            // Pas de rotation : il reste dans le repère local du panel
+
+            labelMesh.visible = false; // caché par défaut
+
+            panel.add(labelMesh);
+
+            // Stocke le mesh pour chaque panel
+            if (!this.panelLabelMeshes) this.panelLabelMeshes = [];
+            this.panelLabelMeshes.push(labelMesh);
+
+            if (i === 0) panel1 = panel;
+            if (i === 1) panel2 = panel;
+            if (i === 2) panel3 = panel;
         }
-        
-        const triggerCenter = new THREE.Vector3(
-            endRoomPosition.x, 
-            endRoomPosition.y, 
-            endRoomPosition.z - 4
-        );
-        
-        const triggerRadius = 3;
-        this.app.objectManager.addEventTrigger(
-            triggerCenter,
-            triggerRadius * 2,
-            4,
-            triggerRadius * 2,
-            () => {
-                if (this.checkActiveTask('end')) {
-                    this.app.soundManager.playVoiceLine('final_message');
-                    //this.endExperience();
-                }
-            }
-        );
-        
-        // Jouer la musique d'ambiance pour la finale
+
+        this.endPanels = [
+            { mesh: panel1, url: "https://google.com" },
+            { mesh: panel2, url: "https://x.com" },
+            { mesh: panel3, url: "https://instagram.com" }
+        ];
+        this.activePanelIndex = null;
+
+        window.addEventListener('keydown', this.handleEndPanelEnter);
+
         this.app.soundManager.playMusic('end_ambience', { volume: 0.5 });
-        
-        // Voix explicative de l'exposition finale
+
         await this.sleep(1000);
         if (!this.checkActiveTask('end')) return;
         await this.app.soundManager.playVoiceLine('6_FINAL_EXHIBIT');
@@ -435,15 +403,14 @@ export default class StoryManager {
         return new Promise(resolve => setTimeout(resolve, milliseconds));
     }
 
-    async checkActiveTask(task){
-        if (!this.activeTasks.includes(task)) return false
-        return true
+    checkActiveTask(task) {
+        return this.activeTasks.includes(task);
     }
 
-    async clearTasks(forceStopSounds = false){
-        if(forceStopSounds){
-            this.app.soundManager.stopAllCustomSounds(true,true)
-            this.app.soundManager.stopAllMusicSounds(true,true)
+    clearTasks(forceStopSounds = false) {
+        if (forceStopSounds) {
+            this.app.soundManager.stopAllCustomSounds(true, true)
+            this.app.soundManager.stopAllMusicSounds(true, true)
         }
         this.activeTasks = []
     }
@@ -454,9 +421,7 @@ export default class StoryManager {
         this.saveManager.clearProgress();
 
         this.app.endOverlay.classList.remove('hidden')
-
         void this.app.endOverlay.offsetWidth
-
         this.app.canvas.style.opacity = '0'
 
         setTimeout(() => {
@@ -464,10 +429,11 @@ export default class StoryManager {
         }, 100)
     }
 
-    destroy() {}
+    destroy() {
+        window.removeEventListener('keydown', this.handleEndPanelEnter);
+    }
 
     teleportPlayerTo(position, rotation = new THREE.Vector3(0, 0, 0)) {
-        console.log("teleportPlayerTo", position)
         this.app.physicsManager.controls.getObject().position.x = position.x
         this.app.physicsManager.controls.getObject().position.y = position.y
         this.app.physicsManager.controls.getObject().position.z = position.z
@@ -481,15 +447,14 @@ export default class StoryManager {
     createTurtlesBottom() {
         this.app.objectManager.add("Aquaturtle", new THREE.Vector3(0, 0, 0))
         this.app.objectManager.add("Elevator", new THREE.Vector3(0, 0, 0), {
-            playAnimation : false,
+            playAnimation: false,
             dynamicCollision: true,
         })
         this.app.objectManager.add("Tortue", new THREE.Vector3(0, 0, 0))
     }
 
-    async initRoom(roomName){
-        console.log("initRoom", roomName)
-        switch(roomName){
+    async initRoom(roomName) {
+        switch (roomName) {
             case 'intro':
                 this.activeTasks.push(roomName)
                 break
@@ -504,7 +469,7 @@ export default class StoryManager {
                 this.activeTasks.push(roomName)
                 this.saveManager.saveProgress(roomName)
                 this.app.soundManager.attachToSpeakers()
-                this.app.soundManager.stopAllMusicSounds(true,false)
+                this.app.soundManager.stopAllMusicSounds(true, false)
                 this.app.doorManager.triggerCloseDoorByIndex(1)
                 await this.sleep(2000)
                 this.app.postProcessing.triggerGlitch()
@@ -516,7 +481,7 @@ export default class StoryManager {
                 this.saveManager.saveProgress(roomName)
                 this.activeTasks.push(roomName)
                 this.app.soundManager.attachToSpeakers()
-                this.app.soundManager.stopAllMusicSounds(true,false)
+                this.app.soundManager.stopAllMusicSounds(true, false)
                 this.app.doorManager.triggerCloseDoorByIndex(2)
                 await this.sleep(2000)
                 this.app.postProcessing.triggerGlitch()
@@ -529,7 +494,7 @@ export default class StoryManager {
                 this.saveManager.saveProgress(roomName)
                 this.activeTasks.push(roomName)
                 this.app.soundManager.attachToSpeakers()
-                this.app.soundManager.stopAllMusicSounds(true,false)
+                this.app.soundManager.stopAllMusicSounds(true, false)
                 this.app.postProcessing.triggerGlitch()
                 this.app.objectManager.remove("Dauphins")
                 this.app.objectManager.removeBoids()
@@ -538,6 +503,63 @@ export default class StoryManager {
                 this.app.objectManager.remove("Elevator")
                 this.app.objectManager.remove("Tortue")
                 this.app.objectManager.remove("AquaturtleHaut")
+            case 'end':
+                this.clearTasks()
+                this.saveManager.saveProgress(roomName)
+                this.activeTasks.push(roomName)
+                this.app.soundManager.attachToSpeakers()
+                this.app.soundManager.stopAllMusicSounds(true, false)
+                this.app.postProcessing.triggerGlitch()
+                this.app.objectManager.remove("Dauphins")
+                this.app.objectManager.removeBoids()
+                this.app.objectManager.remove("Couloir")
+                this.app.objectManager.remove("Aquaturtle")
+                this.app.objectManager.remove("Elevator")
+                this.app.objectManager.remove("Tortue")
+                this.app.objectManager.remove("AquaturtleHaut")
+        }
+    }
+
+    updateEndPanelsCTA() {
+        if (!this.endPanels) return;
+
+        const playerPos = this.app.physicsManager.controls.getObject().position;
+        let found = false;
+        let closestIndex = null;
+        let minDist = Infinity;
+
+        // Cache tous les labels au début
+        this.panelLabelMeshes.forEach(mesh => mesh.visible = false);
+
+        this.endPanels.forEach((panel, idx) => {
+            const panelPos = new THREE.Vector3();
+            panel.mesh.getWorldPosition(panelPos);
+            const dist = panelPos.distanceTo(playerPos);
+            if (dist < 4.5 && dist < minDist) {
+                found = true;
+                closestIndex = idx;
+                minDist = dist;
+            }
+        });
+
+        if (found && closestIndex !== null) {
+            this.panelLabelMeshes[closestIndex].visible = true;
+            this.activePanelIndex = closestIndex;
+        } else {
+            this.activePanelIndex = null;
+        }
+    }
+
+    handleEndPanelEnter = (e) => {
+        if (e.key === "Enter" && this.activePanelIndex !== null) {
+            const url = this.endPanels[this.activePanelIndex].url;
+            window.open(url, "_blank");
+        }
+    }
+
+    update() {
+        if (this.activeTasks.includes('end') && this.endPanels) {
+            this.updateEndPanelsCTA();
         }
     }
 }

@@ -78,6 +78,16 @@ body
   user-select: none;
 }
 
+.panel-cta-label {
+    transition: opacity 0.2s;
+    text-align: center;
+    pointer-events: none;
+    font-family: inherit;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+      min-width: 180px;
+    text-align: center;
+}
+
 /* ====== Base commune pour tous les boutons ====== */
 .btn-base {
   position: relative;

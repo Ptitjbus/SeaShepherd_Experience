@@ -834,6 +834,12 @@ export default class Debug extends EventEmitter {
             }
         }, 'teleport').name('Teleport')
 
+        folder.add({
+            initEnd: () => {
+                this.app.storyManager.initEnd();
+            }
+        }, 'initEnd').name('Init End')
+
         folder.close()
     }
     
