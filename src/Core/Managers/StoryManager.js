@@ -278,14 +278,15 @@ export default class StoryManager {
 
         // ---
 
-        // this.initBoat()
+        this.initBoat()
 
     }
 
     async initBoat(){
         await this.initRoom('boat')
 
-        this.app.objectManager.add("BoatScene", new THREE.Vector3(0, 0, 0))
+        await this.sleep(2000)
+        this.app.postProcessing.triggerGlitch()
 
     }
 
@@ -528,6 +529,8 @@ export default class StoryManager {
                 this.clearTasks()
                 this.saveManager.saveProgress(roomName)
                 this.activeTasks.push(roomName)
+                this.app.objectManager.add("BoatScene", new THREE.Vector3(0, 0, 0))
+                this.app.environment.setBlackEnvironment()
                 this.app.soundManager.attachToSpeakers()
                 this.app.soundManager.stopAllMusicSounds(true,false)
                 this.app.postProcessing.triggerGlitch()
@@ -538,6 +541,8 @@ export default class StoryManager {
                 this.app.objectManager.remove("Elevator")
                 this.app.objectManager.remove("Tortue")
                 this.app.objectManager.remove("AquaturtleHaut")
+                this.app.objectManager.waterUniformData.uColor2.value.setHex(0x020222)
+                this.teleportPlayerTo(new THREE.Vector3(0, 3.5, 47), new THREE.Vector3(0, 0, 0))
         }
     }
 }

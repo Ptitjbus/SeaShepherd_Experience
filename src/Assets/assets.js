@@ -17,6 +17,14 @@ export default [
         url: ''
     },
     {
+        name: 'nightHDR',
+        type: 'exr',
+        path: '/hdri/night.exr',
+        license: '',
+        author: '',
+        url: ''
+    },
+    {
         name: 'FishModel1',
         type: 'gltf',
         path: '/models/glb/fish.glb',
@@ -27,7 +35,7 @@ export default [
     {
         name: 'Dauphins',
         type: 'gltf',
-        path: '/models/glb/Compressed_dauphins_v3.glb',
+        path: '/models/glb/Dauphins_v5.glb',
         license: '',
         author: 'Kilian Rizzo',
         url: ''
@@ -75,7 +83,7 @@ export default [
     {
         name: 'BoatScene',
         type: 'gltf',
-        path: '/models/glb/Bateau_V2.glb',
+        path: '/models/glb/Bateau_V3.glb',
         license: '',
         author: 'Kilian Rizzo',
         url: ''

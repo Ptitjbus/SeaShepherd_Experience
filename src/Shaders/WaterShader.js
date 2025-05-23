@@ -28,6 +28,7 @@ export const WaterShader = {
     uniform mat4 uWorldMatrix;
 
     uniform float uMaxDepth;
+    uniform float uWaterLevel;
     uniform vec3 uColor1;
     uniform vec3 uColor2;
 
@@ -63,7 +64,7 @@ export const WaterShader = {
         vec4 sceneBeneath = texture2D(uSceneTexture,distortedCoord);
         vec4 reflection = texture2D(uReflectionTexture,distortedReflectionCoord);
 
-        float waterLevel = 44.0;
+        float uWaterLevel = 44.0;
         float depth = texture2D(uDepthTexture,sceneCoord).r;
         
         // depth
@@ -73,13 +74,13 @@ export const WaterShader = {
         viewPos /= viewPos.w;
         worldPos /= worldPos.w; 
         
-        float heightDiff = 1.0 - clamp((waterLevel - worldPos.y)/uMaxDepth,0.0,1.0);
+        float heightDiff = 1.0 - clamp((uWaterLevel - worldPos.y)/uMaxDepth,0.0,1.0);
         vec3 depthColor = mix(uColor1,uColor2,heightDiff);
 
-        if (worldPos.y > waterLevel) discard;
+        if (worldPos.y > uWaterLevel) discard;
 
         // foam
-        float foam = 1.0 - clamp ((waterLevel - worldPos.y)/uFoamDepth,0.0,1.0);
+        float foam = 1.0 - clamp ((uWaterLevel - worldPos.y)/uFoamDepth,0.0,1.0);
         float foamSpeed = 0.01;
         vec2 foamUV = vec2(vUv.x*uFoamTiling + uTime* foamSpeed , vUv.y*uFoamTiling + uTime*foamSpeed);
         float foamDensity = step(1.0 - foam,texture2D(uFoamTexture,foamUV * 5.0).r);

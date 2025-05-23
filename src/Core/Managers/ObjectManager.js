@@ -69,6 +69,7 @@ export default class ObjectManager {
         this.clipPlane = new THREE.Plane(new THREE.Vector3(-132, 39, -117), 1);
 
         this.waterMaterial = this.createShadeWaterMaterial()
+        this.waterLevel = 44.0  
 
 
         this.rebuildFrameCounter = 0
@@ -576,6 +577,9 @@ export default class ObjectManager {
             uFoamTiling: {
                 value: 0.1,
             },
+            uWaterLevel: {
+                value: this.waterLevel,
+            },
         }
 
         const waterMaterial = new THREE.ShaderMaterial();
@@ -591,7 +595,7 @@ export default class ObjectManager {
 
     updateWaterUniforms(time) {
         this.waterUniformData.uTime.value = time;
-
+        this.waterUniformData.uWaterLevel.value = this.waterLevel;
         const cam = this.app.camera.mainCamera;
 
         const worldPos = new THREE.Vector3();
