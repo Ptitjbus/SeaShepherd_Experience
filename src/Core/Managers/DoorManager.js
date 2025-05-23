@@ -1,7 +1,8 @@
-import { Mesh, PlaneGeometry, MeshBasicMaterial, DoubleSide, Object3D, Vector3 } from 'three'
+import { Vector3 } from 'three'
 
 import DoorPair from '../../Utils/DoorPairs'
 import App from '../../App'
+import { disposeHierarchy } from '../../Utils/Memory'
 
 export default class DoorManager {
     constructor(scene) {
@@ -19,6 +20,19 @@ export default class DoorManager {
         pair.setCanBeTriggered(canBeTriggered)
         this.doorPairs.push(pair)
         return pair
+    }
+
+    removeDoorsFromScene() {
+        this.doorPairs.forEach(pair => {
+            disposeHierarchy(pair.leftDoor)
+            disposeHierarchy(pair.rightDoor)
+            disposeHierarchy(pair.leftCollisionHelper)
+            disposeHierarchy(pair.rightCollisionHelper)
+            console.log(pair)
+            this.app.physicsManager.world.removeBody(pair.leftBody)
+            this.app.physicsManager.world.removeBody(pair.rightBody)
+        })
+        this.doorPairs = []
     }
 
     update() {

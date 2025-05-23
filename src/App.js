@@ -246,6 +246,8 @@ export default class App extends EventEmitter {
         } else {
             this.renderer.instance.render(this.scene, this.camera.mainCamera)
         }
+
+        if (this.storyManager) this.storyManager.update();
     }
 
     destroy() {

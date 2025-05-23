@@ -1,3 +1,5 @@
+@import url("https://use.typekit.net/sai4atz.css");
+
 *
 {
   margin: 0;
@@ -51,78 +53,89 @@ body
   backdrop-filter: blur(10px);
 }
 
+.header-container {
+  width: 100%;
+  position: fixed;
+  top: 15%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.header-container p {
+  font-family: "montserrat", sans-serif;
+  font-weight: medium;
+  font-style: normal;
+  color: #FFF;
+  font-size: 24px;
+}
+
 .dysmeria-logo {
-  width: 781px;
+  width: 580px;
   height: auto;
   pointer-events: none;
   user-select: none;
 }
 
+.panel-cta-label {
+    transition: opacity 0.2s;
+    text-align: center;
+    pointer-events: none;
+    font-family: inherit;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+      min-width: 180px;
+    text-align: center;
+}
+
 /* ====== Base commune pour tous les boutons ====== */
 .btn-base {
   position: relative;
-  background-color: transparent;
-  color: #FFE7B0;
-  font-family: "rafaella", sans-serif;
-  border: none;
+  color: #FFF;
+  font-family: "montserrat", sans-serif;
+  padding: 15px 32px;
+  font-weight: 500;
+  font-size: 2em;
+  border: 1px solid #FFF;
   cursor: pointer;
-  line-height: 12px;
   transition: all 0.3s ease;
   user-select: none;
-  font-weight: bold;
   text-align: center;
   outline: none;
-  display: inline-block;
-  background-image: url("/images/ui/primary_button.svg");
-  background-repeat: no-repeat;
-  background-position: center 48%;
-  background-size: contain;
-  box-shadow: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: row;
+  background-color: rgba(0, 0, 0, 10%);
+  min-width: 550px;
+}
+
+.choices-buttons-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: row;
+  gap: 30px; /* Ajusté pour un meilleur espacement vertical */
+}
+
+@media (width < 1260px) {
+  .choices-container, .choices-buttons-container {
+    flex-direction: column!important;
+  }
+  
+}
+
+.key-letter {
+  padding-top: 4px;
+  margin-left: 12px;
+  margin-right: 12px;
+  width: 30px;
+  height: 30px;
 }
 
 /* ====== Bouton principal de démarrage ====== */
 .start-button {
-  padding: 88px;
   font-size: 32px;
-  color: #FFE7B0;
-}
-
-/* ====== Boutons de choix ====== */
-.choice-button {
-  position: relative;
-  background: none;
-  border: none;
-  color: white;
-  font-size: 24px;
-  padding: 18px 18px;           /* Augmente le padding horizontal */
-  z-index: 1;
-  width: 500px;
-  max-width: 90vw;
-  min-width: 320px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  overflow: hidden;
-}
-
-.choice-button::before {
-  content: "";
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-image: url("/images/ui/primary_button.svg");
-  background-size: contain;         /* Utilise contain pour ne jamais couper les ornements */
-  background-repeat: no-repeat;
-  background-position: center;
-  z-index: -1;
-  pointer-events: none;
-  border-radius: 8px;
-}
-
-.choice-label {
-  display: block;
-  width: 100%;
-  text-align: center;
 }
 
 .hidden {
@@ -347,47 +360,20 @@ body
 
 /* Ajustement du z-index pour que les choix soient au-dessus de l'overlay */
 .choices-container {
-  z-index: 1000;
-}
-
-.choices-container {
   font-family: 'Inter', sans-serif;
   position: fixed;
   top: 80%;
   left: 50%;
   transform: translate(-50%, -50%);
-  display: flex;
-  flex-direction: column; /* Changé de row à column */
+  flex-direction: row; /* Changé de row à column */
   justify-content: center;
+  flex-direction: column; /* Changé de row à column */
   align-items: center; /* Changé de flex-start à center */
   z-index: 1000;
   gap: 30px; /* Ajusté pour un meilleur espacement vertical */
   width: calc(100% - 92px); /* 100% de largeur moins 46px de chaque côté */
-  padding: 0 46px;
-  box-sizing: border-box;
+  z-index: 1000;
 }
-
-.key-hint {
-  font-weight: lighter;
-  color: white;
-  padding: 5px 15px;
-  border-radius: 4px;
-  font-size: 18px;
-  text-align: center;
-  margin-top: 26px;  /* Changé de margin-bottom à margin-top */
-}
-
-.key-letter {
-  font-weight: bold;
-  margin-left: 8px;
-  background-color: #493CFF;
-  box-shadow: 1px 1px 0px 2px #084170;
-  color: white;
-  padding: 10px 15px;
-  border-radius: 4px;
-  font-size: 14px;
-}
-
 
 /* Rooms titles */
 .room-title-container {
@@ -405,9 +391,9 @@ body
   font-family: "rafaella", sans-serif;
   font-weight: 400;
   font-style: normal;
-  color: #FFE7B0;
+  color: #FFF;
   display: block;
-  font-size: 24px;
+  font-size:40px;
   letter-spacing: 4px;
 }
 
