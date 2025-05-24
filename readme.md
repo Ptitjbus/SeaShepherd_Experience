@@ -14,11 +14,11 @@ Une expérience immersive en WebGL/Three.js qui sensibilise aux enjeux de la pro
 
 ```bash
 # Cloner le repository avec Git LFS
-git clone [URL_DU_REPOSITORY]
+git clone git@github.com:Ptitjbus/SeaShepherd_Experience.git
 cd SeaShepherd_Experience
 
 # Ou cloner sans télécharger immédiatement les fichiers LFS
-git lfs clone --depth=1 [URL_DU_REPOSITORY]
+git lfs clone --depth=1 git@github.com:Ptitjbus/SeaShepherd_Experience.git
 ```
 
 ### 2. Installer les dépendances
