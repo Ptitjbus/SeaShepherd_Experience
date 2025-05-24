@@ -21,8 +21,98 @@
             </h1>
             <p>Une visite pas comme les autres</p>
         </div>
-
+        
         <button class="btn-base start-button" id="start-experience-btn"> Débuter l'expérience <img src="./images/ui/enter_key_hint.svg" class="key-letter"/> </button>
+        
+        <div class="footer-container">
+            <button class="footer-btn-left" id="credits-btn">crédits</button>
+            <div class="footer-logo">
+                <img src="/images/logos/sea_shepherd_logo.svg" alt="Logo Centre" class="center-logo">
+            </div>
+            <div class="footer-right-buttons">
+                <button class="footer-btn-right">langue</button>
+                <button class="footer-btn-right">options</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page des crédits -->
+    <div class="credits-overlay hidden" id="credits-overlay">
+        <div class="credits-container">
+            <div class="credits-header">
+                <h1>Crédits</h1>
+            </div>
+            
+            <div class="credits-content">
+                <div class="credits-section">
+                    <h3>designers</h3>
+                    <p>Killian RIZZO</p>
+                    <p>Théo LANGLADE</p>
+                    <p>Pierre-Emmanuel THÉVENET</p>
+                </div>
+                
+                <div class="credits-section">
+                    <h3>développeurs</h3>
+                    <p>Mathis VIOLLET</p>
+                    <p>Mathieu DUBART</p>
+                </div>
+                
+                <div class="credits-section">
+                    <h3>Voix</h3>
+                    <p>Pierre-Alain DE GUARRIGUES <span class="parenthesis-text">(Voix Narrateur)</span></p>
+                    <p>Maïk DARAH <span class="parenthesis-text">(Voix Sea Shepherd)</span></p>
+                </div>
+                
+                <div class="credits-section">
+                    <h3>Remerciements</h3>
+                    <p>Guillaume <span class="parenthesis-text">(Sea Shepherd)</span></p>
+                    <p>Yann GILQUIN</p>
+                    <p>Eric GAUDET TRAFFY</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer-container">
+            <button class="footer-btn-left" id="back-btn">retour</button>
+        </div>
+    </div>
+
+    <!-- Page des options -->
+    <div class="options-overlay hidden" id="options-overlay">
+        <div class="options-container">
+            <div class="options-header">
+                <h1>Options</h1>
+            </div>
+            
+            <div class="options-content">
+                <h3>son</h3>
+                <div class="option-item">
+                    <label for="music-volume">Volume musique</label>
+                    <input type="range" id="music-volume" min="0" max="100" value="50" class="volume-slider">
+                    <span class="volume-value">50%</span>
+                </div>
+                
+                <div class="option-item">
+                    <label for="sfx-volume">Volume effets sonores</label>
+                    <input type="range" id="sfx-volume" min="0" max="100" value="70" class="volume-slider">
+                    <span class="volume-value">70%</span>
+                </div>
+                
+                <h3>graphisme</h3>
+                <div class="option-item">
+                    <label for="graphics-quality">Mode performance</label>
+                    <div class="switch-container" data-active="false">
+                        <span class="switch-option active" data-value="false"></span>
+                        <span class="switch-option" data-value="true"></span>
+                        <div class="switch-indicator"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer-container">
+            <button class="footer-btn-left" id="back-options-btn">retour</button>
+        </div>
     </div>
 
     <div class="end-overlay hidden">

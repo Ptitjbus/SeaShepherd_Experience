@@ -199,27 +199,118 @@ export default class App extends EventEmitter {
     }
 
     setupUI() {
-        this.startOverlay = document.querySelector('.start-overlay')
-        this.startButton = document.querySelector('.start-button')
-        this.endOverlay = document.querySelector('.end-overlay')
+        const startButton = document.getElementById('start-experience-btn')
+        const creditsBtn = document.getElementById('credits-btn')
+        const backBtn = document.getElementById('back-btn')
+        const startOverlay = document.querySelector('.start-overlay')
+        const creditsOverlay = document.getElementById('credits-overlay')
+
+        if (startButton) {
+            startButton.addEventListener('click', async () => {
+                console.log('Start button clicked')
                 
-        this.startButton.addEventListener('click', (e) => {
-            e.preventDefault()
+                startOverlay.style.opacity = '0'
+                setTimeout(() => {
+                    startOverlay.style.display = 'none'
+                }, 1500)
 
-            this.startOverlay.classList.add('hidden')
-            this.canvas.style.opacity = '1'
-            this.soundManager.attachToSpeakers()
+                // Activer le canvas WebGL
+                const canvas = document.querySelector('.webgl')
+                if (canvas) {
+                    canvas.style.opacity = '1'
+                }
 
-            if(!this.storyManager.savedStep || this.storyManager.savedStep === 'intro'){
-                this.storyManager.startExperience()
-            }
+                this.start()
+            })
+        }
 
-            if (this.storyManager.savedStep === 'boat') {
-                this.storyManager.initBoatRoom()
-            }
+        // Gestionnaire pour le bouton crédits
+        if (creditsBtn) {
+            creditsBtn.addEventListener('click', () => {
+                console.log('Credits button clicked')
+                startOverlay.style.opacity = '0'
+                creditsOverlay.classList.remove('hidden')
+            })
+        }
 
-            this.physicsManager.controls.lock()
-        })
+        // Gestionnaire pour le bouton retour
+        if (backBtn) {
+            backBtn.addEventListener('click', () => {
+                console.log('Back button clicked')
+                creditsOverlay.classList.add('hidden')
+                startOverlay.style.opacity = '1'
+            })
+        }
+
+        // Gestionnaire pour le bouton options
+        const optionsBtn = document.querySelectorAll('.footer-btn-right')[1] // Le deuxième bouton (options)
+        const backOptionsBtn = document.getElementById('back-options-btn')
+        const optionsOverlay = document.getElementById('options-overlay')
+
+        if (optionsBtn) {
+            optionsBtn.addEventListener('click', () => {
+                console.log('Options button clicked')
+                startOverlay.style.opacity = '0'
+                creditsOverlay.classList.add('hidden')
+                optionsOverlay.classList.remove('hidden')
+            })
+        }
+
+        // Gestionnaire pour le bouton retour des options
+        if (backOptionsBtn) {
+            backOptionsBtn.addEventListener('click', () => {
+                console.log('Back options button clicked')
+                optionsOverlay.classList.add('hidden')
+                startOverlay.style.opacity = '1'
+            })
+        }
+
+        // Gestionnaires pour les sliders de volume
+        const musicSlider = document.getElementById('music-volume')
+        const sfxSlider = document.getElementById('sfx-volume')
+        
+        if (musicSlider) {
+            musicSlider.addEventListener('input', (e) => {
+                const value = e.target.value
+                e.target.nextElementSibling.textContent = `${value}%`
+                // Ici vous pouvez ajouter la logique pour changer le volume de la musique
+            })
+        }
+
+        if (sfxSlider) {
+            sfxSlider.addEventListener('input', (e) => {
+                const value = e.target.value
+                e.target.nextElementSibling.textContent = `${value}%`
+                // Ici vous pouvez ajouter la logique pour changer le volume des effets sonores
+            })
+        }
+
+        // Gestionnaire pour le switch de qualité graphique
+        const switchContainer = document.querySelector('.switch-container')
+        const switchOptions = document.querySelectorAll('.switch-option')
+
+        if (switchContainer && switchOptions.length > 0) {
+            // Initialiser le switch avec la valeur par défaut (false = Faible)
+            switchContainer.setAttribute('data-active', 'false')
+            
+            switchOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    // Retirer la classe active de toutes les options
+                    switchOptions.forEach(opt => opt.classList.remove('active'))
+                    
+                    // Ajouter la classe active à l'option cliquée
+                    option.classList.add('active')
+                    
+                    // Mettre à jour l'attribut data-active du conteneur
+                    const value = option.getAttribute('data-value')
+                    switchContainer.setAttribute('data-active', value)
+                    
+                    // Ici vous pouvez ajouter la logique pour changer la qualité graphique
+                    const isHighQuality = value === 'true'
+                    console.log('Qualité graphique élevée:', isHighQuality)
+                })
+            })
+        }
     }
 
     update(time) {

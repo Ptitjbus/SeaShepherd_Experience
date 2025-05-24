@@ -1,141 +1,14 @@
 @import url("https://use.typekit.net/sai4atz.css");
 
-*
-{
-  margin: 0;
-  padding: 0;
+/* ====== RESET & BASE ====== */
+* {
+    margin: 0;
+    padding: 0;
 }
 
-html,
-body
-{
-  overflow: hidden;
-  background-color: black;
-}
-
-.webgl {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  outline: none;
-  opacity: 0; /* Hidden by default */
-  transition: opacity 1.5s ease;
-}
-
-.loading-bar{
-  z-index: 1001;
-  position: fixed;
-  top: 0;
-  width: 0;
-  height: 5px;
-  background-color: #FFFFFF;
-  transition: width 0.1s ease, opacity 1s ease;
-  pointer-events: none;
-}
-
-/* Styles pour la Homepage */
-
-.start-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.7);
-  display: flex;
-  justify-content: center;
-  flex-direction: column;
-  align-items: center;
-  z-index: 100;
-  transition: opacity 1.5s ease;
-  backdrop-filter: blur(10px);
-}
-
-.header-container {
-  width: 100%;
-  position: fixed;
-  top: 15%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-}
-
-.header-container p {
-  font-family: "montserrat", sans-serif;
-  font-weight: medium;
-  font-style: normal;
-  color: #FFF;
-  font-size: 24px;
-}
-
-.dysmeria-logo {
-  width: 580px;
-  height: auto;
-  pointer-events: none;
-  user-select: none;
-}
-
-.panel-cta-label {
-    transition: opacity 0.2s;
-    text-align: center;
-    pointer-events: none;
-    font-family: inherit;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.3);
-      min-width: 180px;
-    text-align: center;
-}
-
-/* ====== Base commune pour tous les boutons ====== */
-.btn-base {
-  position: relative;
-  color: #FFF;
-  font-family: "montserrat", sans-serif;
-  padding: 15px 32px;
-  font-weight: 500;
-  font-size: 2em;
-  border: 1px solid #FFF;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  user-select: none;
-  text-align: center;
-  outline: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: row;
-  background-color: rgba(0, 0, 0, 10%);
-  min-width: 550px;
-}
-
-.choices-buttons-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: row;
-  gap: 30px; /* Ajusté pour un meilleur espacement vertical */
-}
-
-@media (width < 1260px) {
-  .choices-container, .choices-buttons-container {
-    flex-direction: column!important;
-  }
-  
-}
-
-.key-letter {
-  padding-top: 4px;
-  margin-left: 12px;
-  margin-right: 12px;
-  width: 30px;
-  height: 30px;
-}
-
-/* ====== Bouton principal de démarrage ====== */
-.start-button {
-  font-size: 32px;
+html, body {
+    overflow: hidden;
+    background-color: black;
 }
 
 .hidden {
@@ -143,154 +16,361 @@ body
     pointer-events: none !important;
 }
 
-#info {
-    color: white ;
-    font-family: monospace;
-    line-height: 24px;
-    font-size: 13px;
-    position: absolute;
-    top: 0px;
-    width: 100%;
-    padding: 10px;
-    box-sizing: border-box;
-    text-align: center;
-    -moz-user-select: none;
-    -webkit-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    pointer-events: none;
-    z-index: 1;
-}
-/* style pour les popins */
-
-#dialog-container {
-  pointer-events: none;
-  user-select: none;
-}
-
-#dialog-container dialog {
-  position: fixed;
-  top: 15%;
-  left: calc(50% - 245px);
-  width: 450px;
-  height: 150px;
-
-  background-color: transparent;
-  
-  background-image: url('/images/popins/background.svg');
-  background-repeat: no-repeat;
-  /* background-position: center; */
-  background-size: cover;
-  
-  padding: 25px;
-  color: transparent;
-  
-  border: 1px solid white;
-  opacity: 0;
-  transform: scale(0.95) translateY(30px);
-  transition: opacity 0.4s cubic-bezier(.4,0,.2,1), transform 0.4s cubic-bezier(.4,0,.2,1);
-  pointer-events: none;
-
-  font-family: "pf-videotext", sans-serif;
-  font-weight: 400;
-  user-select: none;
-}
-
-#dialog-container dialog.popin-visible {
-  opacity: 1;
-  transform: scale(1) translateY(0);
-  pointer-events: auto;
-  user-select: none;
-}
-
-#dialog-container dialog .dialog-bg-image {
-  padding: 7px 0 0 7px;
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  user-select: none;
-}
-
-#dialog-container dialog > *:not(.dialog-bg-image) {
-  position: relative;
-  z-index: 1;
-}
-
-/* En-tête de la popin avec logo */
-#dialog-container dialog .dialog-header {
-  display: flex;
-  justify-content: center;
-  pointer-events: none;
-  user-select: none;
-}
-
-/* Style du logo Sea Shepherd */
-#dialog-container dialog .dialog-logo {
-  width: 95px;
-  height: 95px;
-  object-fit: contain;
-  pointer-events: none;
-  user-select: none;
-}
-
-/* Cacher le texte du titre original */
-#dialog-container dialog .dialog-title {
-  display: none;
-  pointer-events: none;
-  user-select: none;
-}
-
-/* Améliorer le style du contenu */
-#dialog-container dialog .dialog-content {
-  font-size: 18px;
-  text-align: center;
-  color: white;
-  text-transform: uppercase;
-  pointer-events: none;
-  user-select: none;
-}
-
-#dialog-container dialog:focus {
-  outline: none;
-}
-
-.dialog-key-hint {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  top: calc(15% + 225px);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 14px;
-  color: #fff;
-  opacity: 0.7;
-  font-family: 'Inter', sans-serif;
-  letter-spacing: 0.02em;
-  user-select: none;
-  pointer-events: none;
-  z-index: 101;
-  opacity: 0;
-
-  transition: opacity 0.4s cubic-bezier(.4,0,.2,1), transform 0.4s cubic-bezier(.4,0,.2,1);
-}
-
-/* style pour la Page de fin */
-
-.end-overlay {
+/* ====== CANVAS ====== */
+.webgl {
     position: fixed;
+    inset: 0;
+    outline: none;
+    opacity: 0;
+    transition: opacity 1.5s ease;
 }
 
-/* style pour la Page de fin */
-
-.end-overlay {
+.loading-bar {
     position: fixed;
     top: 0;
+    width: 0;
+    height: 5px;
+    background-color: #FFFFFF;
+    transition: width 0.1s ease, opacity 1s ease;
+    pointer-events: none;
+    z-index: 1001;
+}
+
+/* ====== OVERLAYS BASE ====== */
+.start-overlay, 
+.credits-overlay, 
+.options-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 100;
+    transition: opacity 1.5s ease;
+    backdrop-filter: blur(5px);
+}
+
+.start-overlay {
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+    justify-content: center;
+}
+
+.credits-overlay, 
+.options-overlay {
+    z-index: 200;
+    justify-content: flex-start;
+    padding: 80px 20px 150px 20px;
+    box-sizing: border-box;
+}
+
+/* ====== HEADERS ====== */
+.header-container {
+    position: fixed;
+    top: 15%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.header-container p {
+    font-family: "montserrat", sans-serif;
+    font-weight: medium;
+    color: #FFF;
+    font-size: 24px;
+}
+
+.dysmeria-logo {
+    width: 580px;
+    height: auto;
+    pointer-events: none;
+    user-select: none;
+}
+
+.credits-header, 
+.options-header {
+    margin-bottom: 50px;
+    text-align: center;
+}
+
+.credits-header h1, 
+.options-header h1 {
+    font-family: "rafaella", sans-serif;
+    font-weight: 400;
+    color: #FFF;
+    font-size: 60px;
+    letter-spacing: 4px;
+    margin: 0;
+}
+
+/* ====== BUTTONS BASE ====== */
+.btn-base {
+    position: relative;
+    color: #FFF;
+    font-family: "montserrat", sans-serif;
+    padding: 15px 32px;
+    font-weight: 500;
+    font-size: 2em;
+    border: 1px solid #FFF;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    user-select: none;
+    text-align: center;
+    outline: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 10%);
+    min-width: 550px;
+}
+
+.start-button {
+    font-size: 32px;
+    top: 30%;
+}
+
+.key-letter {
+    padding-top: 4px;
+    margin: 0 12px;
+    width: 30px;
+    height: 30px;
+}
+
+/* ====== FOOTER ====== */
+.footer-container {
+    position: fixed;
+    bottom: 30px;
     left: 0;
     width: 100%;
-    height: 100%;
-    /* Ajout d'un dégradé avec un fond noir semi-transparent */
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    padding: 0 40px;
+    box-sizing: border-box;
+}
+
+.footer-btn-left, 
+.footer-btn-right {
+    background: transparent;
+    border: none;
+    color: white;
+    padding: 12px 20px;
+    font-family: "montserrat", sans-serif;
+    font-weight: 500;
+    font-size: 16px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.footer-btn-left:hover, 
+.footer-btn-right:hover {
+    opacity: 0.7;
+}
+
+.footer-btn-left {
+    justify-self: start;
+}
+
+.footer-logo {
+    justify-self: center;
+    display: flex;
+    justify-content: center;
+}
+
+.center-logo {
+    height: 40px;
+    width: auto;
+}
+
+.footer-right-buttons {
+    justify-self: end;
+    display: flex;
+    gap: 15px;
+}
+
+/* ====== CREDITS PAGE ====== */
+.credits-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    max-width: 800px;
+    width: 100%;
+}
+
+.credits-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 40px;
+    width: 100%;
+    max-width: 600px;
+}
+
+.credits-section {
+    text-align: center;
+    color: white;
+    font-weight: 600;
+}
+
+.credits-section h3 {
+    font-family: "montserrat", sans-serif;
+    font-weight: 500;
+    font-size: 16px;
+    text-transform: uppercase;
+    margin-bottom: 15px;
+    color: rgba(255, 255, 255, 0.6);
+    text-decoration: underline;
+}
+
+.credits-section p {
+    font-family: "montserrat", sans-serif;
+    font-weight: 500;
+    font-size: 20px;
+    line-height: 1.4;
+    color: rgba(255, 255, 255, 1);
+    margin: 0;
+}
+
+.credits-section .parenthesis-text {
+    font-family: "montserrat", sans-serif;
+    font-weight: 500;
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.6);
+    margin-top: 5px;
+}
+
+/* ====== OPTIONS PAGE ====== */
+.options-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    max-width: 600px;
+    width: 100%;
+}
+
+.options-content {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    width: 100%;
+}
+
+.options-content h3 {
+    font-family: "montserrat", sans-serif;
+    font-weight: 500;
+    font-size: 16px;
+    text-transform: uppercase;
+    margin-bottom: 15px;
+    color: rgba(255, 255, 255, 0.6);
+    text-decoration: underline;
+    text-align: center;
+}
+
+.option-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: white;
+    font-family: "montserrat", sans-serif;
+    padding: 0;
+}
+
+.option-item:nth-child(odd) {
+  margin-bottom: 80px;
+}
+
+.option-item label {
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 500;
+    font-size: 16px;
+    min-width: 200px;
+}
+
+/* Volume Sliders */
+.volume-slider {
+    appearance: none;
+    width: 200px;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.3);
+    outline: none;
+    border-radius: 3px;
+    margin: 0 15px;
+}
+
+.volume-slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: white;
+    cursor: pointer;
+    border-radius: 50%;
+    border: 2px solid #333;
+}
+
+.volume-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: white;
+    cursor: pointer;
+    border-radius: 50%;
+    border: 2px solid #333;
+}
+
+.volume-value {
+    font-family: "montserrat", sans-serif;
+    font-weight: 500;
+    font-size: 20px;
+    color: rgba(255, 255, 255, 1);
+    min-width: 50px;
+    text-align: right;
+}
+
+/* Switch */
+.switch-container {
+    position: relative;
+    display: flex;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 4px;
+    overflow: hidden;
+    width: 60px;
+    height: 30px;
+}
+
+.switch-option {
+    position: relative;
+    width: 50%;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    z-index: 2;
+    font-size: 0;
+    color: transparent;
+}
+
+.switch-indicator {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    height: calc(100% - 8px);
+    width: calc(50% - 4px);
+    background: white;
+    border-radius: 2px;
+    transition: transform 0.3s ease;
+    z-index: 1;
+}
+
+.switch-container[data-active="true"] .switch-indicator {
+    transform: translateX(100%);
+}
+
+/* ====== END OVERLAY ====== */
+.end-overlay {
+    position: fixed;
+    inset: 0;
     background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)),
                 url('/images/ocean-background.webp') no-repeat center center;
     background-size: cover;
@@ -312,20 +392,6 @@ body
     pointer-events: all;
 }
 
-/* Assurer que le texte est bien visible sur le fond sombre */
-.end-message {
-    color: white;
-    font-size: 2.5rem;
-    max-width: 800px;
-    margin: 0 auto;
-    line-height: 1.4;
-}
-
-.bold {
-    font-weight: bold;
-}
-
-/* Amélioration du style du logo */
 .logo-container {
     margin-top: 30px;
 }
@@ -336,20 +402,88 @@ body
     filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.3));
 }
 
-/* Animation d'apparition/disparition pour les popins */
+/* ====== DIALOGS ====== */
+#dialog-container {
+    pointer-events: none;
+    user-select: none;
+}
+
 #dialog-container dialog {
+    position: fixed;
+    top: 15%;
+    left: calc(50% - 245px);
+    width: 450px;
+    height: 150px;
+    background: transparent url('/images/popins/background.svg') no-repeat;
+    background-size: cover;
+    padding: 25px;
+    color: transparent;
+    border: 1px solid white;
     opacity: 0;
     transform: scale(0.95) translateY(30px);
     transition: opacity 0.4s cubic-bezier(.4,0,.2,1), transform 0.4s cubic-bezier(.4,0,.2,1);
     pointer-events: none;
+    font-family: "pf-videotext", sans-serif;
+    font-weight: 400;
+    user-select: none;
 }
 
-.dialog-button {
-  pointer-events: none;
-  backdrop-filter: blur(10px);
+#dialog-container dialog.popin-visible {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    pointer-events: auto;
 }
 
-/* Animation de tremblement pour les boutons désactivés */
+#dialog-container dialog .dialog-logo {
+    width: 95px;
+    height: 95px;
+    object-fit: contain;
+}
+
+#dialog-container dialog .dialog-content {
+    font-size: 18px;
+    text-align: center;
+    color: white;
+    text-transform: uppercase;
+}
+
+/* ====== UTILITIES ====== */
+#info {
+    color: white;
+    font-family: monospace;
+    line-height: 24px;
+    font-size: 13px;
+    position: absolute;
+    top: 0;
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    text-align: center;
+    user-select: none;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.room-title-container {
+    position: fixed;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+    opacity: 0;
+    filter: blur(5px);
+    transition: opacity 1.43s cubic-bezier(.4,0,.2,1), filter 1.43s cubic-bezier(.4,0,.2,1), transform 1.43s cubic-bezier(.4,0,.2,1);
+    pointer-events: none;
+    user-select: none;
+    text-align: center;
+    font-family: "rafaella", sans-serif;
+    font-weight: 400;
+    color: #FFF;
+    font-size: 40px;
+    letter-spacing: 4px;
+}
+
+/* ====== ANIMATIONS ====== */
 @keyframes shake {
     0%, 100% { transform: translateX(0); }
     25% { transform: translateX(-5px); }
@@ -360,72 +494,75 @@ body
     animation: shake 0.2s ease-in-out;
 }
 
-#dialog-container dialog.popin-visible {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-    pointer-events: auto;
-}
-/* ************ Style de boutons ************ */
-.choices-title {
-  color: white;
-  text-align: center;
-  margin-bottom: 30px; /* Augmenté de 10px à 30px pour plus d'espace */
-  width: 100%;
-  font-size: 24px;
-}
-
-/* Ajustement du z-index pour que les choix soient au-dessus de l'overlay */
-.choices-container {
-  font-family: 'Inter', sans-serif;
-  position: fixed;
-  top: 80%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  flex-direction: row; /* Changé de row à column */
-  justify-content: center;
-  flex-direction: column; /* Changé de row à column */
-  align-items: center; /* Changé de flex-start à center */
-  z-index: 1000;
-  gap: 30px; /* Ajusté pour un meilleur espacement vertical */
-  width: calc(100% - 92px); /* 100% de largeur moins 46px de chaque côté */
-  z-index: 1000;
-}
-
-/* Rooms titles */
-.room-title-container {
-  position: fixed;
-  top: 40%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 1000;
-  opacity: 0;
-  filter: blur(5px);
-  transition: opacity 1.43s cubic-bezier(.4,0,.2,1), filter 1.43s cubic-bezier(.4,0,.2,1) ,transform 1.43s cubic-bezier(.4,0,.2,1);
-  pointer-events: none;
-  user-select: none;
-  text-align: center;
-  font-family: "rafaella", sans-serif;
-  font-weight: 400;
-  font-style: normal;
-  color: #FFF;
-  display: block;
-  font-size:40px;
-  letter-spacing: 4px;
-}
-
-/* Media queries pour le responsive */
+/* ====== MEDIA QUERIES ====== */
 @media (max-width: 768px) {
-    .end-title {
-        font-size: 4rem;
-    }
-    
-    .end-subtitle {
-        font-size: 1.8rem;
-    }
-    
-    .buttons-container {
+    .footer-container {
+        display: flex;
         flex-direction: column;
         gap: 15px;
+        bottom: 20px;
+        padding: 0 20px;
+    }
+    
+    .footer-right-buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .credits-header h1, 
+    .options-header h1 {
+        font-size: 40px;
+    }
+    
+    .credits-content {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+    
+    .credits-section h3 {
+        font-size: 14px;
+    }
+    
+    .credits-section p {
+        font-size: 18px;
+    }
+    
+    .credits-section .parenthesis-text {
+        font-size: 14px;
+    }
+    
+    .option-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .option-item label {
+        min-width: auto;
+        width: 100%;
+        font-size: 14px;
+    }
+    
+    .volume-slider {
+        width: 100%;
+        margin: 0;
+    }
+    
+    .volume-value {
+        align-self: flex-end;
+        font-size: 18px;
+    }
+    
+    .switch-container {
+        width: 50px;
+        height: 25px;
+    }
+}
+
+@media (width < 1260px) {
+    .choices-container, 
+    .choices-buttons-container {
+        flex-direction: column !important;
     }
 }
 
