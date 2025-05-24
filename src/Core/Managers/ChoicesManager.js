@@ -1,8 +1,10 @@
+import App from '../../App.js';
 import EventEmitter from '../../Utils/EventEmitter.js';
 
 export class ChoicesManager {
     constructor() {
         this.container = null;
+        this.app = new App()
 
         this.buttons = [];
         this.eventEmitter = new EventEmitter();
@@ -52,7 +54,6 @@ export class ChoicesManager {
         document.body.appendChild(this.container);
 
     }
-    
 
     showChoices(options, callback) {
         return new Promise((resolve) => {
@@ -68,17 +69,22 @@ export class ChoicesManager {
                 this.container.appendChild(titleElement);
             }
 
-
             const buttonsContainer = document.createElement('div');
             buttonsContainer.classList.add('choices-buttons-container');
             this.container.appendChild(buttonsContainer);
 
             const button1Wrapper = document.createElement('div');
-            button1Wrapper.style.position = 'relative';
+            button1Wrapper.classList.add('dialog-button');
             
             const button1 = document.createElement('button');
             button1.classList.add('btn-base', 'choice-button');
             button1.innerText = button1.textContent = options.choice1;
+            if (options.disabledIndex === 0) {
+                button1.setAttribute('disabled', 'disabled');
+                button1.style.opacity = '0.5';
+                button1.style.cursor = 'not-allowed';
+                button1.style.pointerEvents = 'none';
+            }
 
             const img1 = document.createElement('img');
             img1.src = options.image1 || 'images/ui/u_key_hint.svg'; // à personnaliser
@@ -94,11 +100,17 @@ export class ChoicesManager {
             button1Wrapper.appendChild(button1);
 
             const button2Wrapper = document.createElement('div');
-            button2Wrapper.style.position = 'relative';
+            button2Wrapper.classList.add('dialog-button');
             
             const button2 = document.createElement('button');
             button2.classList.add('btn-base', 'choice-button'); 
             button2.innerText = button2.textContent = options.choice2;
+            if (options.disabledIndex === 1) {
+                button2.setAttribute('disabled', 'disabled');
+                button2.style.opacity = '0.5';
+                button2.style.cursor = 'not-allowed';
+                button2.style.pointerEvents = 'none';
+            }
 
             const img2 = document.createElement('img');
             img2.src = options.image1 || 'images/ui/i_key_hint.svg'; // à personnaliser
@@ -127,13 +139,25 @@ export class ChoicesManager {
 
             const keyHandler = (event) => {
                 if (event.key === 'u' || event.key === 'U') {
-                    document.removeEventListener('keydown', keyHandler);
-                    this._currentKeyHandler = null;
-                    this.handleChoice(1, resolve);
+                    if (options.disabledIndex === 0) {
+                        button1.classList.add('shake');
+                        this.app.postProcessing.triggerGlitch()
+                        setTimeout(() => button1.classList.remove('shake'), 200);
+                    } else {
+                        document.removeEventListener('keydown', keyHandler);
+                        this._currentKeyHandler = null;
+                        this.handleChoice(1, resolve);
+                    }
                 } else if (event.key === 'i' || event.key === 'I') {
-                    document.removeEventListener('keydown', keyHandler);
-                    this._currentKeyHandler = null;
-                    this.handleChoice(2, resolve);
+                    if (options.disabledIndex === 1) {
+                        button2.classList.add('shake');
+                        this.app.postProcessing.triggerGlitch()
+                        setTimeout(() => button2.classList.remove('shake'), 200);
+                    } else {
+                        document.removeEventListener('keydown', keyHandler);
+                        this._currentKeyHandler = null;
+                        this.handleChoice(2, resolve);
+                    }
                 }
             };
 

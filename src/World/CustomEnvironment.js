@@ -48,4 +48,10 @@ export default class CustomEnvironment {
         envTexture.dispose()
         pmremGenerator.dispose()
     }
+
+    setNightEnvironment() {
+        this.scene.environment = new Color(0x000000)
+        this.scene.background = new Color(0x000000)
+        
+    }
 }

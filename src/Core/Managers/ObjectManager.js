@@ -17,6 +17,13 @@ export default class ObjectManager {
         this.app = new App()
         this.clock = new THREE.Clock()
 
+        // Ajout du pool de nombres aléatoires pour l'optimisation
+        this._randomPool = new Float32Array(1000)
+        this._randomPoolIndex = 0
+        for (let i = 0; i < this._randomPool.length; i++) {
+            this._randomPool[i] = Math.random() - 0.5
+        }
+
         this.meshTransmissionMaterial = new MeshTransmissionMaterial({
             _transmission: 1,
             thickness: 0.5,
@@ -74,6 +81,16 @@ export default class ObjectManager {
 
         this.rebuildFrameCounter = 0
         this.rebuildFrequency = 1
+    }
+
+    /**
+     * Obtient un nombre aléatoire pré-calculé du pool
+     * @returns {number} Nombre aléatoire entre -0.5 et 0.5
+     */
+    _getRandomFromPool() {
+        const value = this._randomPool[this._randomPoolIndex]
+        this._randomPoolIndex = (this._randomPoolIndex + 1) % this._randomPool.length
+        return value
     }
 
     /**
@@ -415,40 +432,6 @@ export default class ObjectManager {
             }
         })
     }
-
-
-    removeCollisionsForObject(name) {
-        const storedObject = this.objects.get(name)
-        if (!storedObject) {
-            console.warn(`Object with name "${name}" not found.`)
-            return
-        }
-
-        storedObject.object.scene.traverse((child) => {
-            if (child.isMesh && child.userData.collide) {
-                // Trouve et retire le corps physique lié
-                const index = this.bodies.findIndex((body) => {
-                    return body.shapes.some((shape) => {
-                        return shape instanceof CANNON.Trimesh
-                    })
-                })
-
-                if (index !== -1) {
-                    const body = this.bodies[index]
-                    this.app.physicsManager.world.removeBody(body)
-                    this.bodies.splice(index, 1)
-                }
-
-                // Supprimer le wireframe de debug correspondant
-                const wireframe = this.collisionWireframes[index]
-                if (wireframe) {
-                    this.app.scene.remove(wireframe)
-                    this.collisionWireframes.splice(index, 1)
-                }
-            }
-        })
-    }
-
 
     createCustomShaderMaterial(baseMap) {
         return new CustomShaderMaterial({
@@ -868,6 +851,188 @@ export default class ObjectManager {
                 }
             })
         })
+    }
+
+    /**
+     * Rend un objet instable en termes de collisions et de positions
+     * @param {THREE.Object3D} object - L'objet 3D à rendre instable
+     * @param {Object} options - Options de configuration
+     * @param {Number} options.positionJitter - Amplitude du mouvement aléatoire de position (défaut: 0.1)
+     * @param {Number} options.rotationJitter - Amplitude de la rotation aléatoire (défaut: 0.05)
+     * @param {Number} options.collisionJitter - Amplitude de la déformation des collisions (défaut: 0.2)
+     * @param {Number} options.updateFrequency - Fréquence de mise à jour des mouvements (défaut: 5)
+     * @param {Number} options.lodDistance - Distance à laquelle réduire la fréquence de mise à jour (défaut: 20)
+     */
+    makeObjectBuggy(object, options = {}) {
+        if (!object || !(object instanceof THREE.Object3D)) {
+            console.warn('Invalid object provided to makeObjectBuggy')
+            return
+        }
+
+        const {
+            positionJitter = 0.1,
+            rotationJitter = 0.05,
+            collisionJitter = 0.2,
+            updateFrequency = 5,
+            lodDistance = 20
+        } = options
+
+        // Stocker les données originales de manière optimisée
+        const originalData = {
+            position: new THREE.Vector3().copy(object.position),
+            rotation: new THREE.Euler().copy(object.rotation),
+            bodies: [],
+            lastUpdate: 0,
+            distance: 0
+        }
+
+        // Trouver et stocker les corps physiques associés de manière optimisée
+        const bodies = []
+        object.traverse((child) => {
+            if (child.isMesh && child.userData.collide) {
+                const bodyIndex = this.bodies.findIndex((body) => {
+                    return body.shapes.some((shape) => shape instanceof CANNON.Trimesh)
+                })
+
+                if (bodyIndex !== -1) {
+                    const body = this.bodies[bodyIndex]
+                    const vertices = body.shapes[0].vertices
+                    const originalVertices = new Float32Array(vertices.length)
+                    originalVertices.set(vertices)
+                    
+                    bodies.push({
+                        body,
+                        originalVertices,
+                        vertexCount: vertices.length
+                    })
+                }
+            }
+        })
+        originalData.bodies = bodies
+
+        // Ajouter les propriétés de bug à l'objet de manière optimisée
+        object.isBuggy = true
+        object.buggyData = {
+            originalData,
+            positionJitter,
+            rotationJitter,
+            collisionJitter,
+            updateFrequency,
+            lodDistance,
+            frameCounter: 0,
+            _tempVector: new THREE.Vector3(),
+            _tempEuler: new THREE.Euler()
+        }
+
+        // Ajouter l'objet à la liste des objets à mettre à jour
+        if (!this.buggyObjects) {
+            this.buggyObjects = new Set()
+        }
+        this.buggyObjects.add(object)
+
+        // Modifier la fonction update pour inclure le comportement buggy si ce n'est pas déjà fait
+        if (!this._originalUpdate) {
+            this._originalUpdate = this.update.bind(this)
+            this.update = function(time) {
+                this._originalUpdate(time)
+
+                // Mise à jour des objets buggy
+                if (this.buggyObjects) {
+                    const cameraPosition = this.app.camera.mainCamera.position
+                    const now = performance.now()
+
+                    this.buggyObjects.forEach((object) => {
+                        if (!object.isBuggy) return
+
+                        const data = object.buggyData
+                        const originalData = data.originalData
+
+                        // Calcul de la distance à la caméra
+                        data._tempVector.copy(object.position).sub(cameraPosition)
+                        const distance = data._tempVector.length()
+                        originalData.distance = distance
+
+                        // Ajustement de la fréquence de mise à jour en fonction de la distance
+                        const frequency = distance > data.lodDistance ? 
+                            data.updateFrequency * 2 : data.updateFrequency
+
+                        // Mise à jour uniquement si nécessaire
+                        if (now - originalData.lastUpdate < 1000 / 60) return // Limite à 60 FPS
+                        if (data.frameCounter++ < frequency) return
+
+                        data.frameCounter = 0
+                        originalData.lastUpdate = now
+
+                        // Mouvement aléatoire de position optimisé
+                        const posJitter = data.positionJitter
+                        object.position.set(
+                            originalData.position.x + this._getRandomFromPool() * posJitter,
+                            originalData.position.y + this._getRandomFromPool() * posJitter,
+                            originalData.position.z + this._getRandomFromPool() * posJitter
+                        )
+
+                        // Rotation aléatoire optimisée
+                        const rotJitter = data.rotationJitter
+                        object.rotation.set(
+                            originalData.rotation.x + this._getRandomFromPool() * rotJitter,
+                            originalData.rotation.y + this._getRandomFromPool() * rotJitter,
+                            originalData.rotation.z + this._getRandomFromPool() * rotJitter
+                        )
+
+                        // Déformation des collisions optimisée
+                        if (distance <= data.lodDistance) {
+                            const colJitter = data.collisionJitter
+                            originalData.bodies.forEach((bodyData) => {
+                                const vertices = bodyData.body.shapes[0].vertices
+                                const originalVertices = bodyData.originalVertices
+                                const vertexCount = bodyData.vertexCount
+
+                                for (let i = 0; i < vertexCount; i += 3) {
+                                    const jitter = this._getRandomFromPool() * colJitter
+                                    vertices[i] = originalVertices[i] + jitter
+                                    vertices[i + 1] = originalVertices[i + 1] + jitter
+                                    vertices[i + 2] = originalVertices[i + 2] + jitter
+                                }
+
+                                bodyData.body.shapes[0].updateConvexPolyhedronRepresentation()
+                                bodyData.body.updateBoundingSphereRadius()
+                            })
+                        }
+                    })
+                }
+            }.bind(this)
+        }
+    }
+
+    /**
+     * Arrête le comportement buggy d'un objet
+     * @param {THREE.Object3D} object - L'objet à stabiliser
+     */
+    stopBuggyBehavior(object) {
+        if (!object || !object.isBuggy) return
+
+        const data = object.buggyData
+
+        // Restaurer la position et rotation originales
+        object.position.copy(data.originalData.position)
+        object.rotation.copy(data.originalData.rotation)
+
+        // Restaurer les collisions originales
+        data.originalData.bodies.forEach((bodyData) => {
+            const vertices = bodyData.body.shapes[0].vertices
+            vertices.set(bodyData.originalVertices)
+            bodyData.body.shapes[0].updateConvexPolyhedronRepresentation()
+            bodyData.body.updateBoundingSphereRadius()
+        })
+
+        // Nettoyer les propriétés buggy
+        delete object.isBuggy
+        delete object.buggyData
+
+        // Retirer l'objet de la liste des objets buggy
+        if (this.buggyObjects) {
+            this.buggyObjects.delete(object)
+        }
     }
 
     destroy() {

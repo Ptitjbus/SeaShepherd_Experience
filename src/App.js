@@ -135,9 +135,6 @@ export default class App extends EventEmitter {
         this.objectManager = new ObjectManager()
         this.soundManager = new SoundManager()
 
-        this.objectManager.addPointLight(new Vector3(-20, 6, 8), 0xf7c164, 30.0)
-
-
         this.objectManager.addBoids(50, 15, new Vector3(-51, 1.5, 18))
         this.objectManager.addBoids(20, 10, new Vector3(-77, 1.5, -25))
         this.objectManager.addBoids(10, 5, new Vector3(-37, 1.5, -8))
@@ -215,6 +212,10 @@ export default class App extends EventEmitter {
 
             if(!this.storyManager.savedStep || this.storyManager.savedStep === 'intro'){
                 this.storyManager.startExperience()
+            }
+
+            if (this.storyManager.savedStep === 'boat') {
+                this.storyManager.initBoatRoom()
             }
 
             this.physicsManager.controls.lock()

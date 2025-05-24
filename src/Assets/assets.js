@@ -19,7 +19,7 @@ export default [
     {
         name: 'nightHDR',
         type: 'exr',
-        path: '/hdri/night.exr',
+        path: '/hdri/dark_night.exr',
         license: '',
         author: '',
         url: ''
@@ -83,7 +83,7 @@ export default [
     {
         name: 'BoatScene',
         type: 'gltf',
-        path: '/models/glb/Bateau_V3.glb',
+        path: '/models/glb/Bateau_V4.glb',
         license: '',
         author: 'Kilian Rizzo',
         url: ''

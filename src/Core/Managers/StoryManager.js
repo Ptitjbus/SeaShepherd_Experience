@@ -22,6 +22,7 @@ export default class StoryManager {
     }
 
     async startOrResume() {
+        
         if (!this.savedStep) {
             this.app.objectManager.add("Dauphins", new THREE.Vector3(0, 0, 0))
             this.teleportPlayerTo(new THREE.Vector3(30, 1.3, 0), new THREE.Vector3(0, Math.PI / 2, 0))
@@ -198,12 +199,13 @@ export default class StoryManager {
 
         if (!this.checkActiveTask('aquaturtle')) return
         await this.app.soundManager.playVoiceLine('7.1_TORTUES')
+
+        this.app.objectManager.add("AquaturtleHaut", new THREE.Vector3(0, 0, 0))
     }
 
     async initElevator(){
         const elevator = this.app.objectManager.get("Elevator")
-        this.app.objectManager.add("AquaturtleHaut", new THREE.Vector3(0, 0, 0))
-
+        
         await Promise.all(
             elevator.animations.map((clip) => {
                 return new Promise((resolve) => {
@@ -251,20 +253,108 @@ export default class StoryManager {
         if (!this.checkActiveTask('aquaturtle')) return
         this.app.mediaManager.playMediaWithGlitch('error1')
         await this.app.soundManager.playVoiceLine('7.6_INTOX')
-        this.app.postProcessing.triggerGlitch()
+        this.app.postProcessing.triggerBigGlitch()
+        this.app.postProcessing.triggerBigGlitch()
 
         // ---
 
         this.initBoat()
+        this.initBoatRoom()
 
     }
 
     async initBoat(){
         await this.initRoom('boat')
+    }
 
-        await this.sleep(5000)
-        this.app.postProcessing.triggerGlitch()
-        // this.initEnd()
+    async initBoatRoom(){
+        await this.sleep(1000)
+
+        this.app.soundManager.playMusic('boat');
+        const glitchController = this.app.postProcessing.startRandomGlitches(0);
+
+        setTimeout(() => {
+            this.turnOnSpotsLights("paquebot")
+        }, 25000)
+        setTimeout(() => {
+            this.turnOnSpotsLights("pyrogue")
+        }, 32000)
+        await this.app.soundManager.playVoiceLine('8.1_TELEPORTATION')
+
+        await this.app.choicesManager.showChoices({
+            choice1: "Encore des mensonges ?",
+            choice2: "Non dites moi ?!",
+            disabledIndex: 1
+        }).then(async (choiceIndex) => {
+            if (choiceIndex === 1) {
+                glitchController.setFrequencyLevel(1);
+                this.app.soundManager.playMoreMusic('suspense');
+                await this.app.soundManager.playVoiceLine('8.2_CHOIX1');
+            }
+        });
+
+        // On attend que la voix et la vidéo soient toutes les deux terminées avant de continuer
+        const playVoiceLinePromise = new Promise((resolve) => {
+            setTimeout(async () => {
+                await this.app.soundManager.playVoiceLine('8.3_PIRATAGE');
+                resolve();
+            }, 10000);
+        });
+        const playMusicPromise = new Promise((resolve) => {
+            setTimeout(async () => {
+                setTimeout(() => {
+                    const paquebot = this.app.objectManager.getItemFromObject("Paquebot001", this.app.objectManager.get("BoatScene").object.scene)
+                    paquebot.visible = false
+                    const buggyObject = this.app.objectManager.getItemFromObject("Paquebot002", this.app.objectManager.get("BoatScene").object.scene)
+                    this.app.postProcessing.triggerBigGlitch()
+                    buggyObject.position.y += 4
+                    this.app.objectManager.makeObjectBuggy(buggyObject, {
+                        positionJitter: 0.1,
+                        rotationJitter: 0.05,
+                        collisionJitter: 0.2,
+                        updateFrequency: 2
+                    })
+                }, 2000)
+                resolve();
+            }, 3000);
+        });
+
+        const playMediaPromise = this.app.mediaManager.playMediaWithGlitch('bigvideo');
+
+        await Promise.all([playVoiceLinePromise, playMediaPromise, playMusicPromise]);
+        const barque = this.app.objectManager.getItemFromObject("Pirogue001", this.app.objectManager.get("BoatScene").object.scene)
+        if (barque) {
+            const tiltQuaternion = new THREE.Quaternion();
+            this.app.postProcessing.triggerBigGlitch()
+            this.app.postProcessing.triggerBigGlitch()
+            tiltQuaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI / 3); // 45 degrees around X axis
+            barque.quaternion.multiply(tiltQuaternion);
+            this.app.objectManager.makeObjectBuggy(barque, {
+                positionJitter: 0.1,
+                rotationJitter: 0.05,
+                collisionJitter: 0.2,
+                updateFrequency: 3
+            })
+        }
+        console.log("next")
+
+        let spotsManager = null
+
+        setTimeout(() => {
+            this.app.soundManager.playVoiceLine('8.4_LAFERME');
+            spotsManager = this.startRandomSpotsEffect()
+        }, 6000)
+        await this.app.mediaManager.playMediaWithGlitch('bigvideo');
+
+        setTimeout(() => {
+            this.app.postProcessing.triggerHugeGlitch()
+        }, 500)
+        
+        await this.app.soundManager.playVoiceLine('8.6_AGONIE');
+
+        glitchController.stop()
+        spotsManager.stop()
+        this.turnOffSpotsLights()
     }
 
     async initEnd() {
@@ -460,6 +550,110 @@ export default class StoryManager {
         this.app.objectManager.add("Tortue", new THREE.Vector3(0, 0, 0))
     }
 
+    initSpotsLights(){
+        const boatRoom = this.app.objectManager.get("BoatScene")
+        boatRoom.object.scene.traverse(object => {
+            if (object.name.toLowerCase().includes("spot")) {
+                object.visible = false
+                object.intensity = 10
+                object.decay = 0.0
+                object.distance = 30
+                this.app.soundManager.createSpeaker(object.position, object.name)
+            }
+        })
+    }
+
+    turnOffSpotsLights(){
+        const boatRoom = this.app.objectManager.get("BoatScene")
+        boatRoom.object.scene.traverse(object => {
+            if (object.name.toLowerCase().includes("spot")) {
+                object.visible = false
+            }
+        })
+    }
+
+    turnOnSpotsLights(name){
+        const boatRoom = this.app.objectManager.get("BoatScene")
+        boatRoom.object.scene.traverse(object => {
+            if (object.name.toLowerCase().includes("spot") && object.name.toLowerCase().includes(name)) {
+                object.visible = true
+                this.app.soundManager.playSpotSound(object.name)
+            }
+        })
+    }
+
+    turnOffScreens(){
+        const boatRoom = this.app.objectManager.get("BoatScene")
+        boatRoom.object.scene.traverse(object => {
+            if (object.isMesh && object.material.name.toLowerCase().includes("screen")) {
+                object.material.emissiveIntensity = 0.1
+                // object.material.color = new THREE.Color(0x000000)
+            }
+        })
+    }
+
+    /**
+     * Lance un effet de spots aléatoires qui s'allument et s'éteignent à des fréquences aléatoires.
+     * @returns {Object} - Un objet avec une méthode stop() pour arrêter l'effet.
+     */
+    startRandomSpotsEffect() {
+        const boatRoom = this.app.objectManager.get("BoatScene");
+        if (!boatRoom || !boatRoom.object || !boatRoom.object.scene) {
+            console.warn("BoatScene not loaded");
+            return { stop: () => {} };
+        }
+
+        // Récupérer tous les spots
+        const spots = [];
+        boatRoom.object.scene.traverse(object => {
+            if (object.name && object.name.toLowerCase().includes("spot")) {
+                spots.push(object);
+            }
+        });
+
+        let stopped = false;
+        let timeoutId = null;
+
+        const randomizeSpots = () => {
+            if (stopped) return;
+
+            // D'abord, éteindre tous les spots
+            spots.forEach(spot => {
+                spot.visible = false;
+            });
+
+            // Choisir un nombre aléatoire de spots à allumer (au moins 1)
+            const numToLight = Math.max(1, Math.floor(Math.random() * spots.length));
+            // Mélanger les spots
+            const shuffled = spots.slice().sort(() => Math.random() - 0.5);
+            // Allumer les spots choisis
+            for (let i = 0; i < numToLight; i++) {
+                shuffled[i].visible = true;
+                // Optionnel : jouer le son du spot
+                if (this.app.soundManager && typeof this.app.soundManager.playSpotSound === "function") {
+                    this.app.soundManager.playSpotSound(shuffled[i].name, 6);
+                }
+            }
+
+            // Définir le prochain délai aléatoire (entre 300ms et 2000ms)
+            const nextDelay = Math.random() * 100 + 50;
+            timeoutId = setTimeout(randomizeSpots, nextDelay);
+        };
+
+        // Démarrer la boucle
+        randomizeSpots();
+
+        // Retourner l'objet de contrôle
+        return {
+            stop: () => {
+                stopped = true;
+                if (timeoutId) clearTimeout(timeoutId);
+                // Optionnel : éteindre tous les spots à l'arrêt
+                spots.forEach(spot => { spot.visible = false; });
+            }
+        };
+    }
+
     async initRoom(roomName) {
         switch (roomName) {
             case 'intro':
@@ -502,10 +696,11 @@ export default class StoryManager {
                 this.saveManager.saveProgress(roomName)
                 this.activeTasks.push(roomName)
                 this.app.objectManager.add("BoatScene", new THREE.Vector3(0, 0, 0))
+                this.initSpotsLights()
+                this.turnOffScreens()
                 this.app.environment.setBlackEnvironment()
                 this.app.soundManager.attachToSpeakers()
                 this.app.soundManager.stopAllMusicSounds(true, false)
-                this.app.postProcessing.triggerGlitch()
                 this.app.objectManager.remove("Dauphins")
                 this.app.objectManager.removeBoids()
                 this.app.objectManager.remove("Couloir")
@@ -514,7 +709,9 @@ export default class StoryManager {
                 this.app.objectManager.remove("Tortue")
                 this.app.objectManager.remove("AquaturtleHaut")
                 this.app.objectManager.waterUniformData.uColor2.value.setHex(0x020222)
+                this.app.objectManager.removeBoids()
                 this.teleportPlayerTo(new THREE.Vector3(0, 3.5, 47), new THREE.Vector3(0, 0, 0))
+                break;
             case 'end':
                 this.clearTasks()
                 this.saveManager.saveProgress(roomName)

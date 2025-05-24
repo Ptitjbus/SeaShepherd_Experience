@@ -17,7 +17,7 @@ export default class CanvasSize extends EventEmitter {
         this.width = 0
         this.height = 0
         this.aspect = 0
-        this.pixelRatio = Math.min(2, window.devicePixelRatio)
+        this.pixelRatio = 1
     
         this.init()
     }

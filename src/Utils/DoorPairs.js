@@ -477,12 +477,12 @@ export default class DoorPair {
         // Arrêter le son de fermeture si en cours
         this.soundManager.stopSound(this.doorCloseSoundId);
         
-        console.log('Playing sound:', this.doorOpenSoundId, 'path:', '/audio/doors/open.mp3');
+        console.log('Playing sound:', this.doorOpenSoundId, 'path:', '/audio/sfx/doors/open.mp3');
         
         // Jouer le son d'ouverture sur le haut-parleur
         this.soundManager.playSoundOnSpeaker(
             this.doorOpenSoundId,
-            '/audio/doors/open.mp3',
+            '/audio/sfx/doors/open.mp3',
             {
                 volume: 0.4,
                 maxDistance: 15,
@@ -504,12 +504,12 @@ export default class DoorPair {
         // Arrêter le son d'ouverture si en cours
         this.soundManager.stopSound(this.doorOpenSoundId);
         
-        console.log('Playing sound:', this.doorCloseSoundId, 'path:', '/audio/doors/close.mp3');
+        console.log('Playing sound:', this.doorCloseSoundId, 'path:', '/audio/sfx/doors/close.mp3');
         
         // Jouer le son de fermeture sur le haut-parleur
         this.soundManager.playSoundOnSpeaker(
             this.doorCloseSoundId,
-            '/audio/doors/close.mp3',
+            '/audio/sfx/doors/close.mp3',
             {
                 volume: 0.5,
                 maxDistance: 15,

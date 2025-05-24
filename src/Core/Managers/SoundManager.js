@@ -1,6 +1,6 @@
 import { Howl } from 'howler'
 import App from '../../App'
-import { Vector3 } from 'three'
+import * as THREE from 'three'
 
 export default class SoundManager {
     constructor() {
@@ -13,6 +13,44 @@ export default class SoundManager {
         this.subtitles = {}  // Store active subtitles by sound name
         this.subtitleElement = null  // Element to display subtitles
         this.initSubtitleDisplay()
+    }
+
+    /**
+     * Crée un nouveau speaker dans la scène à la position spécifiée
+     * @param {THREE.Vector3} position - Position du speaker dans la scène
+     * @param {string} [name] - Nom optionnel pour identifier le speaker
+     * @returns {Object3D} Le speaker créé
+     */
+    createSpeaker(position, name = null) {
+        // Créer un objet 3D simple pour représenter le speaker sans matériau
+        const speakerGeometry = new THREE.SphereGeometry(0.1, 16, 16)
+        const speakerMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0 })
+        const speaker = new THREE.Mesh(speakerGeometry, speakerMaterial)
+        
+        // Positionner le speaker
+        speaker.position.copy(position)
+        
+        // Marquer comme speaker pour l'identification
+        speaker.userData.is_speaker = true
+        if (name) {
+            speaker.userData.name = name
+            speaker.name = name // Ajouter aussi le nom à l'objet Three.js pour faciliter le debugging
+        }
+        
+        // Ajouter à la scène
+        this.app.scene.add(speaker)
+        
+        // Ajouter aux speakers gérés
+        this.speakers.push({
+            object: speaker,
+            position: position.clone(),
+            name: name
+        })
+        
+        // Créer le helper de debug si nécessaire
+        this.app.debug.createSpeakerHelper(speaker, this.app.scene, position)
+        
+        return speaker
     }
 
     initSubtitleDisplay() {
@@ -44,7 +82,7 @@ export default class SoundManager {
     attachToSpeakers() {
         this.app.scene.traverse((child) => {
             if (child.userData.is_speaker) {
-                const position = new Vector3()
+                const position = new THREE.Vector3()
                 const worldPosition = child.getWorldPosition(position)
 
                 this.app.debug.createSpeakerHelper(child, this.app.scene, worldPosition)
@@ -71,8 +109,8 @@ export default class SoundManager {
     
         if (!camera) return
     
-        const position = new Vector3()
-        const orientation = new Vector3()
+        const position = new THREE.Vector3()
+        const orientation = new THREE.Vector3()
     
         camera.mainCamera.getWorldPosition(position)
         camera.mainCamera.getWorldDirection(orientation)
@@ -90,7 +128,7 @@ export default class SoundManager {
      * @param {boolean} options.loop - Si le son doit jouer en boucle
      * @param {number} options.volume - Volume du son (0.0 à 1.0)
      * @param {boolean} options.spatial - Si le son doit être spatialisé 3D
-     * @param {Vector3} options.position - Position du son dans l'espace 3D
+     * @param {THREE.Vector3} options.position - Position du son dans l'espace 3D
      * @returns {number} ID du son joué
      */
     playSound(name, src, options = {}) {
@@ -139,6 +177,43 @@ export default class SoundManager {
         
         return id
     }
+
+    /**
+     * Joue un son simple sans spatialisation
+     * @param {string} name - Identifiant unique pour ce son
+     * @param {string|string[]} src - Chemin(s) vers le(s) fichier(s) audio
+     * @param {Object} options - Options supplémentaires pour le son
+     * @param {boolean} options.loop - Si le son doit jouer en boucle
+     * @param {number} options.volume - Volume du son (0.0 à 1.0)
+     * @param {Function} options.onend - Callback appelé quand le son se termine
+     * @returns {number} ID du son joué
+     */
+    playSimpleSound(name, src, options = {}) {
+        const defaultOptions = {
+            loop: false,
+            volume: 1.0,
+            onend: null,
+            stopAll: true 
+        }
+        
+        const finalOptions = { ...defaultOptions, ...options }
+        
+        // Arrêter le son s'il existe déjà
+        if (this.customSounds[name] && finalOptions.stopAll) {
+            this.customSounds[name].stop()
+            this.customSounds[name].unload()
+        }
+        
+        const sound = new Howl({
+            src: Array.isArray(src) ? src : [src],
+            loop: finalOptions.loop,
+            volume: finalOptions.volume,
+            onend: finalOptions.onend
+        })
+        
+        this.customSounds[name] = sound
+        return sound.play()
+    }
     
     /**
      * Joue un son spatialisé sur un speaker précis (Object3D)
@@ -181,7 +256,7 @@ export default class SoundManager {
 
         // Positionner le son sur le speaker
         if (speaker && speaker.getWorldPosition) {
-            const pos = new Vector3()
+            const pos = new THREE.Vector3()
             speaker.getWorldPosition(pos)
             sound.pos(pos.x, pos.y, pos.z, id)
             sound.pannerAttr({
@@ -194,6 +269,19 @@ export default class SoundManager {
         }
 
         return id
+    }
+
+    playSpotSound(name, volume = 10){
+        const speaker = this.speakers.find(speaker => speaker.name === name)
+        this.playSoundOnSpeaker(
+            name,
+            'audio/sfx/spots/turn_on.mp3',
+            {
+                volume: volume,
+                maxDistance: 15,
+            },
+            speaker.object
+        );
     }
 
     /**
@@ -407,13 +495,14 @@ export default class SoundManager {
             maxDistance: 5,
             refDistance: 1,
             rolloffFactor: 1,
-            vttSrc: null
+            vttSrc: null,
+            stopAll: true
         }
         
         const finalOptions = { ...defaultOptions, ...options }
         
         // Si le son existe déjà, on l'arrête
-        if (this.musics[name]) {
+        if (this.musics[name] && finalOptions.stopAll) {
             this.musics[name].forEach(sound => {
                 sound.stop()
                 sound.unload()
@@ -646,9 +735,9 @@ export default class SoundManager {
         console.log("play sound "+ name)
         return new Promise((resolve) => {
             this.playSoundOnSpeakers('voiceLine ' + name, `audio/voices/${name}.mp3`, {
-                volume: 10,
+                volume: 2,
                 loop: false,
-                maxDistance: 8,
+                maxDistance: 20,
                 vttSrc: `audio/subtitles/${name}.vtt`,
                 onend: () => {
                     resolve('end');
@@ -664,6 +753,20 @@ export default class SoundManager {
                 volume: 1,
                 loop: true,
                 maxDistance: 8,
+                onend: () => {
+                    resolve('end');
+                }
+            });
+        });
+    }
+
+    async playMoreMusic(name) {
+        return new Promise((resolve) => {
+            this.playMusicOnSpeakers('voiceLine ' + name, `audio/musics/${name}.mp3`, {
+                volume: 0.5,
+                loop: true,
+                maxDistance: 8,
+                stopAll: false,
                 onend: () => {
                     resolve('end');
                 }
