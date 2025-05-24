@@ -148,16 +148,6 @@ static/                   # Assets statiques
 - **Entrée** : Interagir / Valider les choix
 - **Échap** : Quitter le mode pointer lock
 
-## 🔧 Configuration
-
-### Variables d'environnement
-
-Créer un fichier `.env` à la racine (optionnel) :
-```env
-VITE_API_URL=your_api_url
-VITE_ANALYTICS_ID=your_analytics_id
-```
-
 ### Personnalisation
 
 - **Assets** : Placer les nouveaux assets dans le dossier `static/`
@@ -243,18 +233,6 @@ Pour signaler un bug ou demander de l'aide :
 - Ouvrir une issue sur le repository
 - Inclure les informations système et navigateur
 - Joindre les logs de la console si possible
-
-## 📄 Licence
-
-Ce projet est sous licence [MIT](LICENSE) - voir le fichier LICENSE pour plus de détails.
-
-## 🤝 Contribution
-
-1. Fork le projet
-2. Créer une branche feature (`git checkout -b feature/AmazingFeature`)
-3. Commiter les changements (`git commit -m 'Add some AmazingFeature'`)
-4. Push vers la branche (`git push origin feature/AmazingFeature`)
-5. Ouvrir une Pull Request
 
 ---
 
