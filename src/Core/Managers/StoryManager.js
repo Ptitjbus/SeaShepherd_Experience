@@ -558,6 +558,19 @@ export default class StoryManager {
 
         window.addEventListener('keydown', this.handleEndPanelEnter)
 
+        await this.app.choicesManager
+            .showChoices({
+                choice1: "Soutenir leur combat",
+                choice2: 'Rejoindre Sea Shepherd',
+            })
+            .then(async choiceIndex => {
+                if (choiceIndex === 1) {
+                    window.open('https://www.helloasso.com/associations/sea-shepherd-france/formulaires/1', '_blank')
+                } else {
+                    window.open('https://seashepherd.fr/nous-rejoindre/', '_blank')
+                }
+            })
+
         // this.app.soundManager.playMusic('end_ambience');
 
         await this.sleep(1000)
