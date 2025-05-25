@@ -203,29 +203,126 @@ export default class App extends EventEmitter {
     }
 
     setupUI() {
+        this.startButton = document.getElementById('start-experience-btn')
+        const creditsBtn = document.getElementById('credits-btn')
+        const backBtn = document.getElementById('back-btn')
         this.startOverlay = document.querySelector('.start-overlay')
-        this.startButton = document.querySelector('.start-button')
-        this.endOverlay = document.querySelector('.end-overlay')
+        const creditsOverlay = document.getElementById('credits-overlay')
+
+        if (this.startButton) {
+            this.startButton.addEventListener('click', async (e) => {
+                e.preventDefault()
                 
-        this.startButton.addEventListener('click', (e) => {
-            e.preventDefault()
+                this.startOverlay.classList.add('hidden')
+                setTimeout(() => {
+                    this.startOverlay.style.display = 'none'
+                }, 1500)
+                this.canvas.style.opacity = '1'
 
-            this.startOverlay.classList.add('hidden')
-            this.canvas.style.opacity = '1'
-            this.soundManager.attachToSpeakers()
+                this.soundManager.attachToSpeakers()
 
-            if(!this.storyManager.savedStep || this.storyManager.savedStep === 'intro'){
-                this.storyManager.startExperience()
-            }
+                if(!this.storyManager.savedStep || this.storyManager.savedStep === 'intro'){
+                    this.storyManager.startExperience()
+                }
 
-            if (this.storyManager.savedStep === 'boat') {
-                this.storyManager.initBoatRoom()
-            }
+                if (this.storyManager.savedStep === 'boat') {
+                    this.storyManager.initBoatRoom()
+                }
 
-            this.startButton.style.display = 'none'
+                this.startButton.style.display = 'none'
 
-            this.physicsManager.controls.lock()
-        })
+                this.physicsManager.controls.lock()
+
+            })
+        }
+
+        // Gestionnaire pour le bouton crédits
+        if (creditsBtn) {
+            creditsBtn.addEventListener('click', () => {
+                console.log('Credits button clicked')
+                this.startOverlay.style.opacity = '0'
+                creditsOverlay.classList.remove('hidden')
+            })
+        }
+
+        // Gestionnaire pour le bouton retour
+        if (backBtn) {
+            backBtn.addEventListener('click', () => {
+                console.log('Back button clicked')
+                creditsOverlay.classList.add('hidden')
+                this.startOverlay.style.opacity = '1'
+            })
+        }
+
+        // Gestionnaire pour le bouton options
+        const optionsBtn = document.querySelectorAll('.footer-btn-right')[1] // Le deuxième bouton (options)
+        const backOptionsBtn = document.getElementById('back-options-btn')
+        const optionsOverlay = document.getElementById('options-overlay')
+
+        if (optionsBtn) {
+            optionsBtn.addEventListener('click', () => {
+                console.log('Options button clicked')
+                this.startOverlay.style.opacity = '0'
+                creditsOverlay.classList.add('hidden')
+                optionsOverlay.classList.remove('hidden')
+            })
+        }
+
+        // Gestionnaire pour le bouton retour des options
+        if (backOptionsBtn) {
+            backOptionsBtn.addEventListener('click', () => {
+                console.log('Back options button clicked')
+                optionsOverlay.classList.add('hidden')
+                this.startOverlay.style.opacity = '1'
+            })
+        }
+
+        // Gestionnaires pour les sliders de volume
+        const musicSlider = document.getElementById('music-volume')
+        const sfxSlider = document.getElementById('sfx-volume')
+        
+        if (musicSlider) {
+            musicSlider.addEventListener('input', (e) => {
+                const value = e.target.value
+                e.target.nextElementSibling.textContent = `${value}%`
+                // Ici vous pouvez ajouter la logique pour changer le volume de la musique
+            })
+        }
+
+        if (sfxSlider) {
+            sfxSlider.addEventListener('input', (e) => {
+                const value = e.target.value
+                e.target.nextElementSibling.textContent = `${value}%`
+                // Ici vous pouvez ajouter la logique pour changer le volume des effets sonores
+            })
+        }
+
+        // Gestionnaire pour le switch de qualité graphique
+        const switchContainer = document.querySelector('.switch-container')
+        const switchOptions = document.querySelectorAll('.switch-option')
+
+        if (switchContainer && switchOptions.length > 0) {
+            // Initialiser le switch avec la valeur par défaut (false = Faible)
+            switchContainer.setAttribute('data-active', 'false')
+            
+            switchOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    // Retirer la classe active de toutes les options
+                    switchOptions.forEach(opt => opt.classList.remove('active'))
+                    
+                    // Ajouter la classe active à l'option cliquée
+                    option.classList.add('active')
+                    
+                    // Mettre à jour l'attribut data-active du conteneur
+                    const value = option.getAttribute('data-value')
+                    switchContainer.setAttribute('data-active', value)
+                    
+                    // Ici vous pouvez ajouter la logique pour changer la qualité graphique
+                    const isHighQuality = value === 'true'
+                    console.log('Qualité graphique élevée:', isHighQuality)
+                })
+            })
+        }
     }
 
     update(time) {
