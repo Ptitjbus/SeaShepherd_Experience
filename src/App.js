@@ -216,6 +216,10 @@ export default class App extends EventEmitter {
                     this.storyManager.initBoatRoom()
                 }
 
+                if (this.storyManager.savedStep === 'corridor') {
+                    this.storyManager.initRoom('corridor')
+                }
+
                 this.startButton.style.display = 'none'
 
                 this.physicsManager.controls.lock()

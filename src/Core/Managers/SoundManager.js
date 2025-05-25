@@ -283,6 +283,7 @@ export default class SoundManager extends EventEmitter {
             rolloffFactor: 1,
             vttSrc: null,
             isMusic: false,
+            stopAll: true,
         }
 
         const finalOptions = { ...defaultOptions, ...sound.options, ...options }
@@ -312,8 +313,11 @@ export default class SoundManager extends EventEmitter {
             })
         }
 
-        this.customSounds[name] = []
-        this.musics[name] = []
+        if (finalOptions.isMusic) {
+            this.musics[name] = []
+        } else {
+            this.customSounds[name] = []
+        }
         const ids = []
 
         let subtitleCues = []
@@ -345,7 +349,7 @@ export default class SoundManager extends EventEmitter {
                 id
             )
 
-            if (index === 0 && subtitleCues.length > 0) {
+            if (index === 0 && subtitleCues.length > 0 && !finalOptions.isMusic) {
                 this.initSubtitlesForSound(name, sound.howl, id, subtitleCues)
             }
         })
@@ -489,14 +493,22 @@ export default class SoundManager extends EventEmitter {
                 // Pour les sons joués sur les haut-parleurs
                 sound.forEach(s => {
                     if (fade) {
-                        this.fadeOut(s, s.volume(), 0, 1000, downPitch) // Durée de 1 seconde
+                        if (s.howl) {
+                            this.fadeOut(s.howl, s.howl.volume(), 0, 1000, downPitch) // Durée de 1 seconde
+                        } else {
+                            this.fadeOut(s, s.volume(), 0, 1000, downPitch) // Durée de 1 seconde
+                        }
                     } else {
                         s.stop()
                     }
                 })
             } else {
                 if (fade) {
-                    this.fadeOut(sound, sound.volume(), 0, 1000, downPitch) // Durée de 1 seconde
+                    if (sound.howl) {
+                        this.fadeOut(sound.howl, sound.howl.volume(), 0, 1000, downPitch) // Durée de 1 seconde
+                    } else {
+                        this.fadeOut(sound, sound.volume(), 0, 1000, downPitch) // Durée de 1 seconde
+                    }
                 } else {
                     sound.stop()
                 }
@@ -519,14 +531,22 @@ export default class SoundManager extends EventEmitter {
                 // Pour les sons joués sur les haut-parleurs
                 sound.forEach(s => {
                     if (fade) {
-                        this.fadeOut(s, s.volume(), 0, 1000, downPitch) // Durée de 1 seconde
+                        if (s.howl) {
+                            this.fadeOut(s.howl, s.howl.volume(), 0, 1000, downPitch) // Durée de 1 seconde
+                        } else {
+                            this.fadeOut(s, s.volume(), 0, 1000, downPitch) // Durée de 1 seconde
+                        }
                     } else {
                         s.stop()
                     }
                 })
             } else {
                 if (fade) {
-                    this.fadeOut(sound, sound.volume(), 0, 1000, downPitch) // Durée de 1 seconde
+                    if (sound.howl) {
+                        this.fadeOut(sound.howl, sound.howl.volume(), 0, 1000, downPitch) // Durée de 1 seconde
+                    } else {
+                        this.fadeOut(sound, sound.volume(), 0, 1000, downPitch) // Durée de 1 seconde
+                    }
                 } else {
                     sound.stop()
                 }
@@ -549,12 +569,11 @@ export default class SoundManager extends EventEmitter {
     }
 
     async playMusic(name) {
-        this.stopAllMusicSounds()
+        this.stopAllMusicSounds(true)
 
         return new Promise(resolve => {
             this.playSoundOnSpeakers(name, {
                 loop: true,
-                maxDistance: 8,
                 isMusic: true,
                 onend: () => {
                     resolve('end')

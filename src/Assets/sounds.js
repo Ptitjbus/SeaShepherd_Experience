@@ -40,6 +40,18 @@ export default [
         url: ''
     },
     {
+        name: 'corridor_ambiance',
+        type: 'music',
+        path: '/audio/musics/corridor_ambiance.mp3',
+        options: {
+            loop: true,
+            volume: 1
+        },
+        license: '',
+        author: '',
+        url: ''
+    },
+    {
         name: 'pub',
         type: 'music',
         path: '/audio/musics/pub.mp3',
@@ -69,7 +81,7 @@ export default [
         path: '/audio/musics/boat.mp3',
         options: {
             loop: true,
-            volume: 0.5
+            volume: 0.2
         },
         license: '',
         author: '',
@@ -725,7 +737,7 @@ export default [
         path: 'audio/sfx/doors/open.mp3',
         options: {
             loop: false,
-            volume: 0.4
+            volume: 1
         },
         license: '',
         author: '',
@@ -737,7 +749,7 @@ export default [
         path: '/audio/sfx/doors/close.mp3',
         options: {
             loop: false,
-            volume: 0.5
+            volume: 1
         },
         license: '',
         author: '',

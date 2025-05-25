@@ -168,9 +168,14 @@ export default class ObjectManager {
                         this.shaderMeshes.push(child)
                     }
 
+                    if (child.material.name.includes('MWPalmTree') && child.isInstancedMesh
+                    ) {
+                        child.material.depthWrite = true
+                        child.material.depthTest = true
+                    }
+
                     if (
-                        child.material.name.toLowerCase().includes('algue') &&
-                        child.isInstancedMesh
+                        (child.material.name.toLowerCase().includes('algue') || child.material.name.toLowerCase().includes('coraux')) && child.isInstancedMesh
                     ) {
                         const material = this.createShadeDeformationrMaterial(child.material.map)
                         material.name = child.material.name
@@ -462,6 +467,8 @@ export default class ObjectManager {
             vertexShader: LayerShader.vertexShader,
             fragmentShader: LayerShader.fragmentShader,
             side: THREE.DoubleSide,
+            depthWrite: true,
+            depthTest: true,
             transparent: true,
             defines: { USE_INSTANCING: '' },
         })
@@ -555,6 +562,8 @@ export default class ObjectManager {
         waterMaterial.vertexShader = WaterShader.vertexShader
         waterMaterial.fragmentShader = PerlinNoise.fragmentShader + WaterShader.fragmentShader
         waterMaterial.needsUpdate = true
+        waterMaterial.depthWrite = true
+        waterMaterial.depthTest = true
         // waterMaterial.transparent = true
         // waterMaterial.side = THREE.DoubleSide
 

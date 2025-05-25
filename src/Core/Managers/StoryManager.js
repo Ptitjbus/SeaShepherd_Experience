@@ -14,6 +14,8 @@ export default class StoryManager {
         this.activePanelIndex = null
         this.experienceEnded = false
 
+        this.corridorRoomLoaded = false
+
         this.init()
     }
 
@@ -41,6 +43,7 @@ export default class StoryManager {
             case 'corridor':
                 this.app.objectManager.add('Couloir', new THREE.Vector3(0, 0, 0))
                 this.teleportPlayerTo(new THREE.Vector3(-51, 1.3, -35.55))
+                this.app.soundManager.playMusic('corridor_ambiance')
                 break
             case 'aquaturtle':
                 this.createTurtlesBottom()
@@ -163,7 +166,9 @@ export default class StoryManager {
     }
 
     async initCorridor() {
-        await this.initRoom('corridor')
+        if (!this.corridorRoomLoaded) {
+            await this.initRoom('corridor')
+        }
 
         if (!this.checkActiveTask('corridor')) return
         await this.app.soundManager.playVoiceLine('6.1_PUB')
@@ -748,6 +753,8 @@ export default class StoryManager {
                 this.app.postProcessing.triggerGlitch()
                 this.app.objectManager.remove('Dauphins')
                 this.app.objectManager.removeBoids()
+                this.app.soundManager.playMusic('corridor_ambiance')
+                this.corridorRoomLoaded = true
                 break
             case 'aquaturtle':
                 this.clearTasks()

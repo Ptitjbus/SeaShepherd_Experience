@@ -107,6 +107,33 @@ body {
 }
 
 /* ====== BUTTONS BASE ====== */
+
+.choices-container {
+    position: fixed;
+    width: 100%;
+    bottom: 160px;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 32px;
+}
+
+.choices-buttons-container {
+    display: flex;
+    gap: 42px;
+}
+
+.choices-title {
+    font-family: 'montserrat', sans-serif;
+    font-weight: 500;
+    font-size: 20px;
+    color: #fff;
+    text-align: center;
+    background-color: rgba(0, 0, 0, 50%);
+    padding: 10px 20px;
+}
+
 .btn-base {
     position: relative;
     color: #fff;
@@ -123,8 +150,9 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: rgba(0, 0, 0, 10%);
+    background-color: rgba(0, 21, 68, 0.5);
     min-width: 550px;
+    backdrop-filter: blur(10px);
 }
 
 .start-button {
@@ -468,6 +496,7 @@ body {
 
 .room-title-container {
     position: fixed;
+    width: 80%;
     top: 40%;
     left: 50%;
     transform: translate(-50%, -50%);
@@ -601,13 +630,6 @@ body {
     .switch-container {
         width: 50px;
         height: 25px;
-    }
-}
-
-@media (width < 1260px) {
-    .choices-container,
-    .choices-buttons-container {
-        flex-direction: column !important;
     }
 }
 
