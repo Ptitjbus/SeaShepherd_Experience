@@ -7,7 +7,8 @@
     "dev": "vite",
     "vercel-build": "pnpm run prepare-lfs && git lfs pull && pnpm run build",
     "prepare-lfs": "git lfs install && git lfs fetch && git lfs checkout",
-    "build": "vite build"
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "devDependencies": {
     "vite": "^6.2.2",
@@ -25,6 +26,7 @@
     "lil-gui": "^0.20.0",
     "npm": "^11.3.0",
     "react": "^19.1.0",
+    "terser": "^5.39.2",
     "three": "^0.174.0",
     "three-custom-shader-material": "^6.3.5"
   }

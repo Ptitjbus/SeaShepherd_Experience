@@ -1,18 +1,59 @@
 import { Howl } from 'howler'
 import App from '../../App'
 import * as THREE from 'three'
+import soundAssets from '../../Assets/sounds.js'
+import EventEmitter from '../../Utils/EventEmitter.js'
 
-export default class SoundManager {
+export default class SoundManager extends EventEmitter {
     constructor() {
+        super()
         this.app = new App()
         this.soundIds = []
         this.customSounds = {}
         this.musics = {}
+        this.preloadedSounds = {} // Store preloaded sounds
         this.isPaused = true
         this.speakers = []
         this.subtitles = {}  // Store active subtitles by sound name
         this.subtitleElement = null  // Element to display subtitles
+        this.sounds = {} // Store preloaded sounds
         this.initSubtitleDisplay()
+    }
+
+    /**
+     * Initialise et précharge tous les sons définis dans sounds.js
+     * @returns {Promise} Promesse résolue quand tous les sons sont chargés
+     */
+    async initSounds() {
+        const loadPromises = soundAssets.map(sound => {
+            return new Promise((resolve, reject) => {
+                const howl = new Howl({
+                    src: [sound.path],
+                    loop: sound.options.loop,
+                    volume: sound.options.volume,
+                    onload: () => {
+                        this.sounds[sound.name] = {
+                            howl,
+                            options: sound.options
+                        }
+                        console.log(`SoundManager :: new item stored : ${sound.name}`)
+                        resolve()
+                    },
+                    onloaderror: (id, error) => {
+                        console.error(`Failed to load sound ${sound.name}:`, error)
+                        reject(error)
+                    }
+                })
+            })
+        })
+
+        try {
+            await Promise.all(loadPromises)
+            this.trigger('ready')
+            console.log('All sounds loaded successfully')
+        } catch (error) {
+            console.error('Error loading sounds:', error)
+        }
     }
 
     /**
@@ -121,64 +162,6 @@ export default class SoundManager {
     }
 
     /**
-     * Joue un son spécifique depuis un fichier audio
-     * @param {string} name - Identifiant unique pour ce son
-     * @param {string|string[]} src - Chemin(s) vers le(s) fichier(s) audio
-     * @param {Object} options - Options supplémentaires pour le son
-     * @param {boolean} options.loop - Si le son doit jouer en boucle
-     * @param {number} options.volume - Volume du son (0.0 à 1.0)
-     * @param {boolean} options.spatial - Si le son doit être spatialisé 3D
-     * @param {THREE.Vector3} options.position - Position du son dans l'espace 3D
-     * @returns {number} ID du son joué
-     */
-    playSound(name, src, options = {}) {
-        const defaultOptions = {
-            loop: false,
-            volume: 1.0,
-            spatial: false,
-            position: null,
-            onend: null
-        }
-        
-        const finalOptions = { ...defaultOptions, ...options }
-        
-        if (this.customSounds[name]) {
-            this.customSounds[name].stop()
-            this.customSounds[name].unload()
-        }
-        
-        const sound = new Howl({
-            src: Array.isArray(src) ? src : [src],
-            loop: finalOptions.loop,
-            volume: finalOptions.volume,
-            onend: finalOptions.onend
-        })
-        
-        this.customSounds[name] = sound
-        
-        const id = sound.play()
-        
-        if (finalOptions.spatial && finalOptions.position) {
-            sound.pos(
-                finalOptions.position.x,
-                finalOptions.position.y,
-                finalOptions.position.z,
-                id
-            )
-            
-            sound.pannerAttr({
-                panningModel: 'HRTF',
-                distanceModel: 'inverse',
-                refDistance: 1,
-                maxDistance: 10,
-                rolloffFactor: 1
-            }, id)
-        }
-        
-        return id
-    }
-
-    /**
      * Joue un son simple sans spatialisation
      * @param {string} name - Identifiant unique pour ce son
      * @param {string|string[]} src - Chemin(s) vers le(s) fichier(s) audio
@@ -188,31 +171,24 @@ export default class SoundManager {
      * @param {Function} options.onend - Callback appelé quand le son se termine
      * @returns {number} ID du son joué
      */
-    playSimpleSound(name, src, options = {}) {
+    playSimpleSound(name, options = {}) {
+        const sound = this.sounds[name]
+        if (!sound) {
+            console.error(`Sound ${name} not found`)
+            return null
+        }
+        
         const defaultOptions = {
             loop: false,
             volume: 1.0,
             onend: null,
-            stopAll: true 
+            stopAll: false 
         }
         
-        const finalOptions = { ...defaultOptions, ...options }
+        const finalOptions = { ...defaultOptions, ...sound.options, ...options }
         
-        // Arrêter le son s'il existe déjà
-        if (this.customSounds[name] && finalOptions.stopAll) {
-            this.customSounds[name].stop()
-            this.customSounds[name].unload()
-        }
-        
-        const sound = new Howl({
-            src: Array.isArray(src) ? src : [src],
-            loop: finalOptions.loop,
-            volume: finalOptions.volume,
-            onend: finalOptions.onend
-        })
-        
-        this.customSounds[name] = sound
-        return sound.play()
+        this.customSounds[name] = sound.howl
+        return sound.howl.play()
     }
     
     /**
@@ -223,7 +199,13 @@ export default class SoundManager {
      * @param {Object3D} speaker - Speaker cible
      * @returns {number} ID du son joué
      */
-    playSoundOnSpeaker(name, src, options = {}, speaker) {
+    playSoundOnSpeaker(name, speaker, options = {}) {
+        const sound = this.sounds[name]
+        if (!sound) {
+            console.error(`Sound ${name} not found`)
+            return null
+        }
+        
         const defaultOptions = {
             loop: false,
             volume: 1.0,
@@ -232,34 +214,27 @@ export default class SoundManager {
             rolloffFactor: 1,
             onend: null
         }
-        const finalOptions = { ...defaultOptions, ...options }
+        const finalOptions = { ...defaultOptions, ...sound.options, ...options }
 
         // Stop previous sound if exists
         if (this.customSounds[name]) {
             if (Array.isArray(this.customSounds[name])) {
-                this.customSounds[name].forEach(sound => sound.stop())
+                this.customSounds[name].forEach(sound => sound.howl.stop())
             } else {
-                this.customSounds[name].stop()
+                this.customSounds[name].howl.stop()
             }
         }
 
-        const sound = new Howl({
-            src: Array.isArray(src) ? src : [src],
-            loop: finalOptions.loop,
-            volume: finalOptions.volume,
-            onend: finalOptions.onend
-        })
-
         this.customSounds[name] = sound
 
-        const id = sound.play()
+        const id = sound.howl.play()
 
         // Positionner le son sur le speaker
         if (speaker && speaker.getWorldPosition) {
             const pos = new THREE.Vector3()
             speaker.getWorldPosition(pos)
-            sound.pos(pos.x, pos.y, pos.z, id)
-            sound.pannerAttr({
+            sound.howl.pos(pos.x, pos.y, pos.z, id)
+            sound.howl.pannerAttr({
                 panningModel: 'HRTF',
                 distanceModel: 'inverse',
                 refDistance: finalOptions.refDistance,
@@ -271,113 +246,9 @@ export default class SoundManager {
         return id
     }
 
-    playSpotSound(name, volume = 10){
+    playSpotSound(name){
         const speaker = this.speakers.find(speaker => speaker.name === name)
-        this.playSoundOnSpeaker(
-            name,
-            'audio/sfx/spots/turn_on.mp3',
-            {
-                volume: volume,
-                maxDistance: 15,
-            },
-            speaker.object
-        );
-    }
-
-    /**
-     * Charge et parse un fichier WebVTT
-     * @param {string} vttUrl - URL du fichier WebVTT
-     * @returns {Promise<Array>} Tableau d'objets de sous-titres
-     */
-    async loadVTT(vttUrl) {
-        try {
-            const response = await fetch(vttUrl)
-            const text = await response.text()
-            
-            // Parse VTT content
-            const cues = []
-            const lines = text.trim().split('\n')
-            
-            let i = 0
-            // Skip WebVTT header
-            while (i < lines.length && !lines[i].includes('-->')) {
-                i++
-            }
-            
-            while (i < lines.length) {
-                // Find a line with timing information
-                if (lines[i].includes('-->')) {
-                    const timeParts = lines[i].split('-->')
-                    
-                    // Parse start and end times
-                    const startTime = this.parseVttTime(timeParts[0].trim())
-                    const endTime = this.parseVttTime(timeParts[1].trim())
-                    
-                    // Get the cue text (may be multiple lines)
-                    let cueText = ''
-                    i++
-                    while (i < lines.length && lines[i].trim() !== '') {
-                        cueText += (cueText ? '\n' : '') + lines[i]
-                        i++
-                    }
-                    
-                    if (cueText) {
-                        cues.push({
-                            start: startTime,
-                            end: endTime,
-                            text: cueText
-                        })
-                    }
-                } else {
-                    i++
-                }
-            }
-            
-            return cues
-        } catch (error) {
-            console.error('Failed to load VTT file:', error)
-            return []
-        }
-    }
-
-    /**
-     * Convertit le timestamp VTT en secondes
-     * @param {string} timeString - Timestamp au format VTT (00:00:00.000)
-     * @returns {number} Temps en secondes
-     */
-    parseVttTime(timeString) {
-        const parts = timeString.split(':')
-        let seconds = 0
-        
-        if (parts.length === 3) {
-            // Format: 00:00:00.000
-            seconds = parseFloat(parts[0]) * 3600 + parseFloat(parts[1]) * 60 + parseFloat(parts[2])
-        } else if (parts.length === 2) {
-            // Format: 00:00.000
-            seconds = parseFloat(parts[0]) * 60 + parseFloat(parts[1])
-        }
-        
-        return seconds
-    }
-
-    /**
-     * Affiche un sous-titre
-     * @param {string} text - Texte du sous-titre
-     */
-    showSubtitle(text) {
-        if (this.subtitleElement) {
-            this.subtitleElement.textContent = text
-            this.subtitleElement.style.display = 'block'
-        }
-    }
-
-    /**
-     * Cache les sous-titres
-     */
-    hideSubtitle() {
-        if (this.subtitleElement) {
-            this.subtitleElement.style.display = 'none'
-        }
+        this.playSoundOnSpeaker('spot_boat', speaker.object)
     }
 
     /**
@@ -388,7 +259,15 @@ export default class SoundManager {
      * @param {string} [options.vttSrc] - Chemin vers le fichier de sous-titres WebVTT
      * @returns {Array} IDs des sons joués sur chaque haut-parleur
      */
-    async playSoundOnSpeakers(name, src, options = {}) {
+    async playSoundOnSpeakers(name, options = {}) {
+        const sound = this.sounds[name]
+        if (!sound) {
+            console.error(`Sound ${name} not found`)
+            return null
+        }
+
+        console.log(sound, options)
+
         const defaultOptions = {
             loop: false,
             volume: 1.0,
@@ -396,13 +275,18 @@ export default class SoundManager {
             maxDistance: 5,
             refDistance: 1,
             rolloffFactor: 1,
-            vttSrc: null
+            vttSrc: null,
+            isMusic: false
         }
 
-        const finalOptions = { ...defaultOptions, ...options }
+        const finalOptions = { ...defaultOptions, ...sound.options, ...options }
+
+        if(finalOptions.onend){
+            sound.howl.once('end', finalOptions.onend)
+        }
 
         // Cleanup
-        if (this.customSounds[name]) {
+        if (!finalOptions.isMusic && this.customSounds[name] && finalOptions.stopAll) {
             this.customSounds[name].forEach(sound => {
                 sound.stop()
                 sound.unload()
@@ -415,7 +299,15 @@ export default class SoundManager {
             }
         }
 
+        if (finalOptions.isMusic && this.musics[name] && finalOptions.stopAll) {
+            this.musics[name].forEach(sound => {
+                sound.stop()
+                sound.unload()
+            })
+        }
+
         this.customSounds[name] = []
+        this.musics[name] = []
         const ids = []
 
         let subtitleCues = []
@@ -423,130 +315,32 @@ export default class SoundManager {
             subtitleCues = await this.loadVTT(finalOptions.vttSrc)
         }
 
-        // Stocker toutes les instances et les promesses
-        const loadPromises = []
-        const soundsToPlay = []
-
-        this.speakers.forEach((speaker) => {
-            const sound = new Howl({
-                src: Array.isArray(src) ? src : [src],
-                loop: finalOptions.loop,
-                volume: finalOptions.volume,
-                autoplay: false,
-                onend: finalOptions.onend
-            })
-
-            this.customSounds[name].push(sound)
-
-            const loadPromise = new Promise((resolve) => {
-                sound.once('load', () => resolve(sound))
-            })
-
-            loadPromises.push(loadPromise)
-            soundsToPlay.push({ sound, speaker })
-        })
-
-        // Attendre que tous les sons soient prêts
-        const loadedSounds = await Promise.all(loadPromises)
-
-        // Synchroniser la lecture
-        const syncStart = () => {
-            loadedSounds.forEach((sound, index) => {
-                const id = sound.play()
-                ids.push(id)
-
-                const { position } = this.speakers[index]
-
-                sound.pos(position.x, position.y, position.z, id)
-                sound.pannerAttr({
-                    panningModel: 'HRTF',
-                    distanceModel: 'inverse',
-                    refDistance: finalOptions.refDistance,
-                    maxDistance: finalOptions.maxDistance,
-                    rolloffFactor: finalOptions.rolloffFactor
-                }, id)
-
-                if (index === 0 && subtitleCues.length > 0) {
-                    this.initSubtitlesForSound(name, sound, id, subtitleCues)
-                }
-            })
-        }
-
-        // Démarrage synchrone au frame suivant
-        requestAnimationFrame(syncStart)
-
-        return ids
-    }
-
-
-    /**
-     * Joue une musique sur tous les haut-parleurs de la scène
-     * @param {string} name - Identifiant unique pour ce son
-     * @param {string|string[]} src - Chemin(s) vers le(s) fichier(s) audio
-     * @param {Object} options - Options supplémentaires pour le son
-     * @param {string} [options.vttSrc] - Chemin vers le fichier de sous-titres WebVTT
-     * @returns {Array} IDs des sons joués sur chaque haut-parleur
-     */
-    async playMusicOnSpeakers(name, src, options = {}) {
-        const defaultOptions = {
-            loop: false,
-            volume: 1.0,
-            onend: null,
-            maxDistance: 5,
-            refDistance: 1,
-            rolloffFactor: 1,
-            vttSrc: null,
-            stopAll: true
-        }
-        
-        const finalOptions = { ...defaultOptions, ...options }
-        
-        // Si le son existe déjà, on l'arrête
-        if (this.musics[name] && finalOptions.stopAll) {
-            this.musics[name].forEach(sound => {
-                sound.stop()
-                sound.unload()
-            })
-        }
-        
-        this.musics[name] = []
-        const ids = []
-        
-        // Jouer le son sur chaque haut-parleur
         this.speakers.forEach((speaker, index) => {
-            const sound = new Howl({
-                src: Array.isArray(src) ? src : [src],
-                loop: finalOptions.loop,
-                volume: finalOptions.volume,
-                onend: () => {
-                    if (finalOptions.onend) finalOptions.onend();
-                }
-            })
-            
-            // Ajouter à notre collection
-            this.musics[name].push(sound)
-            
-            // Jouer le son
-            const id = sound.play()
-            ids.push(id)
-            
-            // Configurer la position spatiale
-            sound.pos(
-                speaker.position.x,
-                speaker.position.y,
-                speaker.position.z,
-                id
-            )
-            
-            sound.pannerAttr({
+            if (!finalOptions.isMusic) {
+                this.customSounds[name].push(sound.howl);
+            } else {
+                this.musics[name].push(sound.howl);
+            }
+
+            const id = sound.howl.play();
+            ids.push(id);
+
+            const { position } = speaker;
+
+            sound.howl.pos(position.x, position.y, position.z, id);
+            sound.howl.pannerAttr({
                 panningModel: 'HRTF',
                 distanceModel: 'inverse',
                 refDistance: finalOptions.refDistance,
                 maxDistance: finalOptions.maxDistance,
                 rolloffFactor: finalOptions.rolloffFactor
-            }, id)
-        })
-        
+            }, id);
+
+            if (index === 0 && subtitleCues.length > 0) {
+                this.initSubtitlesForSound(name, sound.howl, id, subtitleCues);
+            }
+        });
+
         return ids
     }
 
@@ -731,14 +525,10 @@ export default class SoundManager {
     }
 
     async playVoiceLine(name) {
-        this.stopAllCustomSounds()
-        console.log("play sound "+ name)
+        this.stopAllCustomSounds(true)
+
         return new Promise((resolve) => {
-            this.playSoundOnSpeakers('voiceLine ' + name, `audio/voices/${name}.mp3`, {
-                volume: 2,
-                loop: false,
-                maxDistance: 20,
-                vttSrc: `audio/subtitles/${name}.vtt`,
+            this.playSoundOnSpeakers(name, {
                 onend: () => {
                     resolve('end');
                 },
@@ -748,11 +538,12 @@ export default class SoundManager {
 
      async playMusic(name) {
         this.stopAllMusicSounds()
+
         return new Promise((resolve) => {
-            this.playMusicOnSpeakers('voiceLine ' + name, `audio/musics/${name}.mp3`, {
-                volume: 1,
+            this.playSoundOnSpeakers(name, {
                 loop: true,
                 maxDistance: 8,
+                isMusic: true,
                 onend: () => {
                     resolve('end');
                 }
@@ -762,8 +553,7 @@ export default class SoundManager {
 
     async playMoreMusic(name) {
         return new Promise((resolve) => {
-            this.playMusicOnSpeakers('voiceLine ' + name, `audio/musics/${name}.mp3`, {
-                volume: 0.5,
+            this.playSoundOnSpeakers(name, {
                 loop: true,
                 maxDistance: 8,
                 stopAll: false,
@@ -782,20 +572,113 @@ export default class SoundManager {
         this.stopAllMusicSounds()
     }
 
+    /**
+     * Charge et parse un fichier WebVTT
+     * @param {string} vttUrl - URL du fichier WebVTT
+     * @returns {Promise<Array>} Tableau d'objets de sous-titres
+     */
+    async loadVTT(vttUrl) {
+        try {
+            const response = await fetch(vttUrl)
+            const text = await response.text()
+            
+            // Parse VTT content
+            const cues = []
+            const lines = text.trim().split('\n')
+            
+            let i = 0
+            // Skip WebVTT header
+            while (i < lines.length && !lines[i].includes('-->')) {
+                i++
+            }
+            
+            while (i < lines.length) {
+                // Find a line with timing information
+                if (lines[i].includes('-->')) {
+                    const timeParts = lines[i].split('-->')
+                    
+                    // Parse start and end times
+                    const startTime = this.parseVttTime(timeParts[0].trim())
+                    const endTime = this.parseVttTime(timeParts[1].trim())
+                    
+                    // Get the cue text (may be multiple lines)
+                    let cueText = ''
+                    i++
+                    while (i < lines.length && lines[i].trim() !== '') {
+                        cueText += (cueText ? '\n' : '') + lines[i]
+                        i++
+                    }
+                    
+                    if (cueText) {
+                        cues.push({
+                            start: startTime,
+                            end: endTime,
+                            text: cueText
+                        })
+                    }
+                } else {
+                    i++
+                }
+            }
+            
+            return cues
+        } catch (error) {
+            console.error('Failed to load VTT file:', error)
+            return []
+        }
+    }
+
+    /**
+     * Convertit le timestamp VTT en secondes
+     * @param {string} timeString - Timestamp au format VTT (00:00:00.000)
+     * @returns {number} Temps en secondes
+     */
+    parseVttTime(timeString) {
+        const parts = timeString.split(':')
+        let seconds = 0
+        
+        if (parts.length === 3) {
+            // Format: 00:00:00.000
+            seconds = parseFloat(parts[0]) * 3600 + parseFloat(parts[1]) * 60 + parseFloat(parts[2])
+        } else if (parts.length === 2) {
+            // Format: 00:00.000
+            seconds = parseFloat(parts[0]) * 60 + parseFloat(parts[1])
+        }
+        
+        return seconds
+    }
+
+    /**
+     * Affiche un sous-titre
+     * @param {string} text - Texte du sous-titre
+     */
+    showSubtitle(text) {
+        if (this.subtitleElement) {
+            this.subtitleElement.textContent = text
+            this.subtitleElement.style.display = 'block'
+        }
+    }
+
+    /**
+     * Cache les sous-titres
+     */
+    hideSubtitle() {
+        if (this.subtitleElement) {
+            this.subtitleElement.style.display = 'none'
+        }
+    }
+
     destroy() {
         this.stopAll()
         
         // Décharger tous les sons personnalisés
         Object.entries(this.customSounds).forEach(([name, sound]) => {
             if (Array.isArray(sound)) {
-                // Pour les sons joués sur les haut-parleurs
                 sound.forEach(s => s.unload())
             } else {
-                // Pour les sons joués normalement
                 sound.unload()
             }
         })
         this.customSounds = {}
-        
     }
 }

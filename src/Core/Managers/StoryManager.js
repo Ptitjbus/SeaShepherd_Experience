@@ -214,6 +214,21 @@ export default class StoryManager {
                     action.setLoop(THREE.LoopOnce, 1)
                     action.clampWhenFinished = true
                     action.play()
+
+                    setTimeout(() => {
+                        const playerY = this.app.physicsManager.controls.getObject().position.y
+                        if (playerY < 2) {
+                            this.teleportPlayerTo(new THREE.Vector3(-106, 8, -121), new THREE.Vector3(0, Math.PI / 2, 0))
+                        }
+                    }, 6000)
+
+                    setTimeout(() => {
+                        const playerY = this.app.physicsManager.controls.getObject().position.y
+                        if (playerY < 20) {
+                            this.teleportPlayerTo(new THREE.Vector3(-106, 30, -121), new THREE.Vector3(0, Math.PI / 2, 0))
+                        }
+                    }, 15000)
+
                     elevator.mixer.addEventListener('finished', function onFinish(e) {
                         if (e.action === action) {
                             elevator.mixer.removeEventListener('finished', onFinish)
@@ -223,6 +238,11 @@ export default class StoryManager {
                 })
             })
         )
+
+        const playerY = this.app.physicsManager.controls.getObject().position.y
+        if (playerY < 20) {
+            this.teleportPlayerTo(new THREE.Vector3(-106, 48, -121), new THREE.Vector3(0, - Math.PI / 2, 0))
+        }
 
         this.app.objectManager.remove("Aquaturtle")
         this.app.objectManager.remove("Tortue")
@@ -336,7 +356,6 @@ export default class StoryManager {
                 updateFrequency: 3
             })
         }
-        console.log("next")
 
         let spotsManager = null
 
@@ -489,7 +508,7 @@ export default class StoryManager {
 
         window.addEventListener('keydown', this.handleEndPanelEnter);
 
-        this.app.soundManager.playMusic('end_ambience', { volume: 0.5 });
+        // this.app.soundManager.playMusic('end_ambience');
 
         await this.sleep(1000);
         if (!this.checkActiveTask('end')) return;

@@ -46,9 +46,9 @@ export default class PostProcessingManager {
         this.glitchPass.generateTrigger()
         const randomSound = Math.floor(Math.random() * 3)
         if (duration <= 100) {
-            this.app.soundManager.playSimpleSound('glitch', `audio/sfx/glitch/100/${randomSound}.mp3`)
+            this.app.soundManager.playSimpleSound(`glitch__10${randomSound}`)
         }else{
-            this.app.soundManager.playSimpleSound('glitch', `audio/sfx/glitch/200/${randomSound}.mp3`)
+            this.app.soundManager.playSimpleSound(`glitch__20${randomSound}`)
         }
         setTimeout(() => {
             this.glitchPass.randX = 0
@@ -62,13 +62,13 @@ export default class PostProcessingManager {
         this.glitchPass.generateTrigger()
         const randomSound = Math.floor(Math.random() * 3)
         if (duration <= 300) {
-            this.app.soundManager.playSimpleSound('glitch', `audio/sfx/glitch/300/${randomSound}.mp3`)
+            this.app.soundManager.playSimpleSound(`glitch__30${randomSound}`)
         }else if (duration <= 400) {
-            this.app.soundManager.playSimpleSound('glitch', `audio/sfx/glitch/400/${randomSound}.mp3`)
+            this.app.soundManager.playSimpleSound(`glitch__40${randomSound}`)
         }else if (duration <= 500) {
-            this.app.soundManager.playSimpleSound('glitch', `audio/sfx/glitch/500/${randomSound}.mp3`)
+            this.app.soundManager.playSimpleSound(`glitch__50${randomSound}`)
         }else{
-            this.app.soundManager.playSimpleSound('glitch', `audio/sfx/glitch/600/${randomSound}.mp3`)
+            this.app.soundManager.playSimpleSound(`glitch__60${randomSound}`)
         }
         setTimeout(() => {
             this.glitchPass.randX = 0
@@ -76,9 +76,7 @@ export default class PostProcessingManager {
     }
 
     triggerHugeGlitch() {
-        this.app.soundManager.playSimpleSound('glitch', `audio/sfx/glitch/2000.mp3`, {
-            stopAll: false
-        })
+        this.app.soundManager.playSimpleSound('glitch__2000')
         this.glitchPass.goWild = true
         setTimeout(() => {
             this.glitchPass.goWild = false

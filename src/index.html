@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POC sea shepherd</title>
+    <title>Dysmeria</title>
     <link rel="stylesheet" href="./style.css">
     <link rel="stylesheet" href="https://use.typekit.net/sai4atz.css">
+    <link rel="icon" type="image/x-icon" href="./favicon.ico">
+    <link rel="icon" type="image/png" href="./favicon.png">
 </head>
 <body>
     <div class="loading-bar"></div>
@@ -13,6 +15,11 @@
         ZQSD pour bouger - Shift pour aller plus vite
     </div>
     <canvas class="webgl"></canvas>
+
+    <div id="video-loading-container">
+        <video id="intro-video" playsinline muted></video>
+        <button id="skip-video-btn" disabled>Passer l'introduction</button>
+    </div>
     
     <div class="start-overlay">
         <div class="header-container">

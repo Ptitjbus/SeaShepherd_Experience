@@ -14,8 +14,6 @@ import assets from "./assets.js"
 
 import App from '../App'
 
-import gsap from 'gsap'
-
 import VideoManager from '../Core/Managers/VideoManager.js';
 
 export default class AssetManager extends EventEmitter {
@@ -31,12 +29,16 @@ export default class AssetManager extends EventEmitter {
         this.loadingCount = assets.length
         this.loadedCount = 0
 
-        this.loadingComplete = false
-        
-        // Create a VideoManager instance
         this.videoManager = new VideoManager()
-        this.videoReadyHandlerBound = this.videoReadyHandler.bind(this)
-        this.videoManager.on('ready', this.videoReadyHandlerBound)
+        
+        this.soundReadyHandlerBound = this.soundReadyHandler.bind(this)
+        
+        this.app.soundManager.on('ready', this.soundReadyHandlerBound)
+
+        this.soundReady = false
+        this.assetsReady = false
+
+        this.allReady = true
 
         this.init()
     }
@@ -46,6 +48,7 @@ export default class AssetManager extends EventEmitter {
 
         // Replace initProgressBar with initVideoLoader
         this.initVideoLoader()
+        this.app.soundManager.initSounds()
 
         this.loaders = {}
 
@@ -70,30 +73,53 @@ export default class AssetManager extends EventEmitter {
         this.loadingManager = new THREE.LoadingManager(
             // Loaded callback
             () => {
-                console.log("loadingManager loaded")
-                this.loadingBarElement.style.width = `100%`;
-                this.loadingBarElement.style.opacity = 0
-                this.loadingComplete = true
-                this.videoManager.notifyAssetsLoaded()
+                console.log("loadingManager loaded") 
+                this.assetsReady = true
+                this.checkAllReady()
             },
             
             // Progress callback 
             (itemUrl, itemsLoaded, itemsTotal) => {
                 const progressRatio = itemsLoaded / itemsTotal
-                this.videoManager.updateLoadingProgress(progressRatio, this.loadingBarElement)
+                this.loadingBarElement.style.width = `${progressRatio * 100}%`
             }
         )
         
         // Load intro video - utiliser une vidéo locale qui existe
         this.videoManager.loadVideo('/videos/intro.mp4')
     }
-    
-    videoReadyHandler() {
-        console.log(`AssetManager :: assets load complete and video ended`)
-        // Donner un court délai pour s'assurer que tout est bien chargé avant de continuer
-        setTimeout(() => {
-            this.trigger('ready')
-        }, 100)
+
+    soundReadyHandler() {
+        console.log(`AssetManager :: sound ready`)
+        this.soundReady = true
+        this.checkAllReady()
+    }
+
+    checkAllReady() {
+        console.log(`AssetManager :: checkAllReady - soundReady: ${this.soundReady}, assetsReady: ${this.assetsReady}`)
+        if (this.soundReady && this.assetsReady) {
+            this.allReady = true
+            console.log(`AssetManager :: all assets loaded and ready`)
+            this.loadingBarElement.style.width = `100%`
+            this.loadingBarElement.style.opacity = 0
+            this.videoManager.showSkipButton()
+            setTimeout(() => {
+                this.trigger('ready')
+            }, 100)
+        }
+    }
+
+    showMainScreen() {
+        if (this.app.debug.active) {
+            this.videoManager.hideVideoScreen()
+            this.app.canvas.style.opacity = '1'
+            return
+        }
+
+        if (this.videoManager.videoEnded && this.allReady) {
+            this.videoManager.hideVideoScreen()
+            this.app.canvas.style.opacity = '1'
+        }
     }
 
     load() {
@@ -209,11 +235,16 @@ export default class AssetManager extends EventEmitter {
     }
 
     destroy() {
-        // Add this line to clean up VideoManager
+        // Clean up VideoManager and SoundManager
         if (this.videoManager) {
-            this.videoManager.off('ready', this.videoReadyHandlerBound)
             this.videoManager.destroy()
             this.videoManager = null
+        }
+        
+        if (this.soundManager) {
+            this.soundManager.off('ready', this.soundReadyHandlerBound)
+            this.soundManager.destroy()
+            this.soundManager = null
         }
         
         this.assets = null

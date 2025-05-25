@@ -10,72 +10,22 @@ export default class VideoManager extends EventEmitter {
         this.videoContainer = null;
         this.isVideoPlaying = false;
         this.videoEnded = false;
-        this.assetsLoaded = false;
         
         this.init();
     }
     
     init() { 
         
-        // Créer le conteneur pour la vidéo en plein écran
-        this.videoContainer = document.createElement('div');
-        this.videoContainer.id = 'video-loading-container';
-        this.videoContainer.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1000;
-            background-color: #000;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        `;
+        this.videoContainer = document.getElementById('video-loading-container');
+        this.videoElement = document.getElementById('intro-video')
         
-        // Créer l'élément vidéo
-        this.videoElement = document.createElement('video');
-        this.videoElement.id = 'intro-video';
-        this.videoElement.playsInline = true;
-        // Désactiver le mode muet pour avoir du son
-        this.videoElement.muted = false;
-        this.videoElement.controls = false;
-        this.videoElement.style.cssText = `
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        `;
+        const skipButton = document.getElementById('skip-video-btn');
         
-        // Ajouter un bouton "Passer"
-        const skipButton = document.createElement('button');
-        skipButton.textContent = 'Passer l\'introduction';
-        skipButton.style.cssText = `
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            padding: 10px 15px;
-            background-color: rgba(0, 0, 0, 0.5);
-            color: white;
-            border: 1px solid white;
-            border-radius: 4px;
-            cursor: pointer;
-            font-family: sans-serif;
-            z-index: 1001;
-        `;
         skipButton.addEventListener('click', () => this.skipVideo());
-        
-        this.videoContainer.appendChild(this.videoElement);
-        this.videoContainer.appendChild(skipButton);
-        document.body.appendChild(this.videoContainer);
-        
+                
         // Ajouter les écouteurs d'événements
         this.videoElement.addEventListener('ended', () => this.handleVideoEnded());
-        this.videoElement.addEventListener('canplaythrough', () => {
-            // Attendre que la vidéo soit prête à jouer
-            console.log('Video can play through');
-            this.startVideo();
-        });
+
         this.videoElement.addEventListener('error', (e) => {
             console.error('Erreur video:', e);
             this.handleVideoEnded(); // Continuer en cas d'erreur
@@ -188,38 +138,17 @@ export default class VideoManager extends EventEmitter {
             }
         }
     }
+
+    showSkipButton() {
+        const skipButton = document.getElementById('skip-video-btn');
+        skipButton.style.opacity = '1';
+        skipButton.disabled = false;
+    }
     
     handleVideoEnded() {
         console.log('Video ended');
         this.videoEnded = true;
-        this.checkReadyToStart();
-    }
-    
-    updateLoadingProgress(progress, loadingBarElement) {
-        // Calculer une progression combinée
-        const videoProgress = this.videoElement ? (this.videoElement.currentTime / this.videoElement.duration) : 0;
-        const combinedProgress = (videoProgress + progress) / 2;
-        loadingBarElement.style.width = `${combinedProgress * 100}%`;
-    }
-    
-    notifyAssetsLoaded() {
-        console.log('Assets loaded');
-        this.assetsLoaded = true;
-        this.checkReadyToStart();
-    }
-    
-    checkReadyToStart() {
-        console.log(`Check ready - Video ended: ${this.videoEnded}, Assets loaded: ${this.assetsLoaded}`);
-        if (this.app.debug.active && this.assetsLoaded) {
-            this.videoEnded = true;
-            this.hideVideoScreen();
-            this.trigger('ready');
-        }
-        // Démarrer l'expérience quand la vidéo est terminée ET les ressources sont chargées
-        if (!this.app.debug.active &&this.videoEnded && this.assetsLoaded) {
-            this.hideVideoScreen();
-            this.trigger('ready');
-        }
+        this.app.assetManager.showMainScreen()
     }
     
     skipVideo() {

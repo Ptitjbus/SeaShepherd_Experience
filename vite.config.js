@@ -12,7 +12,22 @@ export default {
     {
         outDir: '../dist', // Output in the dist/ folder
         emptyOutDir: true, // Empty the folder first
-        sourcemap: true // Add sourcemap
+        sourcemap: true, // Add sourcemap
+        minify: 'terser',
+        terserOptions: {
+            compress: {
+                drop_console: true,
+                drop_debugger: true
+            }
+        },
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    'vendor': ['three', 'gsap', 'howler'],
+                    'ui': ['lil-gui', '@theatre/core', '@theatre/studio']
+                }
+            }
+        }
     },
     plugins:
     [

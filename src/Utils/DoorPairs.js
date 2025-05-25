@@ -480,17 +480,7 @@ export default class DoorPair {
         console.log('Playing sound:', this.doorOpenSoundId, 'path:', '/audio/sfx/doors/open.mp3');
         
         // Jouer le son d'ouverture sur le haut-parleur
-        this.soundManager.playSoundOnSpeaker(
-            this.doorOpenSoundId,
-            '/audio/sfx/doors/open.mp3',
-            {
-                volume: 0.4,
-                maxDistance: 15,
-                refDistance: 3,
-                rolloffFactor: 2
-            },
-            this.speaker
-        );
+        this.soundManager.playSoundOnSpeaker('door_open', this.speaker)
         console.log('Sound play command sent');
     }
     
@@ -508,14 +498,7 @@ export default class DoorPair {
         
         // Jouer le son de fermeture sur le haut-parleur
         this.soundManager.playSoundOnSpeaker(
-            this.doorCloseSoundId,
-            '/audio/sfx/doors/close.mp3',
-            {
-                volume: 0.5,
-                maxDistance: 15,
-                refDistance: 3,
-                rolloffFactor: 2
-            },
+            'door_close',
             this.speaker
         );
         console.log('Sound play command sent');

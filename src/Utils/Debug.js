@@ -420,16 +420,7 @@ export default class Debug extends EventEmitter {
         const params = {
             voiceLine: '1_INTRO',
             play: () => {
-                this.app.soundManager.playSoundOnSpeakers(
-                    params.voiceLine,
-                    `audio/voices/${params.voiceLine}.mp3`,
-                    {
-                        volume: 3,
-                        loop: false,
-                        maxDistance: 8,
-                        vttSrc: `audio/subtitles/${params.voiceLine}.vtt`
-                    }
-                )
+                this.app.soundManager.playSoundOnSpeakers(params.voiceLine)
             }
         }
         audioFolder.add(params, 'voiceLine').name('VoiceLine')
@@ -673,12 +664,7 @@ export default class Debug extends EventEmitter {
                         } else {
                             this.app.eventsManager.displayAlert("Vous avez choisi l'option B", 'information')
 
-                            this.app.soundManager.playSoundOnSpeakers('voiceLine 1', 'audio/voices/1_INTRO.mp3', {
-                                volume: 3,
-                                loop: false,
-                                maxDistance: 8,
-                                vttSrc: 'audio/subtitles/PADG_INTRO_1.vtt'
-                            })
+                            this.app.soundManager.playSoundOnSpeakers('1_INTRO.mp3')
                         }
                     }
                 )

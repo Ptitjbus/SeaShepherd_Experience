@@ -53,6 +53,8 @@ export default class App extends EventEmitter {
 
         this.assetManager = null
 
+        this.isSceneReady = false
+
         this.postProcessing = null
         this.enablePostProcessing = true
 
@@ -85,6 +87,7 @@ export default class App extends EventEmitter {
         this.scene = new Scene()
         this.debug = new Debug()
         this.physicsManager = new PhysicsManager()
+        this.soundManager = new SoundManager()
         
         this.animationLoop = new AnimationLoop()
         this.updateBound = this.update.bind(this)
@@ -117,23 +120,24 @@ export default class App extends EventEmitter {
         await this.preloadMedias()
     }
 
-    assetsLoadCompleteHandler() {
+    async assetsLoadCompleteHandler() {
         this.initScene()
         this.postProcessing = new PostProcessingManager(this.renderer.instance, this.scene, this.camera.mainCamera)
         this.mediaManager.init(this.scene)
         this.mediaManager.connectToPostProcessingManager(this.postProcessing)
-        this.canvas.style.opacity = '1'
         this.animationLoop.start()
-        this.storyManager.startOrResume()
         this.debug.init()
         this.debug.showAnimationClipLine(this.assetManager.getItem('Dauphins'))
+        await this.storyManager.startOrResume()
+        this.isSceneReady = true
+        this.assetManager.showMainScreen()
     }
 
     initScene() {
         this.environment = new CustomEnvironment()
         // this.ocean = new Ocean(this.scene, this.renderer.instance)
         this.objectManager = new ObjectManager()
-        this.soundManager = new SoundManager()
+        
 
         this.objectManager.addBoids(50, 15, new Vector3(-51, 1.5, 18))
         this.objectManager.addBoids(20, 10, new Vector3(-77, 1.5, -25))
@@ -217,6 +221,8 @@ export default class App extends EventEmitter {
             if (this.storyManager.savedStep === 'boat') {
                 this.storyManager.initBoatRoom()
             }
+
+            this.startButton.style.display = 'none'
 
             this.physicsManager.controls.lock()
         })

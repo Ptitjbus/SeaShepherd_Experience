@@ -693,11 +693,7 @@ export default class ObjectManager {
                 video.currentTime = 0;
 
                 if (audioName) {
-                    this.app.soundManager.playSoundOnSpeakers(audioName, `audio/musics/${audioName}.mp3`, {
-                        loop: false,
-                        volume: 1,
-                        maxDistance: 5
-                    });
+                    this.app.soundManager.playSoundOnSpeakers(audioName);
                 }
 
                 try {
