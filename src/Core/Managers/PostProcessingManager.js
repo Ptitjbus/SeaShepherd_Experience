@@ -22,7 +22,7 @@ export default class PostProcessingManager {
         const bloomParams = {
             strength: 0.5,
             radius: 0.4,
-            threshold: 0.9
+            threshold: 0.9,
         }
         this.bloomPass = new UnrealBloomPass(
             new Vector2(window.innerWidth, window.innerHeight),
@@ -47,7 +47,7 @@ export default class PostProcessingManager {
         const randomSound = Math.floor(Math.random() * 3)
         if (duration <= 100) {
             this.app.soundManager.playSimpleSound(`glitch__10${randomSound}`)
-        }else{
+        } else {
             this.app.soundManager.playSimpleSound(`glitch__20${randomSound}`)
         }
         setTimeout(() => {
@@ -63,11 +63,11 @@ export default class PostProcessingManager {
         const randomSound = Math.floor(Math.random() * 3)
         if (duration <= 300) {
             this.app.soundManager.playSimpleSound(`glitch__30${randomSound}`)
-        }else if (duration <= 400) {
+        } else if (duration <= 400) {
             this.app.soundManager.playSimpleSound(`glitch__40${randomSound}`)
-        }else if (duration <= 500) {
+        } else if (duration <= 500) {
             this.app.soundManager.playSimpleSound(`glitch__50${randomSound}`)
-        }else{
+        } else {
             this.app.soundManager.playSimpleSound(`glitch__60${randomSound}`)
         }
         setTimeout(() => {
@@ -92,16 +92,16 @@ export default class PostProcessingManager {
     startRandomGlitches(level = 0) {
         // Définir les intervalles de temps en fonction du niveau
         const intervals = {
-            0: { min: 2000, max: 15000 },  // Faible: 10-20 secondes
-            1: { min: 1000, max: 5000 },   // Moyenne: 5-10 secondes
-            2: { min: 1000, max: 2000 }     // Forte: 2-5 secondes
+            0: { min: 2000, max: 15000 }, // Faible: 10-20 secondes
+            1: { min: 1000, max: 5000 }, // Moyenne: 5-10 secondes
+            2: { min: 1000, max: 2000 }, // Forte: 2-5 secondes
         }
 
         // Définir les probabilités de gros glitch en fonction du niveau
         const bigGlitchProbabilities = {
-            0: 0.1,  // 10% de chance de gros glitch
-            1: 0.3,  // 30% de chance de gros glitch
-            2: 0.5   // 50% de chance de gros glitch
+            0: 0.1, // 10% de chance de gros glitch
+            1: 0.3, // 30% de chance de gros glitch
+            2: 0.5, // 50% de chance de gros glitch
         }
 
         let currentLevel = level
@@ -111,7 +111,7 @@ export default class PostProcessingManager {
         const triggerNextGlitch = () => {
             // Déterminer si c'est un gros glitch ou un petit
             const isBigGlitch = Math.random() < currentBigGlitchProb
-            
+
             // Déclencher le glitch approprié
             if (isBigGlitch) {
                 this.triggerBigGlitch()
@@ -120,7 +120,8 @@ export default class PostProcessingManager {
             }
 
             // Programmer le prochain glitch
-            const nextDelay = Math.random() * (currentInterval.max - currentInterval.min) + currentInterval.min
+            const nextDelay =
+                Math.random() * (currentInterval.max - currentInterval.min) + currentInterval.min
             this.glitchTimeout = setTimeout(triggerNextGlitch, nextDelay)
         }
 
@@ -135,23 +136,27 @@ export default class PostProcessingManager {
                     this.glitchTimeout = null
                 }
             },
-            setFrequencyLevel: (newLevel) => {
+            setFrequencyLevel: newLevel => {
                 if (newLevel >= 0 && newLevel <= 2) {
                     currentLevel = newLevel
                     currentInterval = intervals[newLevel]
                     currentBigGlitchProb = bigGlitchProbabilities[newLevel]
-                    
+
                     // Si un glitch est déjà programmé, on l'annule et on en programme un nouveau
                     if (this.glitchTimeout) {
                         clearTimeout(this.glitchTimeout)
-                        const nextDelay = Math.random() * (currentInterval.max - currentInterval.min) + currentInterval.min
+                        const nextDelay =
+                            Math.random() * (currentInterval.max - currentInterval.min) +
+                            currentInterval.min
                         this.glitchTimeout = setTimeout(triggerNextGlitch, nextDelay)
                     }
                 } else {
-                    console.warn('Niveau de fréquence invalide. Utilisez 0 (faible), 1 (moyen) ou 2 (fort).')
+                    console.warn(
+                        'Niveau de fréquence invalide. Utilisez 0 (faible), 1 (moyen) ou 2 (fort).'
+                    )
                 }
             },
-            getCurrentLevel: () => currentLevel
+            getCurrentLevel: () => currentLevel,
         }
     }
 

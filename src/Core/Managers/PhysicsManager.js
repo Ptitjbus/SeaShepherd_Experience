@@ -11,7 +11,7 @@ export default class PhysicsManager {
         }
         physicsManagerInstance = this
         this.app = new App()
-        
+
         this.world = null
         this.physicsMaterial = null
         this.sphereBody = null
@@ -45,10 +45,14 @@ export default class PhysicsManager {
 
         // Create a slippery material (friction coefficient = 0.0)
         this.physicsMaterial = new CANNON.Material('physics')
-        const physics_physics = new CANNON.ContactMaterial(this.physicsMaterial, this.physicsMaterial, {
-            friction: 0.0,
-            restitution: 0.3,
-        })
+        const physics_physics = new CANNON.ContactMaterial(
+            this.physicsMaterial,
+            this.physicsMaterial,
+            {
+                friction: 0.0,
+                restitution: 0.3,
+            }
+        )
 
         // We must add the contact materials to the world
         this.world.addContactMaterial(physics_physics)
@@ -73,7 +77,7 @@ export default class PhysicsManager {
     initPointerLock() {
         this.controls = new PointerLockControlsCannon(this.app.camera.mainCamera, this.sphereBody)
         this.controls.canJump = false
-        
+
         this.app.scene.add(this.controls.getObject())
 
         this.app.canvas.addEventListener('click', () => {
@@ -95,7 +99,7 @@ export default class PhysicsManager {
     }
 
     removeBody(body) {
-        if (!body) return;
+        if (!body) return
         this.world.removeBody(body)
         this.bodies = this.bodies.filter(b => b !== body)
     }
@@ -103,41 +107,35 @@ export default class PhysicsManager {
     update(deltaTime) {
         this.world.step(this.timeStep, deltaTime, 3)
         this.controls.update(deltaTime)
-        this.controls.getObject().updateMatrixWorld(true);
+        this.controls.getObject().updateMatrixWorld(true)
     }
 
     createBox(dimensions, options, mesh) {
-        const shape = new CANNON.Box(new CANNON.Vec3(
-            dimensions.width / 2,
-            dimensions.height / 2,
-            dimensions.depth / 2
-        ));
-        
+        const shape = new CANNON.Box(
+            new CANNON.Vec3(dimensions.width / 2, dimensions.height / 2, dimensions.depth / 2)
+        )
+
         const body = new CANNON.Body({
             mass: options.mass || 0,
-            position: new CANNON.Vec3(
-                options.position.x,
-                options.position.y,
-                options.position.z
-            ),
+            position: new CANNON.Vec3(options.position.x, options.position.y, options.position.z),
             shape: shape,
             material: new CANNON.Material({
                 friction: options.material?.friction || 0.3,
-                restitution: options.material?.restitution || 0.3
-            })
-        });
-        
+                restitution: options.material?.restitution || 0.3,
+            }),
+        })
+
         // Stocker le mesh associé pour faciliter la synchronisation
-        body.mesh = mesh;
-        
-        this.world.addBody(body);
-        return body;
+        body.mesh = mesh
+
+        this.world.addBody(body)
+        return body
     }
 
     updateBodyPosition(body, position) {
-        if (!body) return;
-        
-        body.position.set(position.x, position.y, position.z);
-        body.wakeUp(); // Réveiller le corps pour qu'il réagisse aux collisions
+        if (!body) return
+
+        body.position.set(position.x, position.y, position.z)
+        body.wakeUp() // Réveiller le corps pour qu'il réagisse aux collisions
     }
 }

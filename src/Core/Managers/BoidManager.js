@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import Boid from '../../World/Boid';
+import Boid from '../../World/Boid'
 
 export default class BoidManager {
   /**
@@ -23,12 +23,12 @@ export default class BoidManager {
   }
 
   initBoids(scene, numberOfBoids) {
-    this.boids = this.boids || [];
+    this.boids = this.boids || []
 
     var randomX, randomY, randomZ, colour, quaternion
 
     for (let i = 0; i < numberOfBoids; i++) {
-      let randomPosition = this.getRandomPositionInSphere(this.origin, this.radius);
+      let randomPosition = this.getRandomPositionInSphere(this.origin, this.radius)
       colour = null // will use default color in getBoid
       quaternion = null
 
@@ -41,23 +41,23 @@ export default class BoidManager {
 
       var position = new THREE.Vector3(randomX, randomY, randomZ)
 
-      var boid = new Boid(scene, randomPosition, this.origin, this.radius, quaternion, colour);
+      var boid = new Boid(scene, randomPosition, this.origin, this.radius, quaternion, colour)
       this.boids.push(boid)
     }
   }
 
   getRandomPositionInSphere(center, radius) {
-      const u = Math.random();
-      const v = Math.random();
-      const theta = 2 * Math.PI * u;
-      const phi = Math.acos(2 * v - 1);
-      const r = radius * Math.cbrt(Math.random()); // Ensures uniform distribution
+      const u = Math.random()
+      const v = Math.random()
+      const theta = 2 * Math.PI * u
+      const phi = Math.acos(2 * v - 1)
+      const r = radius * Math.cbrt(Math.random()) // Ensures uniform distribution
 
-      const x = r * Math.sin(phi) * Math.cos(theta);
-      const y = r * Math.sin(phi) * Math.sin(theta);
-      const z = r * Math.cos(phi);
+      const x = r * Math.sin(phi) * Math.cos(theta)
+      const y = r * Math.sin(phi) * Math.sin(theta)
+      const z = r * Math.cos(phi)
 
-      return new THREE.Vector3(x, y, z).add(center);
+      return new THREE.Vector3(x, y, z).add(center)
   }
 
   update(delta) {
@@ -68,8 +68,8 @@ export default class BoidManager {
 
   destroy() {
     this.boids.forEach(boid => {
-      boid.destroy(); // Assuming Boid has a destroy method to clean up resources
-    });
-    this.boids = [];
+      boid.destroy() // Assuming Boid has a destroy method to clean up resources
+    })
+    this.boids = []
   }
 }

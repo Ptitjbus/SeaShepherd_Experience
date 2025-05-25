@@ -14,7 +14,7 @@ import assets from "./assets.js"
 
 import App from '../App'
 
-import VideoManager from '../Core/Managers/VideoManager.js';
+import VideoManager from '../Core/Managers/VideoManager.js'
 
 export default class AssetManager extends EventEmitter {
     constructor() {

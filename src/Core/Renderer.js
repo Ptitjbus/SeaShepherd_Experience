@@ -27,12 +27,12 @@ export default class Renderer extends EventEmitter {
         this.instance.setPixelRatio(Math.min(this.app.canvasSize.pixelRatio, this.maxPixelRatio))
         this.instance.setSize(this.app.canvasSize.width, this.app.canvasSize.height)
 
-        this.renderTarget = new WebGLRenderTarget(this.app.canvasSize.width * this.app.canvasSize.pixelRatio, this.app.canvasSize.height * this.app.canvasSize.pixelRatio);
-        this.renderTarget.depthTexture = new DepthTexture(this.app.canvasSize.width * this.app.canvasSize.pixelRatio, this.app.canvasSize.height * this.app.canvasSize.pixelRatio);
-        this.renderTarget.depthTexture.type = FloatType;
-        this.renderTarget.depthTexture.format = DepthFormat;
+        this.renderTarget = new WebGLRenderTarget(this.app.canvasSize.width * this.app.canvasSize.pixelRatio, this.app.canvasSize.height * this.app.canvasSize.pixelRatio)
+        this.renderTarget.depthTexture = new DepthTexture(this.app.canvasSize.width * this.app.canvasSize.pixelRatio, this.app.canvasSize.height * this.app.canvasSize.pixelRatio)
+        this.renderTarget.depthTexture.type = FloatType
+        this.renderTarget.depthTexture.format = DepthFormat
 
-        this.reflectionRenderTarget = new WebGLRenderTarget(this.app.canvas.width * this.app.canvasSize.pixelRatio, this.app.canvas.height * this.app.canvasSize.pixelRatio);
+        this.reflectionRenderTarget = new WebGLRenderTarget(this.app.canvas.width * this.app.canvasSize.pixelRatio, this.app.canvas.height * this.app.canvasSize.pixelRatio)
 
 
         this.app.canvasSize.on('resize', this.resizeHandlerBound)

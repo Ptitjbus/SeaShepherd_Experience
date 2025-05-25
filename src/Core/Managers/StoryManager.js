@@ -17,39 +17,50 @@ export default class StoryManager {
         this.init()
     }
 
-    init(){
+    init() {
         this.savedStep = this.saveManager.loadProgress()
     }
 
     async startOrResume() {
-        
         if (!this.savedStep) {
-            this.app.objectManager.add("Dauphins", new THREE.Vector3(0, 0, 0))
-            this.teleportPlayerTo(new THREE.Vector3(30, 1.3, 0), new THREE.Vector3(0, Math.PI / 2, 0))
+            this.app.objectManager.add('Dauphins', new THREE.Vector3(0, 0, 0))
+            this.teleportPlayerTo(
+                new THREE.Vector3(30, 1.3, 0),
+                new THREE.Vector3(0, Math.PI / 2, 0)
+            )
             return
         }
         switch (this.savedStep) {
             case 'aquarium':
-                this.app.objectManager.add("Dauphins", new THREE.Vector3(0, 0, 0))
-                this.teleportPlayerTo(new THREE.Vector3(-14, 1.3, 0), new THREE.Vector3(0, Math.PI / 2, 0))
-                break;
+                this.app.objectManager.add('Dauphins', new THREE.Vector3(0, 0, 0))
+                this.teleportPlayerTo(
+                    new THREE.Vector3(-14, 1.3, 0),
+                    new THREE.Vector3(0, Math.PI / 2, 0)
+                )
+                break
             case 'corridor':
-                this.app.objectManager.add("Couloir", new THREE.Vector3(0, 0, 0))
+                this.app.objectManager.add('Couloir', new THREE.Vector3(0, 0, 0))
                 this.teleportPlayerTo(new THREE.Vector3(-51, 1.3, -35.55))
-                break;
+                break
             case 'aquaturtle':
                 this.createTurtlesBottom()
-                this.teleportPlayerTo(new THREE.Vector3(-72, 1.3, -121), new THREE.Vector3(0, Math.PI / 2, 0))
-                break;
+                this.teleportPlayerTo(
+                    new THREE.Vector3(-72, 1.3, -121),
+                    new THREE.Vector3(0, Math.PI / 2, 0)
+                )
+                break
             case 'boat':
-                this.initBoat();
-                break;
+                this.initBoat()
+                break
             case 'end':
-                this.initEnd();
-                break;
+                this.initEnd()
+                break
             default:
-                this.app.objectManager.add("Dauphins", new THREE.Vector3(0, 0, 0))
-                this.teleportPlayerTo(new THREE.Vector3(30, 1.3, 0), new THREE.Vector3(0, Math.PI / 2, 0))
+                this.app.objectManager.add('Dauphins', new THREE.Vector3(0, 0, 0))
+                this.teleportPlayerTo(
+                    new THREE.Vector3(30, 1.3, 0),
+                    new THREE.Vector3(0, Math.PI / 2, 0)
+                )
         }
     }
 
@@ -61,40 +72,44 @@ export default class StoryManager {
         this.activeTasks.push('intro')
         await this.sleep(2000)
 
-        this.app.mediaManager.showRoomTitle('Accueil du musée');
+        this.app.mediaManager.showRoomTitle('Accueil du musée')
         this.app.soundManager.playMusic('background_intro')
 
         if (!this.checkActiveTask('intro')) return
         await this.app.soundManager.playVoiceLine('1_INTRO')
 
         if (!this.checkActiveTask('intro')) return
-        await this.app.choicesManager.showChoices({
-            title: "J'imagine que vous mourez  d'envie de savoir qui je suis ?",
-            choice1: "Dites moi",
-            choice2: "Non pas vraiment"
-        }).then(async (choiceIndex) => {
-            if (choiceIndex === 1) {
-                await this.app.soundManager.playVoiceLine('2.1_CHOIX1');
-            } else {
-                await this.app.soundManager.playVoiceLine('2.2_CHOIX2');
-            }
-        });
+        await this.app.choicesManager
+            .showChoices({
+                title: "J'imagine que vous mourez  d'envie de savoir qui je suis ?",
+                choice1: 'Dites moi',
+                choice2: 'Non pas vraiment',
+            })
+            .then(async choiceIndex => {
+                if (choiceIndex === 1) {
+                    await this.app.soundManager.playVoiceLine('2.1_CHOIX1')
+                } else {
+                    await this.app.soundManager.playVoiceLine('2.2_CHOIX2')
+                }
+            })
 
         if (!this.checkActiveTask('intro')) return
         await this.app.soundManager.playVoiceLine('3.1_VOUSAVEZHATE')
 
         if (!this.checkActiveTask('intro')) return
-        await this.app.choicesManager.showChoices({
-            title: "Vous avez hâte, hein ....?",
-            choice1: "Pour l'instant je suis pas convaincu …",
-            choice2: "Ouais carrément !"
-        }).then(async (choiceIndex) => {
-            if (choiceIndex === 1) {
-                await this.app.soundManager.playVoiceLine('3.2_CHOIX1');
-            } else {
-                await this.app.soundManager.playVoiceLine('3.3_CHOIX2');
-            }
-        })
+        await this.app.choicesManager
+            .showChoices({
+                title: 'Vous avez hâte, hein ....?',
+                choice1: "Pour l'instant je suis pas convaincu …",
+                choice2: 'Ouais carrément !',
+            })
+            .then(async choiceIndex => {
+                if (choiceIndex === 1) {
+                    await this.app.soundManager.playVoiceLine('3.2_CHOIX1')
+                } else {
+                    await this.app.soundManager.playVoiceLine('3.3_CHOIX2')
+                }
+            })
 
         if (!this.checkActiveTask('intro')) return
         this.app.soundManager.stopAllMusicSounds(true, true)
@@ -111,10 +126,10 @@ export default class StoryManager {
         this.activeTasks = this.activeTasks.filter(task => task !== 'intro')
     }
 
-    async initAquarium(){
+    async initAquarium() {
         await this.initRoom('aquarium')
 
-        this.app.mediaManager.showRoomTitle('Aquarium des dauphins');
+        this.app.mediaManager.showRoomTitle('Aquarium des dauphins')
 
         this.app.soundManager.playMusic('aquarium')
 
@@ -123,21 +138,23 @@ export default class StoryManager {
         await this.app.soundManager.playVoiceLine('5.1_DAUPHINS')
 
         if (!this.checkActiveTask('aquarium')) return
-        await this.app.choicesManager.showChoices({
-            choice1: "Dites m'en plus je veux tout savoir !",
-            choice2: "Vous avez rien de plus intéressant ?"
-        }).then(async (choiceIndex) => {
-            if (choiceIndex === 1) {
-                await this.app.soundManager.playVoiceLine('5.2_CHOIX1');
-            } else {
-                await this.app.soundManager.playVoiceLine('5.3_CHOIX2');
-            }
-        });
+        await this.app.choicesManager
+            .showChoices({
+                choice1: "Dites m'en plus je veux tout savoir !",
+                choice2: 'Vous avez rien de plus intéressant ?',
+            })
+            .then(async choiceIndex => {
+                if (choiceIndex === 1) {
+                    await this.app.soundManager.playVoiceLine('5.2_CHOIX1')
+                } else {
+                    await this.app.soundManager.playVoiceLine('5.3_CHOIX2')
+                }
+            })
 
         if (!this.checkActiveTask('aquarium')) return
         await this.sleep(2000)
 
-        this.app.objectManager.add("Couloir", new THREE.Vector3(0, 0, 0))
+        this.app.objectManager.add('Couloir', new THREE.Vector3(0, 0, 0))
 
         await this.app.soundManager.playVoiceLine('5.4_FINDAUPHIN')
 
@@ -145,27 +162,29 @@ export default class StoryManager {
         this.activeTasks = this.activeTasks.filter(task => task !== 'aquarium')
     }
 
-    async initCorridor(){
+    async initCorridor() {
         await this.initRoom('corridor')
 
         if (!this.checkActiveTask('corridor')) return
         await this.app.soundManager.playVoiceLine('6.1_PUB')
 
         if (!this.checkActiveTask('corridor')) return
-        await this.app.choicesManager.showChoices({
-            choice1: "Lancer la publicité",
-            choice2: "Ne pas supporter le musée"
-        }).then(async (choiceIndex) => {
-            if (choiceIndex === 2) {
-                await this.app.soundManager.playVoiceLine('6.2_VIDEO');
-            }
-        });
+        await this.app.choicesManager
+            .showChoices({
+                choice1: 'Lancer la publicité',
+                choice2: 'Ne pas supporter le musée',
+            })
+            .then(async choiceIndex => {
+                if (choiceIndex === 2) {
+                    await this.app.soundManager.playVoiceLine('6.2_VIDEO')
+                }
+            })
 
         const screenControls = this.app.objectManager.applyVideoToMultipleScreens(
-            "Couloir",
-            ["Cube_1", "Cube013_1"],
-            "pub",
-            "pub"
+            'Couloir',
+            ['Cube_1', 'Cube013_1'],
+            'pub',
+            'pub'
         )
         if (!this.checkActiveTask('corridor')) return
         await screenControls.turnOn()
@@ -178,21 +197,23 @@ export default class StoryManager {
         await this.app.soundManager.playVoiceLine('6.3_NARRATEURINCOMPREHENSION')
 
         if (!this.checkActiveTask('corridor')) return
-        await this.app.choicesManager.showChoices({
-            choice1: "Oui, allons-y !",
-            choice2: "J'ai l'impression qu'on ne me dit pas tout"
-        }).then(async (choiceIndex) => {
-            if (choiceIndex === 1) {
-                await this.app.soundManager.playVoiceLine('6.4_CHOIX1');
-            } else {
-                await this.app.soundManager.playVoiceLine('6.5_CHOIX2');
-            }
-        });
+        await this.app.choicesManager
+            .showChoices({
+                choice1: 'Oui, allons-y !',
+                choice2: "J'ai l'impression qu'on ne me dit pas tout",
+            })
+            .then(async choiceIndex => {
+                if (choiceIndex === 1) {
+                    await this.app.soundManager.playVoiceLine('6.4_CHOIX1')
+                } else {
+                    await this.app.soundManager.playVoiceLine('6.5_CHOIX2')
+                }
+            })
 
         await this.app.doorManager.triggerOpenDoorByIndex(2)
     }
 
-    async initTurtleBottom(){
+    async initTurtleBottom() {
         await this.initRoom('aquaturtle')
 
         this.app.soundManager.playMusic('aquaturtles')
@@ -200,15 +221,15 @@ export default class StoryManager {
         if (!this.checkActiveTask('aquaturtle')) return
         await this.app.soundManager.playVoiceLine('7.1_TORTUES')
 
-        this.app.objectManager.add("AquaturtleHaut", new THREE.Vector3(0, 0, 0))
+        this.app.objectManager.add('AquaturtleHaut', new THREE.Vector3(0, 0, 0))
     }
 
-    async initElevator(){
-        const elevator = this.app.objectManager.get("Elevator")
-        
+    async initElevator() {
+        const elevator = this.app.objectManager.get('Elevator')
+
         await Promise.all(
-            elevator.animations.map((clip) => {
-                return new Promise((resolve) => {
+            elevator.animations.map(clip => {
+                return new Promise(resolve => {
                     const action = elevator.mixer.clipAction(clip)
                     action.reset()
                     action.setLoop(THREE.LoopOnce, 1)
@@ -218,14 +239,20 @@ export default class StoryManager {
                     setTimeout(() => {
                         const playerY = this.app.physicsManager.controls.getObject().position.y
                         if (playerY < 2) {
-                            this.teleportPlayerTo(new THREE.Vector3(-106, 8, -121), new THREE.Vector3(0, Math.PI / 2, 0))
+                            this.teleportPlayerTo(
+                                new THREE.Vector3(-106, 8, -121),
+                                new THREE.Vector3(0, Math.PI / 2, 0)
+                            )
                         }
                     }, 6000)
 
                     setTimeout(() => {
                         const playerY = this.app.physicsManager.controls.getObject().position.y
                         if (playerY < 20) {
-                            this.teleportPlayerTo(new THREE.Vector3(-106, 30, -121), new THREE.Vector3(0, Math.PI / 2, 0))
+                            this.teleportPlayerTo(
+                                new THREE.Vector3(-106, 30, -121),
+                                new THREE.Vector3(0, Math.PI / 2, 0)
+                            )
                         }
                     }, 15000)
 
@@ -241,13 +268,16 @@ export default class StoryManager {
 
         const playerY = this.app.physicsManager.controls.getObject().position.y
         if (playerY < 20) {
-            this.teleportPlayerTo(new THREE.Vector3(-106, 48, -121), new THREE.Vector3(0, - Math.PI / 2, 0))
+            this.teleportPlayerTo(
+                new THREE.Vector3(-106, 48, -121),
+                new THREE.Vector3(0, -Math.PI / 2, 0)
+            )
         }
 
-        this.app.objectManager.remove("Aquaturtle")
-        this.app.objectManager.remove("Tortue")
+        this.app.objectManager.remove('Aquaturtle')
+        this.app.objectManager.remove('Tortue')
 
-        this.app.mediaManager.showRoomTitle('Tortues de Mayotte');
+        this.app.mediaManager.showRoomTitle('Tortues de Mayotte')
         if (!this.checkActiveTask('aquaturtle')) return
         await this.sleep(1000)
         await this.app.soundManager.playVoiceLine('7.2_TORTUES')
@@ -261,12 +291,14 @@ export default class StoryManager {
         await this.app.soundManager.playVoiceLine('7.4_VIDEO')
 
         if (!this.checkActiveTask('aquaturtle')) return
-        await this.app.choicesManager.showChoices({
-            choice1: "C'est trop mignon les tortues !",
-            choice2: "Connaître la vérité"
-        }).then(async (choiceIndex) => {
-            this.app.mediaManager.playMediaWithGlitch('bigvideo')
-        });
+        await this.app.choicesManager
+            .showChoices({
+                choice1: "C'est trop mignon les tortues !",
+                choice2: 'Connaître la vérité',
+            })
+            .then(async choiceIndex => {
+                this.app.mediaManager.playMediaWithGlitch('bigvideo')
+            })
         await this.app.soundManager.playVoiceLine('7.5_FAKENEWS')
         this.app.postProcessing.triggerBigGlitch()
 
@@ -280,96 +312,106 @@ export default class StoryManager {
 
         this.initBoat()
         this.initBoatRoom()
-
     }
 
-    async initBoat(){
+    async initBoat() {
         await this.initRoom('boat')
     }
 
-    async initBoatRoom(){
+    async initBoatRoom() {
         await this.sleep(1000)
 
-        this.app.soundManager.playMusic('boat');
-        const glitchController = this.app.postProcessing.startRandomGlitches(0);
+        this.app.soundManager.playMusic('boat')
+        const glitchController = this.app.postProcessing.startRandomGlitches(0)
 
         setTimeout(() => {
-            this.turnOnSpotsLights("paquebot")
+            this.turnOnSpotsLights('paquebot')
         }, 25000)
         setTimeout(() => {
-            this.turnOnSpotsLights("pyrogue")
+            this.turnOnSpotsLights('pyrogue')
         }, 32000)
         await this.app.soundManager.playVoiceLine('8.1_TELEPORTATION')
 
-        await this.app.choicesManager.showChoices({
-            choice1: "Encore des mensonges ?",
-            choice2: "Non dites moi ?!",
-            disabledIndex: 1
-        }).then(async (choiceIndex) => {
-            if (choiceIndex === 1) {
-                glitchController.setFrequencyLevel(1);
-                this.app.soundManager.playMoreMusic('suspense');
-                await this.app.soundManager.playVoiceLine('8.2_CHOIX1');
-            }
-        });
+        await this.app.choicesManager
+            .showChoices({
+                choice1: 'Encore des mensonges ?',
+                choice2: 'Non dites moi ?!',
+                disabledIndex: 1,
+            })
+            .then(async choiceIndex => {
+                if (choiceIndex === 1) {
+                    glitchController.setFrequencyLevel(1)
+                    this.app.soundManager.playMoreMusic('suspense')
+                    await this.app.soundManager.playVoiceLine('8.2_CHOIX1')
+                }
+            })
 
         // On attend que la voix et la vidéo soient toutes les deux terminées avant de continuer
-        const playVoiceLinePromise = new Promise((resolve) => {
+        const playVoiceLinePromise = new Promise(resolve => {
             setTimeout(async () => {
-                await this.app.soundManager.playVoiceLine('8.3_PIRATAGE');
-                resolve();
-            }, 10000);
-        });
-        const playMusicPromise = new Promise((resolve) => {
+                await this.app.soundManager.playVoiceLine('8.3_PIRATAGE')
+                resolve()
+            }, 10000)
+        })
+        const playMusicPromise = new Promise(resolve => {
             setTimeout(async () => {
                 setTimeout(() => {
-                    const paquebot = this.app.objectManager.getItemFromObject("Paquebot001", this.app.objectManager.get("BoatScene").object.scene)
+                    const paquebot = this.app.objectManager.getItemFromObject(
+                        'Paquebot001',
+                        this.app.objectManager.get('BoatScene').object.scene
+                    )
                     paquebot.visible = false
-                    const buggyObject = this.app.objectManager.getItemFromObject("Paquebot002", this.app.objectManager.get("BoatScene").object.scene)
+                    const buggyObject = this.app.objectManager.getItemFromObject(
+                        'Paquebot002',
+                        this.app.objectManager.get('BoatScene').object.scene
+                    )
                     this.app.postProcessing.triggerBigGlitch()
                     buggyObject.position.y += 4
                     this.app.objectManager.makeObjectBuggy(buggyObject, {
                         positionJitter: 0.1,
                         rotationJitter: 0.05,
                         collisionJitter: 0.2,
-                        updateFrequency: 2
+                        updateFrequency: 2,
                     })
                 }, 2000)
-                resolve();
-            }, 3000);
-        });
+                resolve()
+            }, 3000)
+        })
 
-        const playMediaPromise = this.app.mediaManager.playMediaWithGlitch('bigvideo');
+        const playMediaPromise = this.app.mediaManager.playMediaWithGlitch('bigvideo')
 
-        await Promise.all([playVoiceLinePromise, playMediaPromise, playMusicPromise]);
-        const barque = this.app.objectManager.getItemFromObject("Pirogue001", this.app.objectManager.get("BoatScene").object.scene)
+        await Promise.all([playVoiceLinePromise, playMediaPromise, playMusicPromise])
+        const barque = this.app.objectManager.getItemFromObject(
+            'Pirogue001',
+            this.app.objectManager.get('BoatScene').object.scene
+        )
         if (barque) {
-            const tiltQuaternion = new THREE.Quaternion();
+            const tiltQuaternion = new THREE.Quaternion()
             this.app.postProcessing.triggerBigGlitch()
             this.app.postProcessing.triggerBigGlitch()
-            tiltQuaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI / 3); // 45 degrees around X axis
-            barque.quaternion.multiply(tiltQuaternion);
+            tiltQuaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI / 3) // 45 degrees around X axis
+            barque.quaternion.multiply(tiltQuaternion)
             this.app.objectManager.makeObjectBuggy(barque, {
                 positionJitter: 0.1,
                 rotationJitter: 0.05,
                 collisionJitter: 0.2,
-                updateFrequency: 3
+                updateFrequency: 3,
             })
         }
 
         let spotsManager = null
 
         setTimeout(() => {
-            this.app.soundManager.playVoiceLine('8.4_LAFERME');
+            this.app.soundManager.playVoiceLine('8.4_LAFERME')
             spotsManager = this.startRandomSpotsEffect()
         }, 6000)
-        await this.app.mediaManager.playMediaWithGlitch('bigvideo');
+        await this.app.mediaManager.playMediaWithGlitch('bigvideo')
 
         setTimeout(() => {
             this.app.postProcessing.triggerHugeGlitch()
         }, 500)
-        
-        await this.app.soundManager.playVoiceLine('8.6_AGONIE');
+
+        await this.app.soundManager.playVoiceLine('8.6_AGONIE')
 
         glitchController.stop()
         spotsManager.stop()
@@ -377,150 +419,153 @@ export default class StoryManager {
     }
 
     async initEnd() {
-        this.clearTasks();
+        this.clearTasks()
 
         this.saveManager.saveProgress('end')
-        this.activeTasks.push('end');
+        this.activeTasks.push('end')
 
-        const endRoomPosition = new THREE.Vector3(50, 0, -50);
+        const endRoomPosition = new THREE.Vector3(50, 0, -50)
 
-        this.app.renderer.toneMapping = THREE.NoToneMapping;
-        this.app.renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
+        this.app.renderer.toneMapping = THREE.NoToneMapping
+        this.app.renderer.outputColorSpace = THREE.LinearSRGBColorSpace
 
         if (this.app.scene.environment) {
             this.app.scene.environment = null
-            this.app.scene.background = new THREE.Color(0x000000);
+            this.app.scene.background = new THREE.Color(0x000000)
         }
 
         this.app.scene.traverse(object => {
             if (object.isLight && !object.name.includes('videoPanel')) {
-                object.intensity *= 0.3;
+                object.intensity *= 0.3
             }
-        });
+        })
 
-        this.teleportPlayerTo(endRoomPosition);
+        this.teleportPlayerTo(endRoomPosition)
 
-        await this.sleep(500);
+        await this.sleep(500)
 
-        const panelsContainer = new THREE.Object3D();
-        panelsContainer.name = "endPanelsContainer";
-        panelsContainer.position.copy(endRoomPosition);
-        this.app.scene.add(panelsContainer);
+        const panelsContainer = new THREE.Object3D()
+        panelsContainer.name = 'endPanelsContainer'
+        panelsContainer.position.copy(endRoomPosition)
+        this.app.scene.add(panelsContainer)
 
         const videos = [
             { id: 'fishing-video', src: '/videos/720p/PUBDEMERDE.mp4' },
             { id: 'dolphins-video', src: '/videos/720p/PUBDEMERDE.mp4' },
-            { id: 'turtle-video', src: '/videos/720p/PUBDEMERDE.mp4' }
-        ];
+            { id: 'turtle-video', src: '/videos/720p/PUBDEMERDE.mp4' },
+        ]
 
-        const radius = 8;
-        const arcAngle = Math.PI * 0.5;
-        const panelWidth = 4;
-        const panelHeight = 6;
+        const radius = 8
+        const arcAngle = Math.PI * 0.5
+        const panelWidth = 4
+        const panelHeight = 6
 
-        let panel1, panel2, panel3;
+        let panel1, panel2, panel3
 
-        const loader = new THREE.TextureLoader();
-        const labelTexture = loader.load('images/ui/test_enter.png'); // Ton image "Appuyez sur Entrée"
+        const loader = new THREE.TextureLoader()
+        const labelTexture = loader.load('images/ui/test_enter.png') // Ton image "Appuyez sur Entrée"
 
         for (let i = 0; i < 3; i++) {
-            const angle = -arcAngle / 2 + (i * arcAngle / 2);
+            const angle = -arcAngle / 2 + (i * arcAngle) / 2
 
-            const x = radius * Math.sin(angle);
-            const z = -radius * Math.cos(angle);
+            const x = radius * Math.sin(angle)
+            const z = -radius * Math.cos(angle)
 
-            const video = document.createElement('video');
-            video.id = videos[i].id;
-            video.src = videos[i].src;
-            video.loop = true;
+            const video = document.createElement('video')
+            video.id = videos[i].id
+            video.src = videos[i].src
+            video.loop = true
             video.volume = 0.5
-            video.playsInline = true;
-            video.autoplay = true;
+            video.playsInline = true
+            video.autoplay = true
 
-            const videoTexture = new THREE.VideoTexture(video);
-            videoTexture.minFilter = THREE.LinearFilter;
-            videoTexture.magFilter = THREE.LinearFilter;
+            const videoTexture = new THREE.VideoTexture(video)
+            videoTexture.minFilter = THREE.LinearFilter
+            videoTexture.magFilter = THREE.LinearFilter
 
-            const panelGeometry = new THREE.PlaneGeometry(panelWidth, panelHeight);
+            const panelGeometry = new THREE.PlaneGeometry(panelWidth, panelHeight)
             const panelMaterial = new THREE.MeshBasicMaterial({
                 map: videoTexture,
-                side: THREE.DoubleSide
-            });
+                side: THREE.DoubleSide,
+            })
 
-            const panel = new THREE.Mesh(panelGeometry, panelMaterial);
+            const panel = new THREE.Mesh(panelGeometry, panelMaterial)
 
-            panel.position.set(x, panelHeight / 2, z);
-            panel.rotation.y = Math.PI - angle;
-            panel.name = `videoPanel_${i}`;
+            panel.position.set(x, panelHeight / 2, z)
+            panel.rotation.y = Math.PI - angle
+            panel.name = `videoPanel_${i}`
 
-            panel.lookAt(0, panel.position.y, 0); // Oriente le panel vers le centre de la scène (ou vers la caméra si tu veux)
+            panel.lookAt(0, panel.position.y, 0) // Oriente le panel vers le centre de la scène (ou vers la caméra si tu veux)
 
-            panelsContainer.add(panel);
+            panelsContainer.add(panel)
 
-            video.play().catch(e => console.error("Erreur lors de la lecture vidéo:", e));
+            video.play().catch(e => console.error('Erreur lors de la lecture vidéo:', e))
 
-            const spriteMaterial = new THREE.SpriteMaterial({ map: labelTexture, transparent: true });
-            const sprite = new THREE.Sprite(spriteMaterial);
-            sprite.scale.set(2, 0.6, 1); // adapte la taille à ton besoin
+            const spriteMaterial = new THREE.SpriteMaterial({
+                map: labelTexture,
+                transparent: true,
+            })
+            const sprite = new THREE.Sprite(spriteMaterial)
+            sprite.scale.set(2, 0.6, 1) // adapte la taille à ton besoin
 
             // Place le sprite juste devant le panel
-            sprite.position.set(0, 0, -0.05); // 5cm derrière le panel
-            panel.add(sprite);
+            sprite.position.set(0, 0, -0.05) // 5cm derrière le panel
+            panel.add(sprite)
 
             // Cache le sprite au début
-            sprite.visible = false;
+            sprite.visible = false
 
             // Stocke le sprite pour chaque panel
-            if (!this.panelSprites) this.panelSprites = [];
-            this.panelSprites.push(sprite);
+            if (!this.panelSprites) this.panelSprites = []
+            this.panelSprites.push(sprite)
 
-            const labelGeometry = new THREE.PlaneGeometry(2, 0.6); // adapte la taille si besoin
+            const labelGeometry = new THREE.PlaneGeometry(2, 0.6) // adapte la taille si besoin
             const labelMaterial = new THREE.MeshBasicMaterial({
                 map: labelTexture,
                 transparent: true,
-                depthTest: false // optionnel, pour éviter les soucis de z-fighting
-            });
-            const labelMesh = new THREE.Mesh(labelGeometry, labelMaterial);
+                depthTest: false, // optionnel, pour éviter les soucis de z-fighting
+            })
+            const labelMesh = new THREE.Mesh(labelGeometry, labelMaterial)
 
             // Place le label juste devant le panel, centré
-            labelMesh.position.set(0, 0, 0.15); // 11cm devant le panel
+            labelMesh.position.set(0, 0, 0.15) // 11cm devant le panel
             // Pas de rotation : il reste dans le repère local du panel
 
-            labelMesh.visible = false; // caché par défaut
+            labelMesh.visible = false // caché par défaut
 
-            panel.add(labelMesh);
+            panel.add(labelMesh)
 
             // Stocke le mesh pour chaque panel
-            if (!this.panelLabelMeshes) this.panelLabelMeshes = [];
-            this.panelLabelMeshes.push(labelMesh);
+            if (!this.panelLabelMeshes) this.panelLabelMeshes = []
+            this.panelLabelMeshes.push(labelMesh)
 
-            if (i === 0) panel1 = panel;
-            if (i === 1) panel2 = panel;
-            if (i === 2) panel3 = panel;
+            if (i === 0) panel1 = panel
+            if (i === 1) panel2 = panel
+            if (i === 2) panel3 = panel
         }
 
         this.endPanels = [
-            { mesh: panel1, url: "https://google.com" },
-            { mesh: panel2, url: "https://x.com" },
-            { mesh: panel3, url: "https://instagram.com" }
-        ];
-        this.activePanelIndex = null;
+            { mesh: panel1, url: 'https://google.com' },
+            { mesh: panel2, url: 'https://x.com' },
+            { mesh: panel3, url: 'https://instagram.com' },
+        ]
+        this.activePanelIndex = null
 
-        window.addEventListener('keydown', this.handleEndPanelEnter);
+        window.addEventListener('keydown', this.handleEndPanelEnter)
 
         // this.app.soundManager.playMusic('end_ambience');
 
-        await this.sleep(1000);
-        if (!this.checkActiveTask('end')) return;
-        await this.app.soundManager.playVoiceLine('6_FINAL_EXHIBIT');
+        await this.sleep(1000)
+        if (!this.checkActiveTask('end')) return
+        await this.app.soundManager.playVoiceLine('6_FINAL_EXHIBIT')
     }
 
     async sleep(milliseconds) {
-        return new Promise(resolve => setTimeout(resolve, milliseconds));
+        return new Promise(resolve => setTimeout(resolve, milliseconds))
     }
 
     checkActiveTask(task) {
-        return this.activeTasks.includes(task);
+        return this.activeTasks.includes(task)
     }
 
     clearTasks(forceStopSounds = false) {
@@ -534,7 +579,7 @@ export default class StoryManager {
     endExperience() {
         if (this.experienceEnded) return
         this.experienceEnded = true
-        this.saveManager.clearProgress();
+        this.saveManager.clearProgress()
 
         this.app.endOverlay.classList.remove('hidden')
         void this.app.endOverlay.offsetWidth
@@ -546,7 +591,7 @@ export default class StoryManager {
     }
 
     destroy() {
-        window.removeEventListener('keydown', this.handleEndPanelEnter);
+        window.removeEventListener('keydown', this.handleEndPanelEnter)
     }
 
     teleportPlayerTo(position, rotation = new THREE.Vector3(0, 0, 0)) {
@@ -556,23 +601,23 @@ export default class StoryManager {
         this.app.physicsManager.controls.getObject().rotation.x = rotation.x
         this.app.physicsManager.controls.getObject().rotation.y = rotation.y
         this.app.physicsManager.controls.getObject().rotation.z = rotation.z
-        this.app.physicsManager.sphereBody.position.set(position.x, position.y, position.z);
-        this.app.physicsManager.sphereBody.velocity.set(0, 0, 0);
+        this.app.physicsManager.sphereBody.position.set(position.x, position.y, position.z)
+        this.app.physicsManager.sphereBody.velocity.set(0, 0, 0)
     }
 
     createTurtlesBottom() {
-        this.app.objectManager.add("Aquaturtle", new THREE.Vector3(0, 0, 0))
-        this.app.objectManager.add("Elevator", new THREE.Vector3(0, 0, 0), {
+        this.app.objectManager.add('Aquaturtle', new THREE.Vector3(0, 0, 0))
+        this.app.objectManager.add('Elevator', new THREE.Vector3(0, 0, 0), {
             playAnimation: false,
             dynamicCollision: true,
         })
-        this.app.objectManager.add("Tortue", new THREE.Vector3(0, 0, 0))
+        this.app.objectManager.add('Tortue', new THREE.Vector3(0, 0, 0))
     }
 
-    initSpotsLights(){
-        const boatRoom = this.app.objectManager.get("BoatScene")
+    initSpotsLights() {
+        const boatRoom = this.app.objectManager.get('BoatScene')
         boatRoom.object.scene.traverse(object => {
-            if (object.name.toLowerCase().includes("spot")) {
+            if (object.name.toLowerCase().includes('spot')) {
                 object.visible = false
                 object.intensity = 10
                 object.decay = 0.0
@@ -582,29 +627,32 @@ export default class StoryManager {
         })
     }
 
-    turnOffSpotsLights(){
-        const boatRoom = this.app.objectManager.get("BoatScene")
+    turnOffSpotsLights() {
+        const boatRoom = this.app.objectManager.get('BoatScene')
         boatRoom.object.scene.traverse(object => {
-            if (object.name.toLowerCase().includes("spot")) {
+            if (object.name.toLowerCase().includes('spot')) {
                 object.visible = false
             }
         })
     }
 
-    turnOnSpotsLights(name){
-        const boatRoom = this.app.objectManager.get("BoatScene")
+    turnOnSpotsLights(name) {
+        const boatRoom = this.app.objectManager.get('BoatScene')
         boatRoom.object.scene.traverse(object => {
-            if (object.name.toLowerCase().includes("spot") && object.name.toLowerCase().includes(name)) {
+            if (
+                object.name.toLowerCase().includes('spot') &&
+                object.name.toLowerCase().includes(name)
+            ) {
                 object.visible = true
                 this.app.soundManager.playSpotSound(object.name)
             }
         })
     }
 
-    turnOffScreens(){
-        const boatRoom = this.app.objectManager.get("BoatScene")
+    turnOffScreens() {
+        const boatRoom = this.app.objectManager.get('BoatScene')
         boatRoom.object.scene.traverse(object => {
-            if (object.isMesh && object.material.name.toLowerCase().includes("screen")) {
+            if (object.isMesh && object.material.name.toLowerCase().includes('screen')) {
                 object.material.emissiveIntensity = 0.1
                 // object.material.color = new THREE.Color(0x000000)
             }
@@ -616,61 +664,66 @@ export default class StoryManager {
      * @returns {Object} - Un objet avec une méthode stop() pour arrêter l'effet.
      */
     startRandomSpotsEffect() {
-        const boatRoom = this.app.objectManager.get("BoatScene");
+        const boatRoom = this.app.objectManager.get('BoatScene')
         if (!boatRoom || !boatRoom.object || !boatRoom.object.scene) {
-            console.warn("BoatScene not loaded");
-            return { stop: () => {} };
+            console.warn('BoatScene not loaded')
+            return { stop: () => {} }
         }
 
         // Récupérer tous les spots
-        const spots = [];
+        const spots = []
         boatRoom.object.scene.traverse(object => {
-            if (object.name && object.name.toLowerCase().includes("spot")) {
-                spots.push(object);
+            if (object.name && object.name.toLowerCase().includes('spot')) {
+                spots.push(object)
             }
-        });
+        })
 
-        let stopped = false;
-        let timeoutId = null;
+        let stopped = false
+        let timeoutId = null
 
         const randomizeSpots = () => {
-            if (stopped) return;
+            if (stopped) return
 
             // D'abord, éteindre tous les spots
             spots.forEach(spot => {
-                spot.visible = false;
-            });
+                spot.visible = false
+            })
 
             // Choisir un nombre aléatoire de spots à allumer (au moins 1)
-            const numToLight = Math.max(1, Math.floor(Math.random() * spots.length));
+            const numToLight = Math.max(1, Math.floor(Math.random() * spots.length))
             // Mélanger les spots
-            const shuffled = spots.slice().sort(() => Math.random() - 0.5);
+            const shuffled = spots.slice().sort(() => Math.random() - 0.5)
             // Allumer les spots choisis
             for (let i = 0; i < numToLight; i++) {
-                shuffled[i].visible = true;
+                shuffled[i].visible = true
                 // Optionnel : jouer le son du spot
-                if (this.app.soundManager && typeof this.app.soundManager.playSpotSound === "function") {
-                    this.app.soundManager.playSpotSound(shuffled[i].name, 6);
+                if (
+                    this.app.soundManager &&
+                    typeof this.app.soundManager.playSpotSound === 'function'
+                ) {
+                    this.app.soundManager.playSpotSound(shuffled[i].name, 6)
                 }
             }
 
             // Définir le prochain délai aléatoire (entre 300ms et 2000ms)
-            const nextDelay = Math.random() * 100 + 50;
-            timeoutId = setTimeout(randomizeSpots, nextDelay);
-        };
+            const nextDelay = Math.random() * 100 + 50
+            timeoutId = setTimeout(randomizeSpots, nextDelay)
+        }
 
         // Démarrer la boucle
-        randomizeSpots();
+        randomizeSpots()
 
         // Retourner l'objet de contrôle
         return {
             stop: () => {
-                stopped = true;
-                if (timeoutId) clearTimeout(timeoutId);
+                stopped = true
+                if (timeoutId) clearTimeout(timeoutId)
                 // Optionnel : éteindre tous les spots à l'arrêt
-                spots.forEach(spot => { spot.visible = false; });
-            }
-        };
+                spots.forEach(spot => {
+                    spot.visible = false
+                })
+            },
+        }
     }
 
     async initRoom(roomName) {
@@ -693,7 +746,7 @@ export default class StoryManager {
                 this.app.doorManager.triggerCloseDoorByIndex(1)
                 await this.sleep(2000)
                 this.app.postProcessing.triggerGlitch()
-                this.app.objectManager.remove("Dauphins")
+                this.app.objectManager.remove('Dauphins')
                 this.app.objectManager.removeBoids()
                 break
             case 'aquaturtle':
@@ -705,89 +758,89 @@ export default class StoryManager {
                 this.app.doorManager.triggerCloseDoorByIndex(2)
                 await this.sleep(2000)
                 this.app.postProcessing.triggerGlitch()
-                this.app.objectManager.remove("Dauphins")
+                this.app.objectManager.remove('Dauphins')
                 this.app.objectManager.removeBoids()
-                this.app.objectManager.remove("Couloir")
+                this.app.objectManager.remove('Couloir')
                 break
             case 'boat':
                 this.clearTasks()
                 this.app.doorManager.removeDoorsFromScene()
                 this.saveManager.saveProgress(roomName)
                 this.activeTasks.push(roomName)
-                this.app.objectManager.add("BoatScene", new THREE.Vector3(0, 0, 0))
+                this.app.objectManager.add('BoatScene', new THREE.Vector3(0, 0, 0))
                 this.initSpotsLights()
                 this.turnOffScreens()
                 this.app.environment.setBlackEnvironment()
                 this.app.soundManager.attachToSpeakers()
                 this.app.soundManager.stopAllMusicSounds(true, false)
-                this.app.objectManager.remove("Dauphins")
+                this.app.objectManager.remove('Dauphins')
                 this.app.objectManager.removeBoids()
-                this.app.objectManager.remove("Couloir")
-                this.app.objectManager.remove("Aquaturtle")
-                this.app.objectManager.remove("Elevator")
-                this.app.objectManager.remove("Tortue")
-                this.app.objectManager.remove("AquaturtleHaut")
+                this.app.objectManager.remove('Couloir')
+                this.app.objectManager.remove('Aquaturtle')
+                this.app.objectManager.remove('Elevator')
+                this.app.objectManager.remove('Tortue')
+                this.app.objectManager.remove('AquaturtleHaut')
                 this.app.objectManager.waterUniformData.uColor2.value.setHex(0x020222)
                 this.app.objectManager.removeBoids()
                 this.teleportPlayerTo(new THREE.Vector3(0, 3.5, 47), new THREE.Vector3(0, 0, 0))
-                break;
+                break
             case 'end':
                 this.clearTasks()
                 this.saveManager.saveProgress(roomName)
                 this.activeTasks.push(roomName)
                 this.app.soundManager.attachToSpeakers()
-                this.app.soundManager.stopAllMusicSounds(true,false)
+                this.app.soundManager.stopAllMusicSounds(true, false)
                 this.app.postProcessing.triggerGlitch()
-                this.app.objectManager.remove("Dauphins")
+                this.app.objectManager.remove('Dauphins')
                 this.app.objectManager.removeBoids()
-                this.app.objectManager.remove("Couloir")
-                this.app.objectManager.remove("Aquaturtle")
-                this.app.objectManager.remove("Elevator")
-                this.app.objectManager.remove("Tortue")
-                this.app.objectManager.remove("AquaturtleHaut")
+                this.app.objectManager.remove('Couloir')
+                this.app.objectManager.remove('Aquaturtle')
+                this.app.objectManager.remove('Elevator')
+                this.app.objectManager.remove('Tortue')
+                this.app.objectManager.remove('AquaturtleHaut')
         }
     }
 
     updateEndPanelsCTA() {
-        if (!this.endPanels) return;
+        if (!this.endPanels) return
 
-        const playerPos = this.app.physicsManager.controls.getObject().position;
-        let found = false;
-        let closestIndex = null;
-        let minDist = Infinity;
+        const playerPos = this.app.physicsManager.controls.getObject().position
+        let found = false
+        let closestIndex = null
+        let minDist = Infinity
 
         // Cache tous les labels au début
-        this.panelLabelMeshes.forEach(mesh => mesh.visible = false);
+        this.panelLabelMeshes.forEach(mesh => (mesh.visible = false))
 
         this.endPanels.forEach((panel, idx) => {
-            const panelPos = new THREE.Vector3();
-            panel.mesh.getWorldPosition(panelPos);
-            const dist = panelPos.distanceTo(playerPos);
+            const panelPos = new THREE.Vector3()
+            panel.mesh.getWorldPosition(panelPos)
+            const dist = panelPos.distanceTo(playerPos)
             if (dist < 4.5 && dist < minDist) {
-                found = true;
-                closestIndex = idx;
-                minDist = dist;
+                found = true
+                closestIndex = idx
+                minDist = dist
             }
-        });
+        })
 
         if (found && closestIndex !== null) {
-            this.panelLabelMeshes[closestIndex].visible = true;
-            this.activePanelIndex = closestIndex;
+            this.panelLabelMeshes[closestIndex].visible = true
+            this.activePanelIndex = closestIndex
         } else {
-            this.activePanelIndex = null;
+            this.activePanelIndex = null
         }
     }
 
-    handleEndPanelEnter = (e) => {
-        if (e.key === "Enter" && this.activePanelIndex !== null) {
-            const url = this.endPanels[this.activePanelIndex].url;
-            window.open(url, "_blank");
+    handleEndPanelEnter = e => {
+        if (e.key === 'Enter' && this.activePanelIndex !== null) {
+            const url = this.endPanels[this.activePanelIndex].url
+            window.open(url, '_blank')
         }
     }
 
     update() {
         if (this.activeTasks.includes('end') && this.endPanels) {
-            this.updateEndPanelsCTA();
+            this.updateEndPanelsCTA()
         }
     }
 }

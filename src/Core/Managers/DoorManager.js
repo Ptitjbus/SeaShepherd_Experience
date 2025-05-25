@@ -9,14 +9,22 @@ export default class DoorManager {
         this.scene = scene
         this.doorPairs = []
         this.app = new App()
-        
+
         // Tableau pour suivre les portes ouvertes par script
         this.scriptOpenedDoors = []
     }
 
-    addDoorPair(position, width = 3, height = 5, colorLeft = 0x707070, colorRight = 0x707070, canBeOpened = true, canBeTriggered = false) {
+    addDoorPair(
+        position,
+        width = 3,
+        height = 5,
+        colorLeft = 0x707070,
+        colorRight = 0x707070,
+        canBeOpened = true,
+        canBeTriggered = false
+    ) {
         const pair = new DoorPair(this.scene, position, width, height, colorLeft, colorRight, true) // Sliding doors
-        pair.setOpenable(canBeOpened); // Définir si la porte peut être ouverte
+        pair.setOpenable(canBeOpened) // Définir si la porte peut être ouverte
         pair.setCanBeTriggered(canBeTriggered)
         this.doorPairs.push(pair)
         return pair
@@ -37,7 +45,7 @@ export default class DoorManager {
 
     update() {
         const playerPosition = this.app.physicsManager.sphereBody.position
-        
+
         // Mettre à jour toutes les paires de portes avec la position du joueur
         // Mais ignorer celles ouvertes par script
         for (const pair of this.doorPairs) {
@@ -55,9 +63,9 @@ export default class DoorManager {
 
     // Interaction manuelle : ouvre la porte la plus proche si assez proche
     openNearestPair(playerPosition) {
-        let nearest = this.getNearestPairInRange(playerPosition);
+        let nearest = this.getNearestPairInRange(playerPosition)
         if (nearest && nearest.isOpenable()) {
-            nearest.openAnimated();
+            nearest.openAnimated()
         }
     }
 
@@ -65,7 +73,9 @@ export default class DoorManager {
         let nearest = null
         let minDist = Infinity
         for (const pair of this.doorPairs) {
-            const center = new Vector3().addVectors(pair.leftDoor.position, pair.rightDoor.position).multiplyScalar(0.5)
+            const center = new Vector3()
+                .addVectors(pair.leftDoor.position, pair.rightDoor.position)
+                .multiplyScalar(0.5)
             const dist = center.distanceTo(playerPosition)
             if (dist < minDist) {
                 minDist = dist
@@ -74,7 +84,7 @@ export default class DoorManager {
         }
         if (nearest && nearest.isPlayerNear(playerPosition)) {
             nearest.closeAnimated()
-            
+
             // Si cette porte était ouverte par script, la retirer de la liste
             const index = this.scriptOpenedDoors.indexOf(nearest)
             if (index !== -1) {
@@ -87,7 +97,9 @@ export default class DoorManager {
         let nearest = null
         let minDist = Infinity
         for (const pair of this.doorPairs) {
-            const center = new Vector3().addVectors(pair.leftDoor.position, pair.rightDoor.position).multiplyScalar(0.5)
+            const center = new Vector3()
+                .addVectors(pair.leftDoor.position, pair.rightDoor.position)
+                .multiplyScalar(0.5)
             const dist = center.distanceTo(playerPosition)
             if (dist < minDist) {
                 minDist = dist
@@ -104,67 +116,69 @@ export default class DoorManager {
     // et la marque comme ouverte par script pour qu'elle reste ouverte
     triggerOpenDoorByIndex(index) {
         if (index >= 0 && index < this.doorPairs.length) {
-            const door = this.doorPairs[index];
-            door.openAnimated();
-            
+            const door = this.doorPairs[index]
+            door.openAnimated()
+
             // Ajouter à la liste des portes ouvertes par script
             if (!this.isScriptOpened(door)) {
-                this.scriptOpenedDoors.push(door);
+                this.scriptOpenedDoors.push(door)
             }
-            
-            return true;
+
+            return true
         }
-        return false;
+        return false
     }
 
     async triggerCloseDoorByIndex(index) {
         if (index >= 0 && index < this.doorPairs.length) {
-            const door = this.doorPairs[index];
-            await door.closeAnimated();
-            
+            const door = this.doorPairs[index]
+            await door.closeAnimated()
+
             // Si cette porte était ouverte par script, la retirer de la liste
             const index = this.scriptOpenedDoors.indexOf(nearest)
             if (index !== -1) {
                 this.scriptOpenedDoors.splice(index, 1)
             }
-            
-            return true;
+
+            return true
         }
-        return false;
+        return false
     }
 
     // Ferme une paire de portes spécifique par index pour la mise en scène
     triggerCloseDoorByIndex(index) {
         if (index >= 0 && index < this.doorPairs.length) {
-            const door = this.doorPairs[index];
-            door.closeAnimated();
-            
+            const door = this.doorPairs[index]
+            door.closeAnimated()
+
             // Retirer de la liste des portes ouvertes par script
-            const scriptIndex = this.scriptOpenedDoors.indexOf(door);
+            const scriptIndex = this.scriptOpenedDoors.indexOf(door)
             if (scriptIndex !== -1) {
-                this.scriptOpenedDoors.splice(scriptIndex, 1);
+                this.scriptOpenedDoors.splice(scriptIndex, 1)
             }
-            
-            return true;
+
+            return true
         }
-        console.warn(`DoorManager: Impossible de fermer la porte d'index ${index}, hors limites.`);
-        return false;
+        console.warn(`DoorManager: Impossible de fermer la porte d'index ${index}, hors limites.`)
+        return false
     }
-    
+
     // Nouvelle méthode pour rendre une porte à nouveau automatique
     resetDoorAutomation(index) {
         if (index >= 0 && index < this.doorPairs.length) {
-            const door = this.doorPairs[index];
-            
+            const door = this.doorPairs[index]
+
             // Retirer de la liste des portes ouvertes par script
-            const scriptIndex = this.scriptOpenedDoors.indexOf(door);
+            const scriptIndex = this.scriptOpenedDoors.indexOf(door)
             if (scriptIndex !== -1) {
-                this.scriptOpenedDoors.splice(scriptIndex, 1);
+                this.scriptOpenedDoors.splice(scriptIndex, 1)
             }
-            
-            return true;
+
+            return true
         }
-        console.warn(`DoorManager: Impossible de réinitialiser l'automation de la porte d'index ${index}, hors limites.`);
-        return false;
+        console.warn(
+            `DoorManager: Impossible de réinitialiser l'automation de la porte d'index ${index}, hors limites.`
+        )
+        return false
     }
 }

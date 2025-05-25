@@ -31,7 +31,7 @@ export default class CustomEnvironment {
     }
 
     setBlackEnvironment() {
-        const envTexture = this.assetManager.getItem('nightHDR') 
+        const envTexture = this.assetManager.getItem('nightHDR')
         if (!envTexture) {
             console.warn('CustomEnvironment: HDR texture not found')
             return
@@ -52,6 +52,5 @@ export default class CustomEnvironment {
     setNightEnvironment() {
         this.scene.environment = new Color(0x000000)
         this.scene.background = new Color(0x000000)
-        
     }
 }

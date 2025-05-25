@@ -1,26 +1,25 @@
-import EventEmitter from "../Utils/EventEmitter"
+import EventEmitter from '../Utils/EventEmitter'
 
 export class AnimationLoop extends EventEmitter {
-
     constructor() {
         super()
 
         /**
          * Timestamps [s]
-        */
+         */
         this.startTS = 0
         this.currentTS = 0
 
         /**
          * Animation loop state
-        */
-       this.running = false
+         */
+        this.running = false
 
-       /**
-        * Animation loop properties [s]
-        */
-       this.elapsed = 0
-       this.delta = 0
+        /**
+         * Animation loop properties [s]
+         */
+        this.elapsed = 0
+        this.delta = 0
     }
 
     start() {
@@ -50,11 +49,8 @@ export class AnimationLoop extends EventEmitter {
         this.currentTS = currentTime
         this.elapsed = this.currentTS - this.startTS
 
-        this.trigger('update', [{elapsed: this.elapsed, delta: this.delta}])
+        this.trigger('update', [{ elapsed: this.elapsed, delta: this.delta }])
     }
 
-    destroy() {
-    }
+    destroy() {}
 }
-
-

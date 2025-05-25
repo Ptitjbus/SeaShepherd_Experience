@@ -126,8 +126,6 @@ src/
 │   ├── Camera.js         # Configuration caméra
 │   ├── Renderer.js       # Configuration rendu
 │   └── ...
-├── Pages/                # Pages spéciales
-│   └── ConfidentialDocuments/
 ├── Shaders/              # Shaders GLSL
 ├── Utils/                # Utilitaires
 └── World/                # Objets 3D du monde

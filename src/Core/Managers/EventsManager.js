@@ -4,12 +4,11 @@ import EventEmitter from '../../Utils/EventEmitter'
  * Classe gérant les alertes du système via des éléments dialog HTML5
  */
 export default class EventsManager extends EventEmitter {
-
     constructor() {
         super()
         this.activeDialogs = []
         this.dialogCounter = 0
-        
+
         // Vérifier que le conteneur existe
         this.dialogContainer = document.getElementById('dialog-container')
         if (!this.dialogContainer) {
@@ -21,7 +20,7 @@ export default class EventsManager extends EventEmitter {
         // Listener global pour la touche Entrée
         document.addEventListener('keydown', this.handleKeyDown.bind(this))
     }
-    
+
     /**
      * Gère les événements clavier pour fermer la popin avec la touche Entrée
      * @param {KeyboardEvent} event - L'événement clavier
@@ -30,9 +29,9 @@ export default class EventsManager extends EventEmitter {
         // Si la touche Entrée est pressée et qu'une dialogue est active
         if (event.key === 'Enter' && this.activeDialogs.length > 0) {
             // Fermer la dernière popin affichée (la plus récente)
-            const lastDialog = this.activeDialogs[this.activeDialogs.length - 1];
-            this.closeDialog(lastDialog.id);
-            event.preventDefault();
+            const lastDialog = this.activeDialogs[this.activeDialogs.length - 1]
+            this.closeDialog(lastDialog.id)
+            event.preventDefault()
         }
     }
 
@@ -41,24 +40,24 @@ export default class EventsManager extends EventEmitter {
      * @param {string} dialogId - L'ID de la popin à fermer
      */
     closeDialog(dialogId) {
-        const dialogInfo = this.activeDialogs.find(d => d.id === dialogId);
-        if (!dialogInfo) return;
+        const dialogInfo = this.activeDialogs.find(d => d.id === dialogId)
+        if (!dialogInfo) return
 
-        const dialog = dialogInfo.element;
-        dialog.classList.remove('popin-visible');
-        
+        const dialog = dialogInfo.element
+        dialog.classList.remove('popin-visible')
+
         // Attendre la fin de l'animation avant de fermer
         setTimeout(() => {
-            dialog.close();
-            dialog.remove();
-            this.activeDialogs = this.activeDialogs.filter(d => d.id !== dialogId);
-            this.trigger('dialogClosed', dialogId);
-        }, 400);
+            dialog.close()
+            dialog.remove()
+            this.activeDialogs = this.activeDialogs.filter(d => d.id !== dialogId)
+            this.trigger('dialogClosed', dialogId)
+        }, 400)
 
-        let keyhint = document.getElementById('dialog-key-hint');
-        keyhint.style.opacity = '0';
+        let keyhint = document.getElementById('dialog-key-hint')
+        keyhint.style.opacity = '0'
     }
-    
+
     /**
      * Affiche une alerte via un élément dialog HTML5
      * @param {string} message - Message à afficher
@@ -67,87 +66,89 @@ export default class EventsManager extends EventEmitter {
      * @returns {string} - L'ID de la dialog créée
      */
     displayAlert(message = null, type = 'information', title = null) {
-        const displayMessage = message || 'Information';
+        const displayMessage = message || 'Information'
 
         // Récupérer et cloner le template
-        const template = document.getElementById('dialog-template');
-        const dialog = template.content.querySelector('dialog').cloneNode(true);
-        
+        const template = document.getElementById('dialog-template')
+        const dialog = template.content.querySelector('dialog').cloneNode(true)
+
         // Générer un ID unique
-        const dialogId = `dialog-${++this.dialogCounter}`;
-        dialog.id = dialogId;
-        
-        dialog.querySelector('.dialog-title').textContent = title || 'Sea Shepherd';
-        dialog.querySelector('.dialog-content').innerHTML = displayMessage;
-        
+        const dialogId = `dialog-${++this.dialogCounter}`
+        dialog.id = dialogId
+
+        dialog.querySelector('.dialog-title').textContent = title || 'Sea Shepherd'
+        dialog.querySelector('.dialog-content').innerHTML = displayMessage
+
         // Ajouter une classe basée sur le type
         if (type) {
-            dialog.classList.add(`type-${type}`);
+            dialog.classList.add(`type-${type}`)
         }
 
-        let keyhint = document.getElementById('dialog-key-hint');
-        keyhint.style.opacity = '1';
+        let keyhint = document.getElementById('dialog-key-hint')
+        keyhint.style.opacity = '1'
 
         // Ajouter au conteneur
-        this.dialogContainer.appendChild(dialog);
+        this.dialogContainer.appendChild(dialog)
 
         // Ouvrir la dialog
-        dialog.showModal();
+        dialog.showModal()
 
         // Animation d'apparition
         setTimeout(() => {
-            dialog.classList.add('popin-visible');
-        }, 10);
+            dialog.classList.add('popin-visible')
+        }, 10)
 
         // Conserver une référence
         this.activeDialogs.push({
             id: dialogId,
-            element: dialog
-        });
+            element: dialog,
+        })
 
-        this.trigger('dialogShown', dialogId);
+        this.trigger('dialogShown', dialogId)
 
         // Attendre la fin de l'animation avant de fermer
         setTimeout(() => {
-            this.closeDialog(dialogId);
-        }, 2000);
+            this.closeDialog(dialogId)
+        }, 2000)
 
-        return dialogId;
+        return dialogId
     }
 
     closeAllDialogs() {
         this.activeDialogs.forEach(dialog => {
-            dialog.element.classList.remove('popin-visible');
-            
+            dialog.element.classList.remove('popin-visible')
+
             setTimeout(() => {
-                dialog.element.close();
-                dialog.element.remove();
-            }, 400);
-        });
-        this.activeDialogs = [];
+                dialog.element.close()
+                dialog.element.remove()
+            }, 400)
+        })
+        this.activeDialogs = []
     }
 
     openWindow(url) {
-        const newWindow = window.open(url, '_blank');
+        const newWindow = window.open(url, '_blank')
         if (newWindow) {
-            newWindow.focus();
+            newWindow.focus()
         } else {
-            console.error('La fenêtre n\'a pas pu être ouverte. Vérifiez que les fenêtres contextuelles ne sont pas bloquées.');
+            console.error(
+                "La fenêtre n'a pas pu être ouverte. Vérifiez que les fenêtres contextuelles ne sont pas bloquées."
+            )
         }
     }
 
     closeWindow() {
-        window.close();
+        window.close()
     }
 
     destroy() {
         // Supprimer l'écouteur d'événement global pour éviter les fuites de mémoire
-        document.removeEventListener('keydown', this.handleKeyDown.bind(this));
-        
-        this.closeAllDialogs();
+        document.removeEventListener('keydown', this.handleKeyDown.bind(this))
+
+        this.closeAllDialogs()
         if (this.dialogContainer) {
-            this.dialogContainer.remove();
-            this.dialogContainer = null;
+            this.dialogContainer.remove()
+            this.dialogContainer = null
         }
     }
 }

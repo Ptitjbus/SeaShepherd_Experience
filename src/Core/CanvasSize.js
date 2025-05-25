@@ -1,5 +1,5 @@
-import App from "../App"
-import EventEmitter from "../Utils/EventEmitter"
+import App from '../App'
+import EventEmitter from '../Utils/EventEmitter'
 
 /*
 Le CanvasSize gère la taille du canvas à tout instant et notifie les classes qui ont besoin des infos
@@ -11,14 +11,14 @@ export default class CanvasSize extends EventEmitter {
 
         this.app = new App()
         this.canvas = this.app.canvas
-        
+
         this.resizeHandlerBound = this.resizeHandler.bind(this)
-        
+
         this.width = 0
         this.height = 0
         this.aspect = 0
         this.pixelRatio = 1
-    
+
         this.init()
     }
 
@@ -41,11 +41,13 @@ export default class CanvasSize extends EventEmitter {
         this.height = window.innerHeight
         this.aspect = this.width / this.height
 
-        this.trigger('resize', [{
-            width: this.width,
-            height: this.height,
-            aspect: this.aspect
-        }])
+        this.trigger('resize', [
+            {
+                width: this.width,
+                height: this.height,
+                aspect: this.aspect,
+            },
+        ])
     }
 
     destroy() {

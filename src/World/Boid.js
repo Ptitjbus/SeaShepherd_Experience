@@ -41,31 +41,23 @@ export default class Boid {
         // remember the last however many velocities so we can smooth the heading of the boid
         this.velocitySamples = []
 
-        this.wanderTarget = new THREE.Vector3(
-            mesh.position.x,
-            mesh.position.y,
-            300
-        )
+        this.wanderTarget = new THREE.Vector3(mesh.position.x, mesh.position.y, 300)
 
         this.counter = 0
         this.wanderCounter = 0
         this.arrows = []
     }
 
-    getBoid(
-        position = new THREE.Vector3(0, 0, 0),
-        quaternion = null,
-        color = 0x156289
-    ) {
+    getBoid(position = new THREE.Vector3(0, 0, 0), quaternion = null, color = 0x156289) {
         const fishAsset = this.app.assetManager.getItem('FishModel1') // ou autre nom selon ton AssetManager
-    
+
         let baseMesh = null
         fishAsset.scene.traverse(child => {
             if (child.isMesh && !baseMesh) {
                 baseMesh = child
             }
         })
-    
+
         if (!baseMesh) {
             console.warn('No mesh found in FishBoid, fallback to cone')
             const geometry = new THREE.ConeGeometry(0.2, 0.5, 5)
@@ -93,19 +85,17 @@ export default class Boid {
         mesh.receiveShadow = true
 
         mesh.scale.setScalar(0.1)
-    
+
         mesh.position.copy(position)
         if (quaternion) {
             mesh.quaternion.copy(quaternion)
         }
-    
+
         return {
             mesh,
             geometry: baseMesh.geometry,
         }
     }
-    
-    
 
     /**
      * The boid will update its "steer vector" based on:
@@ -126,30 +116,21 @@ export default class Boid {
 
         // steering behaviour: alignment
         this.acceleration.add(
-            this.alignment(delta, neighbours).multiplyScalar(
-                this.alignmentWeight
-            )
+            this.alignment(delta, neighbours).multiplyScalar(this.alignmentWeight)
         )
 
         // steering behaviour: cohesion
-        this.acceleration.add(
-            this.cohesion(delta, neighbours).multiplyScalar(this.cohesionWeight)
-        )
+        this.acceleration.add(this.cohesion(delta, neighbours).multiplyScalar(this.cohesionWeight))
 
         // steering behaviour: separation
         this.acceleration.add(
-            this.separation(delta, neighbours).multiplyScalar(
-                this.separationWeight
-            )
+            this.separation(delta, neighbours).multiplyScalar(this.separationWeight)
         )
 
         // avoid collisions with world obstacles
         var originPoint = this.mesh.position.clone()
         const positionAttribute = this.geometry.attributes.position
-        var localVertex = new THREE.Vector3().fromBufferAttribute(
-            positionAttribute,
-            0
-        )
+        var localVertex = new THREE.Vector3().fromBufferAttribute(positionAttribute, 0)
         var globalVertex = localVertex.applyMatrix4(this.mesh.matrix)
         var directionVector = globalVertex.sub(this.mesh.position)
         var raycaster = new THREE.Raycaster(
@@ -160,9 +141,7 @@ export default class Boid {
         )
 
         // obstacle meshes are Group, and the first child is the mesh we want to ray-trace
-        var collisionResults = raycaster.intersectObjects(
-            obstacles.map((o) => o)
-        )
+        var collisionResults = raycaster.intersectObjects(obstacles.map(o => o))
         if (collisionResults.length > 0) {
             // flee from the object
             var seek = this.seek(delta, collisionResults[0].point)
@@ -171,15 +150,8 @@ export default class Boid {
             // gently dodge object
             for (var i = 0; i < utils.sphereCastDirections.length; i++) {
                 const direction = utils.sphereCastDirections[i]
-                raycaster = new THREE.Raycaster(
-                    originPoint,
-                    direction,
-                    0,
-                    this.visionRange
-                )
-                var spectrumCollision = raycaster.intersectObject(
-                    collisionResults[0].object
-                )
+                raycaster = new THREE.Raycaster(originPoint, direction, 0, this.visionRange)
+                var spectrumCollision = raycaster.intersectObject(collisionResults[0].object)
                 if (spectrumCollision.length === 0) {
                     this.acceleration.add(direction.clone().multiplyScalar(100))
                     break
@@ -244,17 +216,13 @@ export default class Boid {
 
         var neighbourInRangeCount = 0
 
-        neighbours.forEach((neighbour) => {
+        neighbours.forEach(neighbour => {
             // skip same object
             if (neighbour.mesh.id === this.mesh.id) return
 
-            const distance = neighbour.mesh.position.distanceTo(
-                this.mesh.position
-            )
+            const distance = neighbour.mesh.position.distanceTo(this.mesh.position)
             if (distance <= range) {
-                var diff = this.mesh.position
-                    .clone()
-                    .sub(neighbour.mesh.position)
+                var diff = this.mesh.position.clone().sub(neighbour.mesh.position)
                 diff.divideScalar(distance) // weight by distance
                 steerVector.add(diff)
                 neighbourInRangeCount++
@@ -284,13 +252,11 @@ export default class Boid {
 
         var neighboursInRangeCount = 0
 
-        neighbours.forEach((neighbour) => {
+        neighbours.forEach(neighbour => {
             // skip same object
             if (neighbour.mesh.id === this.mesh.id) return
 
-            const distance = neighbour.mesh.position.distanceTo(
-                this.mesh.position
-            )
+            const distance = neighbour.mesh.position.distanceTo(this.mesh.position)
             if (distance <= range) {
                 neighboursInRangeCount++
                 averageDirection.add(neighbour.velocity.clone())
@@ -320,13 +286,11 @@ export default class Boid {
 
         var neighboursInRangeCount = 0
 
-        neighbours.forEach((neighbour) => {
+        neighbours.forEach(neighbour => {
             // skip same object
             if (neighbour.mesh.id === this.mesh.id) return
 
-            const distance = neighbour.mesh.position.distanceTo(
-                this.mesh.position
-            )
+            const distance = neighbour.mesh.position.distanceTo(this.mesh.position)
             if (distance <= range) {
                 neighboursInRangeCount++
                 centreOfMass.add(neighbour.mesh.position)
@@ -378,7 +342,7 @@ export default class Boid {
 
             this.velocitySamples.push(this.velocity.clone())
             direction.set(0, 0, 0)
-            this.velocitySamples.forEach((sample) => {
+            this.velocitySamples.forEach(sample => {
                 direction.add(sample)
             })
             direction.divideScalar(this.velocitySamples.length)
@@ -391,24 +355,24 @@ export default class Boid {
     destroy() {
         // Remove the mesh from the scene
         if (this.scene && this.mesh) {
-            this.scene.remove(this.mesh);
+            this.scene.remove(this.mesh)
         }
 
         // Dispose of the geometry and material to free up memory
         if (this.geometry) {
-            this.geometry.dispose();
+            this.geometry.dispose()
         }
         if (this.mesh && this.mesh.material) {
             if (Array.isArray(this.mesh.material)) {
-                this.mesh.material.forEach((material) => material.dispose());
+                this.mesh.material.forEach(material => material.dispose())
             } else {
-                this.mesh.material.dispose();
+                this.mesh.material.dispose()
             }
         }
 
         // Clear references
-        this.mesh = null;
-        this.geometry = null;
-        this.scene = null;
+        this.mesh = null
+        this.geometry = null
+        this.scene = null
     }
 }

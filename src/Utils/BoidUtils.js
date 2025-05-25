@@ -5,20 +5,20 @@ var sphereCastDirections = []
 
 // from https://www.youtube.com/watch?v=bqtqltqcQhw
 function initSphereCast() {
-  const numViewDirections = 300
-  const goldenRatio = (1 + Math.sqrt(5)) / 2
-  const angleIncrement = Math.PI * 2 * goldenRatio;
+    const numViewDirections = 300
+    const goldenRatio = (1 + Math.sqrt(5)) / 2
+    const angleIncrement = Math.PI * 2 * goldenRatio
 
-  for (var i = 0; i < numViewDirections; i++) {
-    const t = i / numViewDirections
-    const inclination = Math.acos(1 - 2 * t)
-    const azimuth = angleIncrement * i
+    for (var i = 0; i < numViewDirections; i++) {
+        const t = i / numViewDirections
+        const inclination = Math.acos(1 - 2 * t)
+        const azimuth = angleIncrement * i
 
-    const x = Math.sin (inclination) * Math.cos (azimuth)
-    const y = Math.sin (inclination) * Math.sin (azimuth)
-    const z = Math.cos (inclination)
-    sphereCastDirections.push(new THREE.Vector3 (x, y, z))
-  }
+        const x = Math.sin(inclination) * Math.cos(azimuth)
+        const y = Math.sin(inclination) * Math.sin(azimuth)
+        const z = Math.cos(inclination)
+        sphereCastDirections.push(new THREE.Vector3(x, y, z))
+    }
 }
 
 initSphereCast()
@@ -37,12 +37,12 @@ initSphereCast()
  * @param {*} z coordinate of obstacle
  */
 export function addObstacle(obstacles, scene, w, h, d, c, x, y, z) {
-    var obs1 = new Box(w, h, d, c);
+    var obs1 = new Box(w, h, d, c)
     obs1.mesh.position.set(x, y, z)
     scene.add(obs1.mesh)
     obstacles.push(obs1)
-  }
-  
+}
+
 export const utils = {
     sphereCastDirections,
 }

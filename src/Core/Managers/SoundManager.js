@@ -14,8 +14,8 @@ export default class SoundManager extends EventEmitter {
         this.preloadedSounds = {} // Store preloaded sounds
         this.isPaused = true
         this.speakers = []
-        this.subtitles = {}  // Store active subtitles by sound name
-        this.subtitleElement = null  // Element to display subtitles
+        this.subtitles = {} // Store active subtitles by sound name
+        this.subtitleElement = null // Element to display subtitles
         this.sounds = {} // Store preloaded sounds
         this.initSubtitleDisplay()
     }
@@ -34,7 +34,7 @@ export default class SoundManager extends EventEmitter {
                     onload: () => {
                         this.sounds[sound.name] = {
                             howl,
-                            options: sound.options
+                            options: sound.options,
                         }
                         console.log(`SoundManager :: new item stored : ${sound.name}`)
                         resolve()
@@ -42,7 +42,7 @@ export default class SoundManager extends EventEmitter {
                     onloaderror: (id, error) => {
                         console.error(`Failed to load sound ${sound.name}:`, error)
                         reject(error)
-                    }
+                    },
                 })
             })
         })
@@ -65,32 +65,36 @@ export default class SoundManager extends EventEmitter {
     createSpeaker(position, name = null) {
         // Créer un objet 3D simple pour représenter le speaker sans matériau
         const speakerGeometry = new THREE.SphereGeometry(0.1, 16, 16)
-        const speakerMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0 })
+        const speakerMaterial = new THREE.MeshBasicMaterial({
+            color: 0x00ff00,
+            transparent: true,
+            opacity: 0,
+        })
         const speaker = new THREE.Mesh(speakerGeometry, speakerMaterial)
-        
+
         // Positionner le speaker
         speaker.position.copy(position)
-        
+
         // Marquer comme speaker pour l'identification
         speaker.userData.is_speaker = true
         if (name) {
             speaker.userData.name = name
             speaker.name = name // Ajouter aussi le nom à l'objet Three.js pour faciliter le debugging
         }
-        
+
         // Ajouter à la scène
         this.app.scene.add(speaker)
-        
+
         // Ajouter aux speakers gérés
         this.speakers.push({
             object: speaker,
             position: position.clone(),
-            name: name
+            name: name,
         })
-        
+
         // Créer le helper de debug si nécessaire
         this.app.debug.createSpeakerHelper(speaker, this.app.scene, position)
-        
+
         return speaker
     }
 
@@ -121,7 +125,7 @@ export default class SoundManager extends EventEmitter {
     }
 
     attachToSpeakers() {
-        this.app.scene.traverse((child) => {
+        this.app.scene.traverse(child => {
             if (child.userData.is_speaker) {
                 const position = new THREE.Vector3()
                 const worldPosition = child.getWorldPosition(position)
@@ -131,7 +135,7 @@ export default class SoundManager extends EventEmitter {
                 // Stocker les haut-parleurs pour une utilisation ultérieure
                 this.speakers.push({
                     object: child,
-                    position: worldPosition.clone()
+                    position: worldPosition.clone(),
                 })
             }
         })
@@ -139,26 +143,27 @@ export default class SoundManager extends EventEmitter {
 
     removeSpeakersFromObject(object3D) {
         // Filtrer les haut-parleurs qui ne sont pas dans l'objet spécifié
-        this.speakers = this.speakers.filter((speaker) => {
-            const isChild = object3D.scene.children.includes(speaker.object) || speaker.object.parent === object3D.scene
+        this.speakers = this.speakers.filter(speaker => {
+            const isChild =
+                object3D.scene.children.includes(speaker.object) ||
+                speaker.object.parent === object3D.scene
             return !isChild
         })
     }
 
     updateListener() {
         const camera = this.app.camera
-    
+
         if (!camera) return
-    
+
         const position = new THREE.Vector3()
         const orientation = new THREE.Vector3()
-    
+
         camera.mainCamera.getWorldPosition(position)
         camera.mainCamera.getWorldDirection(orientation)
-    
+
         Howler.pos(position.x, position.y, position.z)
-        Howler.orientation(
-            orientation.x, orientation.y, orientation.z)
+        Howler.orientation(orientation.x, orientation.y, orientation.z)
     }
 
     /**
@@ -177,20 +182,20 @@ export default class SoundManager extends EventEmitter {
             console.error(`Sound ${name} not found`)
             return null
         }
-        
+
         const defaultOptions = {
             loop: false,
             volume: 1.0,
             onend: null,
-            stopAll: false 
+            stopAll: false,
         }
-        
+
         const finalOptions = { ...defaultOptions, ...sound.options, ...options }
-        
+
         this.customSounds[name] = sound.howl
         return sound.howl.play()
     }
-    
+
     /**
      * Joue un son spatialisé sur un speaker précis (Object3D)
      * @param {string} name - Identifiant unique pour ce son
@@ -205,14 +210,14 @@ export default class SoundManager extends EventEmitter {
             console.error(`Sound ${name} not found`)
             return null
         }
-        
+
         const defaultOptions = {
             loop: false,
             volume: 1.0,
             maxDistance: 10,
             refDistance: 1,
             rolloffFactor: 1,
-            onend: null
+            onend: null,
         }
         const finalOptions = { ...defaultOptions, ...sound.options, ...options }
 
@@ -234,19 +239,22 @@ export default class SoundManager extends EventEmitter {
             const pos = new THREE.Vector3()
             speaker.getWorldPosition(pos)
             sound.howl.pos(pos.x, pos.y, pos.z, id)
-            sound.howl.pannerAttr({
-                panningModel: 'HRTF',
-                distanceModel: 'inverse',
-                refDistance: finalOptions.refDistance,
-                maxDistance: finalOptions.maxDistance,
-                rolloffFactor: finalOptions.rolloffFactor
-            }, id)
+            sound.howl.pannerAttr(
+                {
+                    panningModel: 'HRTF',
+                    distanceModel: 'inverse',
+                    refDistance: finalOptions.refDistance,
+                    maxDistance: finalOptions.maxDistance,
+                    rolloffFactor: finalOptions.rolloffFactor,
+                },
+                id
+            )
         }
 
         return id
     }
 
-    playSpotSound(name){
+    playSpotSound(name) {
         const speaker = this.speakers.find(speaker => speaker.name === name)
         this.playSoundOnSpeaker('spot_boat', speaker.object)
     }
@@ -266,8 +274,6 @@ export default class SoundManager extends EventEmitter {
             return null
         }
 
-        console.log(sound, options)
-
         const defaultOptions = {
             loop: false,
             volume: 1.0,
@@ -276,12 +282,12 @@ export default class SoundManager extends EventEmitter {
             refDistance: 1,
             rolloffFactor: 1,
             vttSrc: null,
-            isMusic: false
+            isMusic: false,
         }
 
         const finalOptions = { ...defaultOptions, ...sound.options, ...options }
 
-        if(finalOptions.onend){
+        if (finalOptions.onend) {
             sound.howl.once('end', finalOptions.onend)
         }
 
@@ -317,29 +323,32 @@ export default class SoundManager extends EventEmitter {
 
         this.speakers.forEach((speaker, index) => {
             if (!finalOptions.isMusic) {
-                this.customSounds[name].push(sound.howl);
+                this.customSounds[name].push(sound.howl)
             } else {
-                this.musics[name].push(sound.howl);
+                this.musics[name].push(sound.howl)
             }
 
-            const id = sound.howl.play();
-            ids.push(id);
+            const id = sound.howl.play()
+            ids.push(id)
 
-            const { position } = speaker;
+            const { position } = speaker
 
-            sound.howl.pos(position.x, position.y, position.z, id);
-            sound.howl.pannerAttr({
-                panningModel: 'HRTF',
-                distanceModel: 'inverse',
-                refDistance: finalOptions.refDistance,
-                maxDistance: finalOptions.maxDistance,
-                rolloffFactor: finalOptions.rolloffFactor
-            }, id);
+            sound.howl.pos(position.x, position.y, position.z, id)
+            sound.howl.pannerAttr(
+                {
+                    panningModel: 'HRTF',
+                    distanceModel: 'inverse',
+                    refDistance: finalOptions.refDistance,
+                    maxDistance: finalOptions.maxDistance,
+                    rolloffFactor: finalOptions.rolloffFactor,
+                },
+                id
+            )
 
             if (index === 0 && subtitleCues.length > 0) {
-                this.initSubtitlesForSound(name, sound.howl, id, subtitleCues);
+                this.initSubtitlesForSound(name, sound.howl, id, subtitleCues)
             }
-        });
+        })
 
         return ids
     }
@@ -358,9 +367,9 @@ export default class SoundManager extends EventEmitter {
             currentIndex: 0,
             timer: null,
             sound: sound,
-            soundId: id
+            soundId: id,
         }
-        
+
         // Démarrer le traitement des sous-titres
         this.processNextSubtitle(name)
     }
@@ -371,28 +380,28 @@ export default class SoundManager extends EventEmitter {
      */
     processNextSubtitle(name) {
         if (!this.subtitles[name]) return
-        
+
         const subtitle = this.subtitles[name]
         const cues = subtitle.cues
         const currentIndex = subtitle.currentIndex
-        
+
         if (currentIndex >= cues.length) {
             // Plus de sous-titres à afficher
             this.hideSubtitle()
             return
         }
-        
+
         const currentCue = cues[currentIndex]
         const sound = subtitle.sound
         const soundId = subtitle.soundId
-        
+
         // Obtenir la position actuelle du son
         const currentTime = sound.seek(soundId)
-        
+
         if (currentTime >= currentCue.start && currentTime < currentCue.end) {
             // Afficher le sous-titre actuel
             this.showSubtitle(currentCue.text)
-            
+
             // Programmer la fin de ce sous-titre
             const timeUntilEnd = (currentCue.end - currentTime) * 1000
             subtitle.timer = setTimeout(() => {
@@ -426,7 +435,7 @@ export default class SoundManager extends EventEmitter {
                 // Pour les sons joués normalement
                 this.customSounds[name].stop()
             }
-            
+
             // Nettoyer les sous-titres
             if (this.subtitles[name]) {
                 clearTimeout(this.subtitles[name].timer)
@@ -437,37 +446,40 @@ export default class SoundManager extends EventEmitter {
     }
 
     fadeOut(sound, from, to, duration, downPitch = false) {
-        return new Promise((resolve) => {
+        return new Promise(resolve => {
             // Vérifier si le son est valide et actif
             if (sound && sound.playing()) {
                 // Démarrer le fade du volume
-                sound.fade(from, to, duration);
+                sound.fade(from, to, duration)
 
                 // Appliquer une baisse progressive du pitch
-                if(downPitch){
-                    const node = sound._sounds[0]?._node;
-                    const bufferSource = node?.bufferSource;
-    
+                if (downPitch) {
+                    const node = sound._sounds[0]?._node
+                    const bufferSource = node?.bufferSource
+
                     if (bufferSource && bufferSource.playbackRate) {
-                        const now = Howler.ctx.currentTime;
-    
+                        const now = Howler.ctx.currentTime
+
                         // Baisser le pitch de 1.0 à 0.3 pendant la durée
-                        bufferSource.playbackRate.setValueAtTime(1.0, now);
-                        bufferSource.playbackRate.linearRampToValueAtTime(0.3, now + duration / 1000);
+                        bufferSource.playbackRate.setValueAtTime(1.0, now)
+                        bufferSource.playbackRate.linearRampToValueAtTime(
+                            0.3,
+                            now + duration / 1000
+                        )
                     }
                 }
 
                 // Arrêter le son après le fade-out
                 setTimeout(() => {
-                    sound.stop();
-                    resolve();
-                }, duration);
+                    sound.stop()
+                    resolve()
+                }, duration)
             } else {
-                resolve(); // Si le son n'est pas actif, résoudre immédiatement
+                resolve() // Si le son n'est pas actif, résoudre immédiatement
             }
-        });
+        })
     }
-    
+
     /**
      * Arrête tous les sons personnalisés
      */
@@ -477,26 +489,26 @@ export default class SoundManager extends EventEmitter {
                 // Pour les sons joués sur les haut-parleurs
                 sound.forEach(s => {
                     if (fade) {
-                        this.fadeOut(s, s.volume(), 0, 1000, downPitch); // Durée de 1 seconde
+                        this.fadeOut(s, s.volume(), 0, 1000, downPitch) // Durée de 1 seconde
                     } else {
-                        s.stop();
+                        s.stop()
                     }
-                });
+                })
             } else {
                 if (fade) {
-                    this.fadeOut(sound, sound.volume(), 0, 1000, downPitch); // Durée de 1 seconde
+                    this.fadeOut(sound, sound.volume(), 0, 1000, downPitch) // Durée de 1 seconde
                 } else {
-                    sound.stop();
+                    sound.stop()
                 }
             }
-            
+
             // Nettoyer les sous-titres
             if (this.subtitles[name]) {
                 clearTimeout(this.subtitles[name].timer)
                 delete this.subtitles[name]
             }
         })
-        
+
         // Cacher les sous-titres
         this.hideSubtitle()
     }
@@ -507,19 +519,19 @@ export default class SoundManager extends EventEmitter {
                 // Pour les sons joués sur les haut-parleurs
                 sound.forEach(s => {
                     if (fade) {
-                        this.fadeOut(s, s.volume(), 0, 1000, downPitch); // Durée de 1 seconde
+                        this.fadeOut(s, s.volume(), 0, 1000, downPitch) // Durée de 1 seconde
                     } else {
-                        s.stop();
+                        s.stop()
                     }
-                });
+                })
             } else {
                 if (fade) {
-                    this.fadeOut(sound, sound.volume(), 0, 1000, downPitch); // Durée de 1 seconde
+                    this.fadeOut(sound, sound.volume(), 0, 1000, downPitch) // Durée de 1 seconde
                 } else {
-                    sound.stop();
+                    sound.stop()
                 }
             }
-        });
+        })
 
         // Attendre que tous les fade-outs soient terminés
     }
@@ -527,41 +539,41 @@ export default class SoundManager extends EventEmitter {
     async playVoiceLine(name) {
         this.stopAllCustomSounds(true)
 
-        return new Promise((resolve) => {
+        return new Promise(resolve => {
             this.playSoundOnSpeakers(name, {
                 onend: () => {
-                    resolve('end');
+                    resolve('end')
                 },
-            });
-        });
+            })
+        })
     }
 
-     async playMusic(name) {
+    async playMusic(name) {
         this.stopAllMusicSounds()
 
-        return new Promise((resolve) => {
+        return new Promise(resolve => {
             this.playSoundOnSpeakers(name, {
                 loop: true,
                 maxDistance: 8,
                 isMusic: true,
                 onend: () => {
-                    resolve('end');
-                }
-            });
-        });
+                    resolve('end')
+                },
+            })
+        })
     }
 
     async playMoreMusic(name) {
-        return new Promise((resolve) => {
+        return new Promise(resolve => {
             this.playSoundOnSpeakers(name, {
                 loop: true,
                 maxDistance: 8,
                 stopAll: false,
                 onend: () => {
-                    resolve('end');
-                }
-            });
-        });
+                    resolve('end')
+                },
+            })
+        })
     }
 
     /**
@@ -581,26 +593,26 @@ export default class SoundManager extends EventEmitter {
         try {
             const response = await fetch(vttUrl)
             const text = await response.text()
-            
+
             // Parse VTT content
             const cues = []
             const lines = text.trim().split('\n')
-            
+
             let i = 0
             // Skip WebVTT header
             while (i < lines.length && !lines[i].includes('-->')) {
                 i++
             }
-            
+
             while (i < lines.length) {
                 // Find a line with timing information
                 if (lines[i].includes('-->')) {
                     const timeParts = lines[i].split('-->')
-                    
+
                     // Parse start and end times
                     const startTime = this.parseVttTime(timeParts[0].trim())
                     const endTime = this.parseVttTime(timeParts[1].trim())
-                    
+
                     // Get the cue text (may be multiple lines)
                     let cueText = ''
                     i++
@@ -608,19 +620,19 @@ export default class SoundManager extends EventEmitter {
                         cueText += (cueText ? '\n' : '') + lines[i]
                         i++
                     }
-                    
+
                     if (cueText) {
                         cues.push({
                             start: startTime,
                             end: endTime,
-                            text: cueText
+                            text: cueText,
                         })
                     }
                 } else {
                     i++
                 }
             }
-            
+
             return cues
         } catch (error) {
             console.error('Failed to load VTT file:', error)
@@ -636,7 +648,7 @@ export default class SoundManager extends EventEmitter {
     parseVttTime(timeString) {
         const parts = timeString.split(':')
         let seconds = 0
-        
+
         if (parts.length === 3) {
             // Format: 00:00:00.000
             seconds = parseFloat(parts[0]) * 3600 + parseFloat(parts[1]) * 60 + parseFloat(parts[2])
@@ -644,7 +656,7 @@ export default class SoundManager extends EventEmitter {
             // Format: 00:00.000
             seconds = parseFloat(parts[0]) * 60 + parseFloat(parts[1])
         }
-        
+
         return seconds
     }
 
@@ -670,7 +682,7 @@ export default class SoundManager extends EventEmitter {
 
     destroy() {
         this.stopAll()
-        
+
         // Décharger tous les sons personnalisés
         Object.entries(this.customSounds).forEach(([name, sound]) => {
             if (Array.isArray(sound)) {

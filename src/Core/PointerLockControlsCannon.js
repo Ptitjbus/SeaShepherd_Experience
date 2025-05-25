@@ -288,8 +288,8 @@ class PointerLockControlsCannon extends THREE.EventDispatcher {
     }
 
     this.yawObject.position.copy(this.cannonBody.position)
-    this.yawObject.updateMatrixWorld(true);
-    this.pitchObject.updateMatrixWorld(true);
+    this.yawObject.updateMatrixWorld(true)
+    this.pitchObject.updateMatrixWorld(true)
 
   }
 }

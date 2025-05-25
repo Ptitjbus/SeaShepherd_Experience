@@ -53,8 +53,7 @@ export default class ObjectManager {
         this.causticsTexture = new THREE.TextureLoader().load(
             '/textures/caustic/caustic_detailled.jpg'
         )
-        this.causticsTexture.wrapS = this.causticsTexture.wrapT =
-            THREE.RepeatWrapping
+        this.causticsTexture.wrapS = this.causticsTexture.wrapT = THREE.RepeatWrapping
 
         this.transmissionMeshes = []
         this.fboMain = useFBO(1024, 1024)
@@ -73,11 +72,10 @@ export default class ObjectManager {
 
         this.waterUniformData = null
 
-        this.clipPlane = new THREE.Plane(new THREE.Vector3(-132, 39, -117), 1);
+        this.clipPlane = new THREE.Plane(new THREE.Vector3(-132, 39, -117), 1)
 
         this.waterMaterial = this.createShadeWaterMaterial()
-        this.waterLevel = 44.0  
-
+        this.waterLevel = 44.0
 
         this.rebuildFrameCounter = 0
         this.rebuildFrequency = 1
@@ -117,7 +115,7 @@ export default class ObjectManager {
             castShadow = true,
             receiveShadow = true,
             playAnimation = true,
-            dynamicCollision = false
+            dynamicCollision = false,
         } = options
 
         const cameras = []
@@ -127,7 +125,7 @@ export default class ObjectManager {
             object.scene.position.set(position.x, position.y, position.z)
         }
 
-        object.scene.traverse((child) => {
+        object.scene.traverse(child => {
             if (child.isCamera) {
                 this.app.camera.allCameras.push(child)
                 cameras.push(child)
@@ -136,7 +134,6 @@ export default class ObjectManager {
             if (child.isMesh) {
                 if (child.userData.collide) {
                     const body = this.createTrimeshBodyFromMesh(child)
-                    
 
                     if (dynamicCollision) {
                         body.type = CANNON.Body.KINEMATIC
@@ -155,8 +152,7 @@ export default class ObjectManager {
                     if (child.userData.with_caustic) {
                         const baseMap = child.material.map
                         disposeMaterial(child.material)
-                        child.material =
-                            this.createCustomShaderMaterial(baseMap)
+                        child.material = this.createCustomShaderMaterial(baseMap)
                         this.shaderMeshes.push(child)
                     }
 
@@ -173,7 +169,7 @@ export default class ObjectManager {
                     }
 
                     if (
-                        child.material.name.toLowerCase().includes("algue") &&
+                        child.material.name.toLowerCase().includes('algue') &&
                         child.isInstancedMesh
                     ) {
                         const material = this.createShadeDeformationrMaterial(child.material.map)
@@ -182,7 +178,10 @@ export default class ObjectManager {
                         this.shaderMeshes.push(child)
                     }
 
-                    if (child.material.name.toLowerCase().includes("verre") && !child.userData.is_aquarium_glass){
+                    if (
+                        child.material.name.toLowerCase().includes('verre') &&
+                        !child.userData.is_aquarium_glass
+                    ) {
                         disposeMaterial(child.material)
                         child.material = this.glassMaterial
                     }
@@ -197,12 +196,12 @@ export default class ObjectManager {
         })
 
         mixer = new THREE.AnimationMixer(object.scene)
-        if(playAnimation){
-            object.animations.forEach((clip) => {
+        if (playAnimation) {
+            object.animations.forEach(clip => {
                 mixer.clipAction(clip).play()
             })
         }
-    
+
         this.app.scene.add(object.scene)
 
         const storedObject = {
@@ -217,13 +216,7 @@ export default class ObjectManager {
         return storedObject
     }
 
-    addPointLight(
-        position,
-        color = 0xffffff,
-        intensity = 1.0,
-        distance = 100,
-        decay = 2
-    ) {
+    addPointLight(position, color = 0xffffff, intensity = 1.0, distance = 100, decay = 2) {
         const light = new THREE.PointLight(color, intensity, distance, decay)
         light.position.set(position.x, position.y, position.z)
         light.castShadow = true
@@ -305,10 +298,7 @@ export default class ObjectManager {
                 vertices.push(x, y, z)
             }
 
-            geom.setAttribute(
-                'position',
-                new THREE.Float32BufferAttribute(vertices, 3)
-            )
+            geom.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3))
             geom.computeBoundingSphere()
 
             if (
@@ -329,14 +319,9 @@ export default class ObjectManager {
 
             // Position and rotation from body
             const shapeOffset = body.shapeOffsets[index] || new CANNON.Vec3()
-            const shapeOrientation =
-                body.shapeOrientations[index] || new CANNON.Quaternion()
+            const shapeOrientation = body.shapeOrientations[index] || new CANNON.Quaternion()
 
-            const shapeOffsetTHREE = new THREE.Vector3(
-                shapeOffset.x,
-                shapeOffset.y,
-                shapeOffset.z
-            )
+            const shapeOffsetTHREE = new THREE.Vector3(shapeOffset.x, shapeOffset.y, shapeOffset.z)
             const shapeQuatTHREE = new THREE.Quaternion(
                 shapeOrientation.x,
                 shapeOrientation.y,
@@ -408,11 +393,11 @@ export default class ObjectManager {
             return
         }
 
-        storedObject.object.scene.traverse((child) => {
+        storedObject.object.scene.traverse(child => {
             if (child.isMesh && child.userData.collide) {
                 // Trouve et retire le corps physique lié
-                const index = this.bodies.findIndex((body) => {
-                    return body.shapes.some((shape) => {
+                const index = this.bodies.findIndex(body => {
+                    return body.shapes.some(shape => {
                         return shape instanceof CANNON.Trimesh
                     })
                 })
@@ -468,19 +453,19 @@ export default class ObjectManager {
 
         const material = new THREE.ShaderMaterial({
             uniforms: {
-              uTexture: { value: baseMap },
-              uDisplacement: { value: uDisplacementTexture },
-              uStrength: { value: 0.4 },
-              time: { value: 0 },
-              cameraPos: { value: this.app.physicsManager.sphereBody.position },
+                uTexture: { value: baseMap },
+                uDisplacement: { value: uDisplacementTexture },
+                uStrength: { value: 0.4 },
+                time: { value: 0 },
+                cameraPos: { value: this.app.physicsManager.sphereBody.position },
             },
             vertexShader: LayerShader.vertexShader,
             fragmentShader: LayerShader.fragmentShader,
             side: THREE.DoubleSide,
             transparent: true,
-            defines: { USE_INSTANCING: '' }
-          });
-          return material
+            defines: { USE_INSTANCING: '' },
+        })
+        return material
     }
 
     createShadeWaterMaterial() {
@@ -488,7 +473,7 @@ export default class ObjectManager {
         const foamTexture = textureLoader.load('textures/water/foamNoise.png')
         foamTexture.wrapS = THREE.RepeatWrapping
         foamTexture.wrapT = THREE.RepeatWrapping
-        
+
         const normalTexture = textureLoader.load('textures/water/normal.jpg')
         normalTexture.wrapS = THREE.RepeatWrapping
         normalTexture.wrapT = THREE.RepeatWrapping
@@ -565,11 +550,11 @@ export default class ObjectManager {
             },
         }
 
-        const waterMaterial = new THREE.ShaderMaterial();
-        waterMaterial.uniforms = this.waterUniformData;
-        waterMaterial.vertexShader = WaterShader.vertexShader;
-        waterMaterial.fragmentShader = PerlinNoise.fragmentShader + WaterShader.fragmentShader;
-        waterMaterial.needsUpdate = true;
+        const waterMaterial = new THREE.ShaderMaterial()
+        waterMaterial.uniforms = this.waterUniformData
+        waterMaterial.vertexShader = WaterShader.vertexShader
+        waterMaterial.fragmentShader = PerlinNoise.fragmentShader + WaterShader.fragmentShader
+        waterMaterial.needsUpdate = true
         // waterMaterial.transparent = true
         // waterMaterial.side = THREE.DoubleSide
 
@@ -577,16 +562,16 @@ export default class ObjectManager {
     }
 
     updateWaterUniforms(time) {
-        this.waterUniformData.uTime.value = time;
-        this.waterUniformData.uWaterLevel.value = this.waterLevel;
-        const cam = this.app.camera.mainCamera;
+        this.waterUniformData.uTime.value = time
+        this.waterUniformData.uWaterLevel.value = this.waterLevel
+        const cam = this.app.camera.mainCamera
 
-        const worldPos = new THREE.Vector3();
-        cam.getWorldPosition(worldPos);
+        const worldPos = new THREE.Vector3()
+        cam.getWorldPosition(worldPos)
 
-        cam.updateMatrixWorld(true);
-        this.waterUniformData.uWorldMatrix.value.copy(cam.matrixWorld);
-        this.waterUniformData.uInverseProjectionMatrix.value.copy(cam.projectionMatrixInverse);
+        cam.updateMatrixWorld(true)
+        this.waterUniformData.uWorldMatrix.value.copy(cam.matrixWorld)
+        this.waterUniformData.uInverseProjectionMatrix.value.copy(cam.projectionMatrixInverse)
     }
 
     addBoids(ammount, radius, position) {
@@ -611,7 +596,7 @@ export default class ObjectManager {
             this.boidSpheres.push(sphere)
         }
 
-        boidManager.boids.forEach((boid) => {
+        boidManager.boids.forEach(boid => {
             this.app.scene.add(boid.mesh)
         })
 
@@ -623,7 +608,7 @@ export default class ObjectManager {
         const material = this.waterMaterial
 
         const plane = new THREE.Mesh(geometry, material)
-        plane.rotateX(Math.PI * -0.5);
+        plane.rotateX(Math.PI * -0.5)
 
         plane.position.set(position.x, position.y, position.z)
         plane.userData.is_water = true
@@ -651,7 +636,7 @@ export default class ObjectManager {
      */
     getItemFromObject(name, object = this.app.scene) {
         let found = null
-        object.traverse((child) => {
+        object.traverse(child => {
             if (child.name === name) {
                 found = child
             }
@@ -660,85 +645,84 @@ export default class ObjectManager {
     }
 
     applyVideoToMultipleScreens(objectName, meshNames = [], mediaId, audioName = null) {
-        const stored = this.objects.get(objectName);
-        if (!stored) return;
+        const stored = this.objects.get(objectName)
+        if (!stored) return
 
-        const mediaData = this.app.mediaManager.mediaElements.get(mediaId);
-        if (!mediaData) return;
+        const mediaData = this.app.mediaManager.mediaElements.get(mediaId)
+        if (!mediaData) return
 
-        const video = mediaData.element;
-        video.muted = true;
+        const video = mediaData.element
+        video.muted = true
 
-        const videoTexture = new THREE.VideoTexture(video);
-        videoTexture.minFilter = THREE.LinearFilter;
-        videoTexture.magFilter = THREE.LinearFilter;
-        videoTexture.format = THREE.RGBFormat;
+        const videoTexture = new THREE.VideoTexture(video)
+        videoTexture.minFilter = THREE.LinearFilter
+        videoTexture.magFilter = THREE.LinearFilter
+        videoTexture.format = THREE.RGBFormat
 
         const sharedMaterial = new THREE.MeshBasicMaterial({
             map: videoTexture,
-            side: THREE.FrontSide
-        });
+            side: THREE.FrontSide,
+        })
 
         const targetMeshes = meshNames
             .map(name => this.getItemFromObject(name, stored.object.scene))
-            .filter(Boolean);
+            .filter(Boolean)
 
         targetMeshes.forEach(mesh => {
-            mesh.material?.dispose();
-            mesh.material = sharedMaterial;
-        });
+            mesh.material?.dispose()
+            mesh.material = sharedMaterial
+        })
 
         const turnOn = async () => {
-            return new Promise(async (resolve) => {
-                video.currentTime = 0;
+            return new Promise(async resolve => {
+                video.currentTime = 0
 
                 if (audioName) {
-                    this.app.soundManager.playSoundOnSpeakers(audioName);
+                    this.app.soundManager.playSoundOnSpeakers(audioName)
                 }
 
                 try {
-                    await video.play();
+                    await video.play()
                 } catch (e) {
-                    console.error("Video playback error", e);
-                    return resolve(false);
+                    console.error('Video playback error', e)
+                    return resolve(false)
                 }
 
                 setTimeout(() => {
-                    const blackMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
+                    const blackMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 })
                     targetMeshes.forEach(mesh => {
-                        mesh.material.dispose();
-                        mesh.material = blackMaterial;
-                    });
+                        mesh.material.dispose()
+                        mesh.material = blackMaterial
+                    })
 
                     if (audioName) {
-                        this.app.soundManager.stopSound(audioName);
+                        this.app.soundManager.stopSound(audioName)
                     }
 
-                    resolve(true);
-                }, mediaData.config.duration);
-            });
-        };
-
+                    resolve(true)
+                }, mediaData.config.duration)
+            })
+        }
 
         const turnOff = async () => {
-            return new Promise((resolve) => {
-                video.pause();
+            return new Promise(resolve => {
+                video.pause()
 
-                const blackMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
+                const blackMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 })
                 targetMeshes.forEach(mesh => {
-                    mesh.material.dispose();
-                    mesh.material = blackMaterial;
-                });
+                    mesh.material.dispose()
+                    mesh.material = blackMaterial
+                })
 
                 if (audioName) {
-                    this.app.soundManager.stopSound(audioName);
+                    this.app.soundManager.stopSound(audioName)
                 }
 
-                resolve(true);
-            });
-        };
+                resolve(true)
+            })
+        }
 
-        return { turnOn, turnOff };
+        return { turnOn, turnOff }
     }
 
     /**
@@ -768,27 +752,27 @@ export default class ObjectManager {
 
     removeBoids() {
         // Remove all boid managers
-        this.boidManagers.forEach((manager) => {
+        this.boidManagers.forEach(manager => {
             manager.destroy()
         })
         this.boidManagers = []
 
         // Remove all boid spheres
-        this.boidSpheres.forEach((sphere) => {
+        this.boidSpheres.forEach(sphere => {
             this.app.scene.remove(sphere)
         })
         this.boidSpheres = []
     }
 
     update(time) {
-        const elapsedTime = this.clock.getElapsedTime();
+        const elapsedTime = this.clock.getElapsedTime()
 
         this.meshTransmissionMaterial.time = time * 0.001
 
         this.updateWaterUniforms(elapsedTime)
 
         if (this.boidManagers) {
-            this.boidManagers.forEach((manager) => {
+            this.boidManagers.forEach(manager => {
                 manager.update(time.delta)
             })
         }
@@ -796,37 +780,37 @@ export default class ObjectManager {
         this.rebuildFrameCounter++
         if (this.rebuildFrameCounter >= this.rebuildFrequency) {
             this.rebuildFrameCounter = 0
-        
+
             this.bodies.forEach((body, index) => {
-                 if (body.recreateFrom) {
-                     // Supprimer l'ancien body
-                     this.app.physicsManager.world.removeBody(body)
-     
-                     // Créer un nouveau body à partir du mesh animé
-                     const newBody = this.createTrimeshBodyFromMesh(body.recreateFrom)
-                     if (newBody) {
-                         newBody.type = CANNON.Body.KINEMATIC
-                         newBody.mass = 0
-                         newBody.updateMassProperties()
-                         newBody.recreateFrom = body.recreateFrom
-     
-                         this.bodies[index] = newBody
-                         this.app.physicsManager.world.addBody(newBody)
-                     }
-                 }
-             })
+                if (body.recreateFrom) {
+                    // Supprimer l'ancien body
+                    this.app.physicsManager.world.removeBody(body)
+
+                    // Créer un nouveau body à partir du mesh animé
+                    const newBody = this.createTrimeshBodyFromMesh(body.recreateFrom)
+                    if (newBody) {
+                        newBody.type = CANNON.Body.KINEMATIC
+                        newBody.mass = 0
+                        newBody.updateMassProperties()
+                        newBody.recreateFrom = body.recreateFrom
+
+                        this.bodies[index] = newBody
+                        this.app.physicsManager.world.addBody(newBody)
+                    }
+                }
+            })
         }
 
         this.checkTriggers()
 
-        this.objects.forEach((object) => {
+        this.objects.forEach(object => {
             // Mise à jour des animations (GLTF)
             if (object.mixer && object.playAnimations) {
                 object.mixer.update(time.delta)
             }
 
             // Mise à jour des shaders
-            this.shaderMeshes.forEach((child) => {
+            this.shaderMeshes.forEach(child => {
                 if (child.isMesh) {
                     if (child.material?.uniforms?.cameraPos) {
                         child.material.uniforms.cameraPos.value =
@@ -840,9 +824,11 @@ export default class ObjectManager {
                     if (child.material?.uniforms?.uTime) {
                         child.material.uniforms.uTime.value += time.delta * 0.4
                     }
-    
+
                     if (child.material?.uniforms?.cameraPos) {
-                        child.material.uniforms.cameraPos.value.copy(this.app.physicsManager.sphereBody.position);
+                        child.material.uniforms.cameraPos.value.copy(
+                            this.app.physicsManager.sphereBody.position
+                        )
                     }
                 }
             })
@@ -870,7 +856,7 @@ export default class ObjectManager {
             rotationJitter = 0.05,
             collisionJitter = 0.2,
             updateFrequency = 5,
-            lodDistance = 20
+            lodDistance = 20,
         } = options
 
         // Stocker les données originales de manière optimisée
@@ -879,15 +865,15 @@ export default class ObjectManager {
             rotation: new THREE.Euler().copy(object.rotation),
             bodies: [],
             lastUpdate: 0,
-            distance: 0
+            distance: 0,
         }
 
         // Trouver et stocker les corps physiques associés de manière optimisée
         const bodies = []
-        object.traverse((child) => {
+        object.traverse(child => {
             if (child.isMesh && child.userData.collide) {
-                const bodyIndex = this.bodies.findIndex((body) => {
-                    return body.shapes.some((shape) => shape instanceof CANNON.Trimesh)
+                const bodyIndex = this.bodies.findIndex(body => {
+                    return body.shapes.some(shape => shape instanceof CANNON.Trimesh)
                 })
 
                 if (bodyIndex !== -1) {
@@ -895,11 +881,11 @@ export default class ObjectManager {
                     const vertices = body.shapes[0].vertices
                     const originalVertices = new Float32Array(vertices.length)
                     originalVertices.set(vertices)
-                    
+
                     bodies.push({
                         body,
                         originalVertices,
-                        vertexCount: vertices.length
+                        vertexCount: vertices.length,
                     })
                 }
             }
@@ -917,7 +903,7 @@ export default class ObjectManager {
             lodDistance,
             frameCounter: 0,
             _tempVector: new THREE.Vector3(),
-            _tempEuler: new THREE.Euler()
+            _tempEuler: new THREE.Euler(),
         }
 
         // Ajouter l'objet à la liste des objets à mettre à jour
@@ -929,7 +915,7 @@ export default class ObjectManager {
         // Modifier la fonction update pour inclure le comportement buggy si ce n'est pas déjà fait
         if (!this._originalUpdate) {
             this._originalUpdate = this.update.bind(this)
-            this.update = function(time) {
+            this.update = function (time) {
                 this._originalUpdate(time)
 
                 // Mise à jour des objets buggy
@@ -937,7 +923,7 @@ export default class ObjectManager {
                     const cameraPosition = this.app.camera.mainCamera.position
                     const now = performance.now()
 
-                    this.buggyObjects.forEach((object) => {
+                    this.buggyObjects.forEach(object => {
                         if (!object.isBuggy) return
 
                         const data = object.buggyData
@@ -949,8 +935,10 @@ export default class ObjectManager {
                         originalData.distance = distance
 
                         // Ajustement de la fréquence de mise à jour en fonction de la distance
-                        const frequency = distance > data.lodDistance ? 
-                            data.updateFrequency * 2 : data.updateFrequency
+                        const frequency =
+                            distance > data.lodDistance
+                                ? data.updateFrequency * 2
+                                : data.updateFrequency
 
                         // Mise à jour uniquement si nécessaire
                         if (now - originalData.lastUpdate < 1000 / 60) return // Limite à 60 FPS
@@ -978,7 +966,7 @@ export default class ObjectManager {
                         // Déformation des collisions optimisée
                         if (distance <= data.lodDistance) {
                             const colJitter = data.collisionJitter
-                            originalData.bodies.forEach((bodyData) => {
+                            originalData.bodies.forEach(bodyData => {
                                 const vertices = bodyData.body.shapes[0].vertices
                                 const originalVertices = bodyData.originalVertices
                                 const vertexCount = bodyData.vertexCount
@@ -1014,7 +1002,7 @@ export default class ObjectManager {
         object.rotation.copy(data.originalData.rotation)
 
         // Restaurer les collisions originales
-        data.originalData.bodies.forEach((bodyData) => {
+        data.originalData.bodies.forEach(bodyData => {
             const vertices = bodyData.body.shapes[0].vertices
             vertices.set(bodyData.originalVertices)
             bodyData.body.shapes[0].updateConvexPolyhedronRepresentation()

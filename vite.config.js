@@ -32,17 +32,5 @@ export default {
     plugins:
     [
         restart({ restart: [ '../static/**', ] }), // Restart server on static file change
-        {
-            name: 'confidential-documents-html',
-            configureServer(server) {
-                server.middlewares.use((req, res, next) => {
-                    if (req.url === '/confidential-documents') {
-                        // Rediriger vers la page des documents confidentiels
-                        req.url = '/Pages/ConfidentialDocuments/ConfidentialDocuments.html';
-                    }
-                    next();
-                });
-            }
-        }
     ],
 }

@@ -1,4 +1,4 @@
-@import url("https://use.typekit.net/sai4atz.css");
+@import url('https://use.typekit.net/sai4atz.css');
 
 /* ====== RESET & BASE ====== */
 * {
@@ -6,7 +6,8 @@
     padding: 0;
 }
 
-html, body {
+html,
+body {
     overflow: hidden;
     background-color: black;
 }
@@ -30,15 +31,15 @@ html, body {
     top: 0;
     width: 0;
     height: 5px;
-    background-color: #FFFFFF;
+    background-color: #ffffff;
     transition: width 0.1s ease, opacity 1s ease;
     pointer-events: none;
     z-index: 1001;
 }
 
 /* ====== OVERLAYS BASE ====== */
-.start-overlay, 
-.credits-overlay, 
+.start-overlay,
+.credits-overlay,
 .options-overlay {
     position: fixed;
     inset: 0;
@@ -57,7 +58,7 @@ html, body {
     justify-content: center;
 }
 
-.credits-overlay, 
+.credits-overlay,
 .options-overlay {
     z-index: 200;
     justify-content: flex-start;
@@ -76,9 +77,9 @@ html, body {
 }
 
 .header-container p {
-    font-family: "montserrat", sans-serif;
+    font-family: 'montserrat', sans-serif;
     font-weight: medium;
-    color: #FFF;
+    color: #fff;
     font-size: 24px;
 }
 
@@ -89,17 +90,17 @@ html, body {
     user-select: none;
 }
 
-.credits-header, 
+.credits-header,
 .options-header {
     margin-bottom: 50px;
     text-align: center;
 }
 
-.credits-header h1, 
+.credits-header h1,
 .options-header h1 {
-    font-family: "rafaella", sans-serif;
+    font-family: 'rafaella', sans-serif;
     font-weight: 400;
-    color: #FFF;
+    color: #fff;
     font-size: 60px;
     letter-spacing: 4px;
     margin: 0;
@@ -108,12 +109,12 @@ html, body {
 /* ====== BUTTONS BASE ====== */
 .btn-base {
     position: relative;
-    color: #FFF;
-    font-family: "montserrat", sans-serif;
+    color: #fff;
+    font-family: 'montserrat', sans-serif;
     padding: 15px 32px;
     font-weight: 500;
     font-size: 2em;
-    border: 1px solid #FFF;
+    border: 1px solid #fff;
     cursor: pointer;
     transition: all 0.3s ease;
     user-select: none;
@@ -151,13 +152,13 @@ html, body {
     box-sizing: border-box;
 }
 
-.footer-btn-left, 
+.footer-btn-left,
 .footer-btn-right {
     background: transparent;
     border: none;
     color: white;
     padding: 12px 20px;
-    font-family: "montserrat", sans-serif;
+    font-family: 'montserrat', sans-serif;
     font-weight: 500;
     font-size: 16px;
     text-transform: uppercase;
@@ -165,7 +166,7 @@ html, body {
     transition: all 0.3s ease;
 }
 
-.footer-btn-left:hover, 
+.footer-btn-left:hover,
 .footer-btn-right:hover {
     opacity: 0.7;
 }
@@ -216,7 +217,7 @@ html, body {
 }
 
 .credits-section h3 {
-    font-family: "montserrat", sans-serif;
+    font-family: 'montserrat', sans-serif;
     font-weight: 500;
     font-size: 16px;
     text-transform: uppercase;
@@ -226,7 +227,7 @@ html, body {
 }
 
 .credits-section p {
-    font-family: "montserrat", sans-serif;
+    font-family: 'montserrat', sans-serif;
     font-weight: 500;
     font-size: 20px;
     line-height: 1.4;
@@ -235,7 +236,7 @@ html, body {
 }
 
 .credits-section .parenthesis-text {
-    font-family: "montserrat", sans-serif;
+    font-family: 'montserrat', sans-serif;
     font-weight: 500;
     font-size: 16px;
     color: rgba(255, 255, 255, 0.6);
@@ -260,7 +261,7 @@ html, body {
 }
 
 .options-content h3 {
-    font-family: "montserrat", sans-serif;
+    font-family: 'montserrat', sans-serif;
     font-weight: 500;
     font-size: 16px;
     text-transform: uppercase;
@@ -275,12 +276,12 @@ html, body {
     align-items: center;
     justify-content: space-between;
     color: white;
-    font-family: "montserrat", sans-serif;
+    font-family: 'montserrat', sans-serif;
     padding: 0;
 }
 
 .option-item:nth-child(odd) {
-  margin-bottom: 80px;
+    margin-bottom: 80px;
 }
 
 .option-item label {
@@ -321,7 +322,7 @@ html, body {
 }
 
 .volume-value {
-    font-family: "montserrat", sans-serif;
+    font-family: 'montserrat', sans-serif;
     font-weight: 500;
     font-size: 20px;
     color: rgba(255, 255, 255, 1);
@@ -363,7 +364,7 @@ html, body {
     z-index: 1;
 }
 
-.switch-container[data-active="true"] .switch-indicator {
+.switch-container[data-active='true'] .switch-indicator {
     transform: translateX(100%);
 }
 
@@ -372,7 +373,7 @@ html, body {
     position: fixed;
     inset: 0;
     background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)),
-                url('/images/ocean-background.webp') no-repeat center center;
+        url('/images/ocean-background.webp') no-repeat center center;
     background-size: cover;
     display: flex;
     flex-direction: column;
@@ -421,9 +422,10 @@ html, body {
     border: 1px solid white;
     opacity: 0;
     transform: scale(0.95) translateY(30px);
-    transition: opacity 0.4s cubic-bezier(.4,0,.2,1), transform 0.4s cubic-bezier(.4,0,.2,1);
+    transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     pointer-events: none;
-    font-family: "pf-videotext", sans-serif;
+    font-family: 'pf-videotext', sans-serif;
     font-weight: 400;
     user-select: none;
 }
@@ -472,57 +474,65 @@ html, body {
     z-index: 1000;
     opacity: 0;
     filter: blur(5px);
-    transition: opacity 1.43s cubic-bezier(.4,0,.2,1), filter 1.43s cubic-bezier(.4,0,.2,1), transform 1.43s cubic-bezier(.4,0,.2,1);
+    transition: opacity 1.43s cubic-bezier(0.4, 0, 0.2, 1),
+        filter 1.43s cubic-bezier(0.4, 0, 0.2, 1), transform 1.43s cubic-bezier(0.4, 0, 0.2, 1);
     pointer-events: none;
     user-select: none;
     text-align: center;
-    font-family: "rafaella", sans-serif;
+    font-family: 'rafaella', sans-serif;
     font-weight: 400;
-    color: #FFF;
+    color: #fff;
     font-size: 40px;
     letter-spacing: 4px;
 }
 
-#video-loading-container{
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 1000;
-  background-color: #000;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
+#video-loading-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    background-color: #000;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
-#intro-video{
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+#intro-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
-#skip-video-btn{
-  position: absolute;
-  bottom: 20px;
-  right: 20px;
-  padding: 10px 15px;
-  background-color: rgba(0, 0, 0, 0.5);
-  color: white;
-  border: 1px solid white;
-  border-radius: 4px;
-  cursor: pointer;
-  font-family: sans-serif;
-  z-index: 1001;
-  opacity: 0;
+#skip-video-btn {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    padding: 10px 15px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: 1px solid white;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: sans-serif;
+    z-index: 1001;
+    opacity: 0;
 }
 
 /* ====== ANIMATIONS ====== */
 @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-5px); }
-    75% { transform: translateX(5px); }
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(-5px);
+    }
+    75% {
+        transform: translateX(5px);
+    }
 }
 
 .shake {
@@ -538,56 +548,56 @@ html, body {
         bottom: 20px;
         padding: 0 20px;
     }
-    
+
     .footer-right-buttons {
         flex-direction: column;
         gap: 10px;
     }
-    
-    .credits-header h1, 
+
+    .credits-header h1,
     .options-header h1 {
         font-size: 40px;
     }
-    
+
     .credits-content {
         grid-template-columns: 1fr;
         gap: 30px;
     }
-    
+
     .credits-section h3 {
         font-size: 14px;
     }
-    
+
     .credits-section p {
         font-size: 18px;
     }
-    
+
     .credits-section .parenthesis-text {
         font-size: 14px;
     }
-    
+
     .option-item {
         flex-direction: column;
         align-items: flex-start;
         gap: 10px;
     }
-    
+
     .option-item label {
         min-width: auto;
         width: 100%;
         font-size: 14px;
     }
-    
+
     .volume-slider {
         width: 100%;
         margin: 0;
     }
-    
+
     .volume-value {
         align-self: flex-end;
         font-size: 18px;
     }
-    
+
     .switch-container {
         width: 50px;
         height: 25px;
@@ -595,7 +605,7 @@ html, body {
 }
 
 @media (width < 1260px) {
-    .choices-container, 
+    .choices-container,
     .choices-buttons-container {
         flex-direction: column !important;
     }
@@ -605,7 +615,7 @@ html, body {
     .end-title {
         font-size: 3rem;
     }
-    
+
     .end-subtitle {
         font-size: 1.5rem;
     }

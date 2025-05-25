@@ -1,29 +1,29 @@
-import { Scene, MeshStandardMaterial, Color, Vector3, NoToneMapping } from "three"
+import { Scene, MeshStandardMaterial, Color, Vector3, NoToneMapping } from 'three'
 import ObjectManager from './Core/Managers/ObjectManager.js'
-import AssetManager from "./Assets/AssetManager.js"
-import PostProcessingManager from "./Core/Managers/PostProcessingManager.js"
-import EventEmitter from "./Utils/EventEmitter"
-import CanvasSize from "./Core/CanvasSize"
-import Camera from "./Core/Camera"
-import Renderer from "./Core/Renderer"
-import { AnimationLoop } from "./Core/AnimationLoop"
-import Debug from "./Utils/Debug"
+import AssetManager from './Assets/AssetManager.js'
+import PostProcessingManager from './Core/Managers/PostProcessingManager.js'
+import EventEmitter from './Utils/EventEmitter'
+import CanvasSize from './Core/CanvasSize'
+import Camera from './Core/Camera'
+import Renderer from './Core/Renderer'
+import { AnimationLoop } from './Core/AnimationLoop'
+import Debug from './Utils/Debug'
 import Ocean from './World/Ocean.js'
 import EventsManager from './Core/Managers/EventsManager'
 import SoundManager from './Core/Managers/SoundManager.js'
 import MediaManager from './Core/Managers/MediaManager.js'
 import CustomEnvironment from './World/CustomEnvironment.js'
-import { ChoicesManager } from "./Core/Managers/ChoicesManager.js"
+import { ChoicesManager } from './Core/Managers/ChoicesManager.js'
 import DoorManager from './Core/Managers/DoorManager.js'
-import PhysicsManager from "./Core/Managers/PhysicsManager.js"
-import StoryManager from "./Core/Managers/StoryManager.js"
+import PhysicsManager from './Core/Managers/PhysicsManager.js'
+import StoryManager from './Core/Managers/StoryManager.js'
 
 let myAppInstance = null
 
 const goldMaterial = new MeshStandardMaterial({
     color: new Color(0x1200ff), // doré
     metalness: 1,
-    roughness: 0.2
+    roughness: 0.2,
 })
 
 export default class App extends EventEmitter {
@@ -88,7 +88,7 @@ export default class App extends EventEmitter {
         this.debug = new Debug()
         this.physicsManager = new PhysicsManager()
         this.soundManager = new SoundManager()
-        
+
         this.animationLoop = new AnimationLoop()
         this.updateBound = this.update.bind(this)
         this.animationLoop.on('update', this.updateBound)
@@ -100,7 +100,7 @@ export default class App extends EventEmitter {
 
         this.eventsManager = new EventsManager()
 
-        this.eventsManager.on('popinShown', (popinId) => {
+        this.eventsManager.on('popinShown', popinId => {
             console.log(`Popin "${popinId}" affichée`)
         })
 
@@ -110,7 +110,7 @@ export default class App extends EventEmitter {
         this.choicesManager = new ChoicesManager()
         this.storyManager = new StoryManager()
         this.initMedias()
-        
+
         this.setupUI()
 
         window.appInstance = this
@@ -122,7 +122,11 @@ export default class App extends EventEmitter {
 
     async assetsLoadCompleteHandler() {
         this.initScene()
-        this.postProcessing = new PostProcessingManager(this.renderer.instance, this.scene, this.camera.mainCamera)
+        this.postProcessing = new PostProcessingManager(
+            this.renderer.instance,
+            this.scene,
+            this.camera.mainCamera
+        )
         this.mediaManager.init(this.scene)
         this.mediaManager.connectToPostProcessingManager(this.postProcessing)
         this.animationLoop.start()
@@ -137,7 +141,6 @@ export default class App extends EventEmitter {
         this.environment = new CustomEnvironment()
         // this.ocean = new Ocean(this.scene, this.renderer.instance)
         this.objectManager = new ObjectManager()
-        
 
         this.objectManager.addBoids(50, 15, new Vector3(-51, 1.5, 18))
         this.objectManager.addBoids(20, 10, new Vector3(-77, 1.5, -25))
@@ -152,53 +155,37 @@ export default class App extends EventEmitter {
         // this.objectManager.addPlane(new Vector3(-105,44.5,-112), 50)
 
         this.doorManager = new DoorManager(this.scene)
-         
+
         // Porte 1
         this.doorManager.addDoorPair(new Vector3(-8.01, 0, 0.05))
-        this.doorManager.doorPairs[0].setRotation(Math.PI/2)
+        this.doorManager.doorPairs[0].setRotation(Math.PI / 2)
 
         // Porte 2
         this.doorManager.addDoorPair(new Vector3(-50.86, 0, -30.41))
-        this.doorManager.doorPairs[1].setRotation(0.42 * Math.PI/180)
+        this.doorManager.doorPairs[1].setRotation((0.42 * Math.PI) / 180)
 
         // Porte 3
         this.doorManager.addDoorPair(new Vector3(-68.2, 0, -121))
-        this.doorManager.doorPairs[2].setRotation(Math.PI/2)
+        this.doorManager.doorPairs[2].setRotation(Math.PI / 2)
 
-        this.objectManager.addEventTrigger(
-            new Vector3(-40, 1, -5),
-            40, 7, 20,
-            () => {
-                this.storyManager.initAquarium()
-            }
-        )
+        this.objectManager.addEventTrigger(new Vector3(-40, 1, -5), 40, 7, 20, () => {
+            this.storyManager.initAquarium()
+        })
 
-        this.objectManager.addEventTrigger(
-            new Vector3(-50, 1, -53),
-            20, 10, 30,
-            () => {
-                this.storyManager.initCorridor()
-            }
-        )
+        this.objectManager.addEventTrigger(new Vector3(-50, 1, -53), 20, 10, 30, () => {
+            this.storyManager.initCorridor()
+        })
 
-        this.objectManager.addEventTrigger(
-            new Vector3(-80, 1, -120),
-            15, 7, 20,
-            () => {
-                this.storyManager.initTurtleBottom()
-            }
-        )
+        this.objectManager.addEventTrigger(new Vector3(-80, 1, -120), 15, 7, 20, () => {
+            this.storyManager.initTurtleBottom()
+        })
 
-        this.objectManager.addEventTrigger(
-            new Vector3(-105, 1, -121),
-            10, 7, 10,
-            () => {
-                this.storyManager.initElevator()
-            }
-        )
+        this.objectManager.addEventTrigger(new Vector3(-105, 1, -121), 10, 7, 10, () => {
+            this.storyManager.initElevator()
+        })
     }
 
-    async initMadias(){
+    async initMadias() {
         await this.preloadMedias()
     }
 
@@ -210,9 +197,9 @@ export default class App extends EventEmitter {
         const creditsOverlay = document.getElementById('credits-overlay')
 
         if (this.startButton) {
-            this.startButton.addEventListener('click', async (e) => {
+            this.startButton.addEventListener('click', async e => {
                 e.preventDefault()
-                
+
                 this.startOverlay.classList.add('hidden')
                 setTimeout(() => {
                     this.startOverlay.style.display = 'none'
@@ -221,7 +208,7 @@ export default class App extends EventEmitter {
 
                 this.soundManager.attachToSpeakers()
 
-                if(!this.storyManager.savedStep || this.storyManager.savedStep === 'intro'){
+                if (!this.storyManager.savedStep || this.storyManager.savedStep === 'intro') {
                     this.storyManager.startExperience()
                 }
 
@@ -232,7 +219,6 @@ export default class App extends EventEmitter {
                 this.startButton.style.display = 'none'
 
                 this.physicsManager.controls.lock()
-
             })
         }
 
@@ -268,7 +254,6 @@ export default class App extends EventEmitter {
             })
         }
 
-        // Gestionnaire pour le bouton retour des options
         if (backOptionsBtn) {
             backOptionsBtn.addEventListener('click', () => {
                 console.log('Back options button clicked')
@@ -277,47 +262,38 @@ export default class App extends EventEmitter {
             })
         }
 
-        // Gestionnaires pour les sliders de volume
         const musicSlider = document.getElementById('music-volume')
         const sfxSlider = document.getElementById('sfx-volume')
-        
+
         if (musicSlider) {
-            musicSlider.addEventListener('input', (e) => {
+            musicSlider.addEventListener('input', e => {
                 const value = e.target.value
                 e.target.nextElementSibling.textContent = `${value}%`
-                // Ici vous pouvez ajouter la logique pour changer le volume de la musique
             })
         }
 
         if (sfxSlider) {
-            sfxSlider.addEventListener('input', (e) => {
+            sfxSlider.addEventListener('input', e => {
                 const value = e.target.value
                 e.target.nextElementSibling.textContent = `${value}%`
-                // Ici vous pouvez ajouter la logique pour changer le volume des effets sonores
             })
         }
 
-        // Gestionnaire pour le switch de qualité graphique
         const switchContainer = document.querySelector('.switch-container')
         const switchOptions = document.querySelectorAll('.switch-option')
 
         if (switchContainer && switchOptions.length > 0) {
-            // Initialiser le switch avec la valeur par défaut (false = Faible)
             switchContainer.setAttribute('data-active', 'false')
-            
+
             switchOptions.forEach(option => {
                 option.addEventListener('click', () => {
-                    // Retirer la classe active de toutes les options
                     switchOptions.forEach(opt => opt.classList.remove('active'))
-                    
-                    // Ajouter la classe active à l'option cliquée
+
                     option.classList.add('active')
-                    
-                    // Mettre à jour l'attribut data-active du conteneur
+
                     const value = option.getAttribute('data-value')
                     switchContainer.setAttribute('data-active', value)
-                    
-                    // Ici vous pouvez ajouter la logique pour changer la qualité graphique
+
                     const isHighQuality = value === 'true'
                     console.log('Qualité graphique élevée:', isHighQuality)
                 })
@@ -337,7 +313,8 @@ export default class App extends EventEmitter {
 
         if (
             this.objectManager.transmissionMeshes.length > 0 &&
-            this.objectManager.meshTransmissionMaterial.buffer === this.objectManager.fboMain.texture
+            this.objectManager.meshTransmissionMaterial.buffer ===
+                this.objectManager.fboMain.texture
         ) {
             this.renderer.instance.toneMapping = NoToneMapping
             this.renderer.instance.setRenderTarget(this.objectManager.fboMain)
@@ -351,7 +328,7 @@ export default class App extends EventEmitter {
             this.renderer.instance.render(this.scene, this.camera.mainCamera)
         }
 
-        if (this.storyManager) this.storyManager.update();
+        if (this.storyManager) this.storyManager.update()
     }
 
     destroy() {
@@ -364,13 +341,13 @@ export default class App extends EventEmitter {
             this.eventsManager = null
         }
 
-        this.scene.traverse((object) => {
+        this.scene.traverse(object => {
             if (object.geometry) {
                 object.geometry.dispose()
             }
             if (object.material) {
                 if (Array.isArray(object.material)) {
-                    object.material.forEach((material) => {
+                    object.material.forEach(material => {
                         material.dispose()
                     })
                 } else {
@@ -378,8 +355,8 @@ export default class App extends EventEmitter {
                 }
             }
         })
-        
-        this.postProcessing = null  
+
+        this.postProcessing = null
 
         this.camera.destroy()
         this.camera = null
@@ -388,12 +365,12 @@ export default class App extends EventEmitter {
         this.renderer = null
 
         this.scene = null
-        
+
         if (this.sky) {
             this.sky.destroy()
             this.sky = null
         }
-        
+
         this.ocean.destroy()
         this.ocean = null
         this.objectManager.destroy()
@@ -420,17 +397,17 @@ export default class App extends EventEmitter {
         this.endOverlay = null
 
         this.canvas = null
-        
+
         if (this.mediaManager) {
             this.mediaManager.destroy()
             this.mediaManager = null
         }
-        
+
         if (this.choicesManager) {
             this.choicesManager.destroy()
             this.choicesManager = null
         }
-        
+
         if (this.storyManager) {
             // Ajoutez une méthode destroy au StoryManager si nécessaire
             if (typeof this.storyManager.destroy === 'function') {
@@ -444,37 +421,37 @@ export default class App extends EventEmitter {
 
     async preloadMedias() {
         this.mediaManager.preloadMedia({
-            'error1': { 
-                type: 'video', 
-                src: '/videos/massacre_dauphin.mp4', 
+            error1: {
+                type: 'video',
+                src: '/videos/massacre_dauphin.mp4',
                 glitchType: 'big',
                 loop: false,
                 muted: false,
-                duration: 2000 // en ms
+                duration: 2000, // en ms
             },
-            'bigvideo': { 
-                type: 'video', 
-                src: '/videos/720p/bigvideo.webm', 
+            bigvideo: {
+                type: 'video',
+                src: '/videos/720p/bigvideo.webm',
                 glitchType: 'big',
                 loop: false,
                 muted: false,
-                duration: 15000 // en ms
+                duration: 15000, // en ms
             },
-            'connexion': { 
-                type: 'video', 
-                src: '/videos/1080p/connexion.webm', 
+            connexion: {
+                type: 'video',
+                src: '/videos/1080p/connexion.webm',
                 glitchType: 'small',
                 loop: false,
                 muted: false,
-                duration: 12000 // en ms
+                duration: 12000, // en ms
             },
-            'pub': { 
-                type: 'video', 
-                src: '/videos/1080p/pub.mp4', 
+            pub: {
+                type: 'video',
+                src: '/videos/1080p/pub.mp4',
                 glitchType: 'small',
                 loop: false,
                 muted: true,
-                duration: 15000 // en ms
+                duration: 15000, // en ms
             },
         })
     }
