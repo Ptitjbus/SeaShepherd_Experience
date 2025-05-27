@@ -355,10 +355,22 @@ export default class App extends EventEmitter {
                         this.postProcessing.fisheyePass.enabled = false
                         this.postProcessing.bloomPass.enabled = false
                         console.log('Post-processing désactivé pour le mode performance')
+                        
+                        // Désactiver les boids
+                        if (this.objectManager) {
+                            this.objectManager.removeBoids()
+                            console.log('Boids désactivés pour le mode performance')
+                        }
                     } else {
                         this.postProcessing.fisheyePass.enabled = true
                         this.postProcessing.bloomPass.enabled = true
                         console.log('Post-processing réactivé')
+                        
+                        // Réactiver les boids
+                        if (this.objectManager) {
+                            this.recreateBoids()
+                            console.log('Boids réactivés')
+                        }
                     }
                 })
             })
@@ -617,5 +629,27 @@ export default class App extends EventEmitter {
         if (savedSfxVolume) {
             this.soundManager.setMasterSfxVolume(parseInt(savedSfxVolume) / 100)
         }
+    }
+
+    /**
+     * Recrée tous les boids avec les mêmes paramètres qu'à l'initialisation
+     */
+    recreateBoids() {
+        if (!this.objectManager) return
+
+        // Recréer les boids avec les mêmes paramètres que dans initScene()
+        this.objectManager.addBoids(15, 10, new Vector3(26, 4, 31))
+        this.objectManager.addBoids(5, 7, new Vector3(31, 2, 24))
+        this.objectManager.addBoids(3, 10, new Vector3(25, 2, 30))
+
+        this.objectManager.addBoids(50, 15, new Vector3(-51, 1.5, 18))
+        this.objectManager.addBoids(20, 10, new Vector3(-77, 1.5, -25))
+        this.objectManager.addBoids(10, 5, new Vector3(-37, 1.5, -8))
+        this.objectManager.addBoids(20, 10, new Vector3(-30, 1.5, -30))
+        this.objectManager.addBoids(20, 10, new Vector3(-30, 1.5, 25))
+        this.objectManager.addBoids(30, 15, new Vector3(-80, 1.5, 18))
+        this.objectManager.addBoids(30, 15, new Vector3(-30, 6, 0))
+        this.objectManager.addBoids(30, 15, new Vector3(-70, 5, -5))
+        this.objectManager.addBoids(2, 6, new Vector3(-12, 1.5, -12))
     }
 }
