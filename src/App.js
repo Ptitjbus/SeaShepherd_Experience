@@ -279,8 +279,7 @@ export default class App extends EventEmitter {
         if (backOptionsBtn) {
             backOptionsBtn.addEventListener('click', () => {
                 console.log('Back options button clicked')
-                optionsOverlay.classList.add('hidden')
-                this.startOverlay.style.opacity = '1'
+                this.hideOptionsMenu()
             })
         }
 
@@ -316,10 +315,79 @@ export default class App extends EventEmitter {
                     const value = option.getAttribute('data-value')
                     switchContainer.setAttribute('data-active', value)
 
-                    const isHighQuality = value === 'true'
-                    console.log('Qualité graphique élevée:', isHighQuality)
+                    const isPerformanceMode = value === 'true'
+                    console.log('Mode performance activé:', isPerformanceMode)
+
+                    if (isPerformanceMode) {
+                        this.postProcessing.fisheyePass.enabled = false
+                        this.postProcessing.bloomPass.enabled = false
+                        console.log('Post-processing désactivé pour le mode performance')
+                    } else {
+                        this.postProcessing.fisheyePass.enabled = true
+                        this.postProcessing.bloomPass.enabled = true
+                        console.log('Post-processing réactivé')
+                    }
                 })
             })
+        }
+
+        // Ajouter l'écouteur pour la touche Echap
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                const optionsOverlay = document.getElementById('options-overlay')
+                
+                // Si le menu options est ouvert, le fermer
+                if (!optionsOverlay.classList.contains('hidden')) {
+                    this.hideOptionsMenu()
+                    return
+                }
+                
+                // Sinon, vérifier si l'expérience est en cours et ouvrir le menu
+                if (this.isSceneReady && this.startOverlay.classList.contains('hidden')) {
+                    this.showOptionsFromGame()
+                }
+            }
+        })
+    }
+
+    showOptionsFromGame() {
+        const optionsOverlay = document.getElementById('options-overlay')
+        
+        // Désactiver temporairement la gestion d'Escape par les contrôles
+        if (this.physicsManager && this.physicsManager.controls) {
+            this.physicsManager.controls.unlock()
+        }
+        
+        // Afficher le menu options
+        optionsOverlay.classList.remove('hidden')
+        
+        console.log('Menu options ouvert depuis le jeu')
+    }
+
+    hideOptionsMenu() {
+        const optionsOverlay = document.getElementById('options-overlay')
+        
+        // Vérifier si on est en jeu ou sur l'écran d'accueil
+        const isInGame = this.isSceneReady && this.startOverlay.classList.contains('hidden')
+        
+        if (isInGame) {
+            // Retour au jeu : masquer le menu et reverrouiller les contrôles
+            optionsOverlay.classList.add('hidden')
+            
+            // Reverrouiller les contrôles après un petit délai pour éviter les conflits
+            setTimeout(() => {
+                if (this.physicsManager && this.physicsManager.controls) {
+                    this.physicsManager.controls.lock()
+                }
+            }, 100)
+            
+            console.log('Retour au jeu depuis les options')
+        } else {
+            // Retour à l'écran d'accueil
+            optionsOverlay.classList.add('hidden')
+            this.startOverlay.style.opacity = '1'
+            
+            console.log('Retour à l\'écran d\'accueil depuis les options')
         }
     }
 
