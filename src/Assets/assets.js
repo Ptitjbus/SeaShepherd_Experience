@@ -87,13 +87,5 @@ export default [
         license: '',
         author: 'Kilian Rizzo',
         url: ''
-    },
-    {
-    name: 'SingleDoor',
-    type: 'gltf',
-    path: '/models/glb/Single_door.glb',
-    license: '',
-    author: 'Kilian Rizzo',
-    url: ''
-}
+    }
 ]

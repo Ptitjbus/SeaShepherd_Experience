@@ -167,15 +167,15 @@ export default class App extends EventEmitter {
         this.doorManager = new DoorManager(this.scene)
 
         // Porte 1
-        this.doorManager.addDoorPair(new Vector3(-8.01, 0, 0.05))
+        this.doorManager.addDoorPair(new Vector3(-8.01, 0, 0.05), 2.2, 5)
         this.doorManager.doorPairs[0].setRotation(Math.PI / 2)
 
         // Porte 2
-        this.doorManager.addDoorPair(new Vector3(-50.86, 0, -30.41))
+        this.doorManager.addDoorPair(new Vector3(-50.86, 0, -30.41), 2.2, 5)
         this.doorManager.doorPairs[1].setRotation((0.42 * Math.PI) / 180)
 
         // Porte 3
-        this.doorManager.addDoorPair(new Vector3(-68.2, 0, -121))
+        this.doorManager.addDoorPair(new Vector3(-68.2, 0, -121), 2.2, 5)
         this.doorManager.doorPairs[2].setRotation(Math.PI / 2)
 
         this.objectManager.addEventTrigger(new Vector3(-40, 1, -5), 40, 7, 20, () => {
