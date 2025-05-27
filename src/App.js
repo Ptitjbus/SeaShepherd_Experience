@@ -13,7 +13,7 @@ import EventsManager from './Core/Managers/EventsManager'
 import SoundManager from './Core/Managers/SoundManager.js'
 import MediaManager from './Core/Managers/MediaManager.js'
 import CustomEnvironment from './World/CustomEnvironment.js'
-import { ChoicesManager } from './Core/Managers/ChoicesManager.js'
+import { UiManager } from './Core/Managers/UIManager.js'
 import DoorManager from './Core/Managers/DoorManager.js'
 import PhysicsManager from './Core/Managers/PhysicsManager.js'
 import StoryManager from './Core/Managers/StoryManager.js'
@@ -70,7 +70,7 @@ export default class App extends EventEmitter {
         this.soundManager = null
         this.mediaManager = null
 
-        this.choicesManager = null
+        this.uiManager = null
 
         this.doorManager = null
 
@@ -107,7 +107,7 @@ export default class App extends EventEmitter {
         this.mediaManager = new MediaManager()
         this.mediaManager.init(this.scene)
 
-        this.choicesManager = new ChoicesManager()
+        this.uiManager = new UiManager()
         this.storyManager = new StoryManager()
         this.initMedias()
 
@@ -142,6 +142,10 @@ export default class App extends EventEmitter {
         // this.ocean = new Ocean(this.scene, this.renderer.instance)
         this.objectManager = new ObjectManager()
 
+        this.objectManager.addBoids(15, 10, new Vector3(26, 4, 31))
+        this.objectManager.addBoids(5, 7, new Vector3(31, 2, 24))
+        this.objectManager.addBoids(3, 10, new Vector3(25, 2, 30))
+
         this.objectManager.addBoids(50, 15, new Vector3(-51, 1.5, 18))
         this.objectManager.addBoids(20, 10, new Vector3(-77, 1.5, -25))
         this.objectManager.addBoids(10, 5, new Vector3(-37, 1.5, -8))
@@ -151,6 +155,8 @@ export default class App extends EventEmitter {
         this.objectManager.addBoids(30, 15, new Vector3(-30, 6, 0))
         this.objectManager.addBoids(30, 15, new Vector3(-70, 5, -5))
         this.objectManager.addBoids(2, 6, new Vector3(-12, 1.5, -12))
+
+        
 
         // this.objectManager.addPlane(new Vector3(-105,44.5,-112), 50)
 
@@ -189,6 +195,32 @@ export default class App extends EventEmitter {
         await this.preloadMedias()
     }
 
+    launchExperience() {
+        this.startOverlay.classList.add('hidden')
+        setTimeout(() => {
+            this.startOverlay.style.display = 'none'
+        }, 1500)
+        this.canvas.style.opacity = '1'
+
+        this.soundManager.attachToSpeakers()
+
+        if (!this.storyManager.savedStep || this.storyManager.savedStep === 'intro') {
+            this.storyManager.startExperience()
+        }
+
+        if (this.storyManager.savedStep === 'boat') {
+            this.storyManager.initBoatRoom()
+        }
+
+        if (this.storyManager.savedStep === 'corridor') {
+            this.storyManager.initRoom('corridor')
+        }
+
+        this.startButton.style.display = 'none'
+
+        this.physicsManager.controls.lock()
+    }
+
     setupUI() {
         this.startButton = document.getElementById('start-experience-btn')
         const creditsBtn = document.getElementById('credits-btn')
@@ -200,29 +232,15 @@ export default class App extends EventEmitter {
             this.startButton.addEventListener('click', async e => {
                 e.preventDefault()
 
-                this.startOverlay.classList.add('hidden')
-                setTimeout(() => {
-                    this.startOverlay.style.display = 'none'
-                }, 1500)
-                this.canvas.style.opacity = '1'
+                this.launchExperience()
+            })
 
-                this.soundManager.attachToSpeakers()
-
-                if (!this.storyManager.savedStep || this.storyManager.savedStep === 'intro') {
-                    this.storyManager.startExperience()
+            // Si on appuye sur la touche 'Enter'
+            document.addEventListener('keydown', async e => {
+                if (e.key === 'Enter') {
+                    this.startButton.classList.add('choosed')
+                    this.launchExperience()
                 }
-
-                if (this.storyManager.savedStep === 'boat') {
-                    this.storyManager.initBoatRoom()
-                }
-
-                if (this.storyManager.savedStep === 'corridor') {
-                    this.storyManager.initRoom('corridor')
-                }
-
-                this.startButton.style.display = 'none'
-
-                this.physicsManager.controls.lock()
             })
         }
 
@@ -407,9 +425,9 @@ export default class App extends EventEmitter {
             this.mediaManager = null
         }
 
-        if (this.choicesManager) {
-            this.choicesManager.destroy()
-            this.choicesManager = null
+        if (this.uiManager) {
+            this.uiManager.destroy()
+            this.uiManager = null
         }
 
         if (this.storyManager) {

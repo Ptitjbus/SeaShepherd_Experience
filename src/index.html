@@ -32,7 +32,7 @@
             </div>
 
             <button class="btn-base start-button" id="start-experience-btn">
-                Débuter l'expérience <img src="./images/ui/enter_key_hint.svg" class="key-letter" />
+                <span class="key-letter">↵</span> Débuter l'expérience
             </button>
 
             <div class="footer-container">
@@ -193,6 +193,42 @@
                 <div class="dialog-content"></div>
             </dialog>
         </template>
+
+        <div id="keys-tutorial-container" class="tutorial-container" style="display: flex">
+            <div class="btn-base">
+                <span class="">Pressez</span>
+                <div class="key-letter" data-key="z">Z</div>
+                <div class="key-letter" data-key="q">Q</div>
+                <div class="key-letter" data-key="s">S</div>
+                <div class="key-letter" data-key="d">D</div>
+                <span class="">pour bouger</span>
+            </div>
+        </div>
+
+        <div id="mouse-tutorial-container" class="tutorial-container" style="display: flex">
+            <div class="btn-base">
+                <span class="">Déplacez la souris pour regarder autour de vous</span>
+            </div>
+        </div>
+
+        <!-- Template pour les choix -->
+        <div id="choices-container" style="display: flex">
+            <h2 id="choices-title"></h2>
+            <div id="choices-buttons-container">
+                <div id="dialog-button-1">
+                    <button class="btn-base choice-button">
+                        <div class="key-letter">U</div>
+                        <span class="choice-button-text"></span>
+                    </button>
+                </div>
+                <div id="dialog-button-2">
+                    <button class="btn-base choice-button">
+                        <div class="key-letter">I</div>
+                        <span class="choice-button-text"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
 
         <script type="module" src="./script.js"></script>
     </body>

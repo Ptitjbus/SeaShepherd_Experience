@@ -27,7 +27,7 @@ export default class StoryManager {
         if (!this.savedStep) {
             this.app.objectManager.add('Dauphins', new THREE.Vector3(0, 0, 0))
             this.teleportPlayerTo(
-                new THREE.Vector3(30, 1.3, 0),
+                new THREE.Vector3(35, 1.3, 0),
                 new THREE.Vector3(0, Math.PI / 2, 0)
             )
             return
@@ -61,7 +61,7 @@ export default class StoryManager {
             default:
                 this.app.objectManager.add('Dauphins', new THREE.Vector3(0, 0, 0))
                 this.teleportPlayerTo(
-                    new THREE.Vector3(30, 1.3, 0),
+                    new THREE.Vector3(35, 1.3, 0),
                     new THREE.Vector3(0, Math.PI / 2, 0)
                 )
         }
@@ -79,10 +79,13 @@ export default class StoryManager {
         this.app.soundManager.playMusic('background_intro')
 
         if (!this.checkActiveTask('intro')) return
+        setTimeout(() => {
+            this.app.uiManager.showTutorial()
+        }, 1000)
         await this.app.soundManager.playVoiceLine('1_INTRO')
 
         if (!this.checkActiveTask('intro')) return
-        await this.app.choicesManager
+        await this.app.uiManager
             .showChoices({
                 title: "J'imagine que vous mourez  d'envie de savoir qui je suis ?",
                 choice1: 'Dites moi',
@@ -100,7 +103,7 @@ export default class StoryManager {
         await this.app.soundManager.playVoiceLine('3.1_VOUSAVEZHATE')
 
         if (!this.checkActiveTask('intro')) return
-        await this.app.choicesManager
+        await this.app.uiManager
             .showChoices({
                 title: 'Vous avez hâte, hein ....?',
                 choice1: "Pour l'instant je suis pas convaincu …",
@@ -141,7 +144,7 @@ export default class StoryManager {
         await this.app.soundManager.playVoiceLine('5.1_DAUPHINS')
 
         if (!this.checkActiveTask('aquarium')) return
-        await this.app.choicesManager
+        await this.app.uiManager
             .showChoices({
                 choice1: "Dites m'en plus je veux tout savoir !",
                 choice2: 'Vous avez rien de plus intéressant ?',
@@ -174,7 +177,7 @@ export default class StoryManager {
         await this.app.soundManager.playVoiceLine('6.1_PUB')
 
         if (!this.checkActiveTask('corridor')) return
-        await this.app.choicesManager
+        await this.app.uiManager
             .showChoices({
                 choice1: 'Lancer la publicité',
                 choice2: 'Ne pas supporter le musée',
@@ -202,7 +205,7 @@ export default class StoryManager {
         await this.app.soundManager.playVoiceLine('6.3_NARRATEURINCOMPREHENSION')
 
         if (!this.checkActiveTask('corridor')) return
-        await this.app.choicesManager
+        await this.app.uiManager
             .showChoices({
                 choice1: 'Oui, allons-y !',
                 choice2: "J'ai l'impression qu'on ne me dit pas tout",
@@ -296,7 +299,7 @@ export default class StoryManager {
         await this.app.soundManager.playVoiceLine('7.4_VIDEO')
 
         if (!this.checkActiveTask('aquaturtle')) return
-        await this.app.choicesManager
+        await this.app.uiManager
             .showChoices({
                 choice1: "C'est trop mignon les tortues !",
                 choice2: 'Connaître la vérité',
@@ -337,7 +340,7 @@ export default class StoryManager {
         }, 32000)
         await this.app.soundManager.playVoiceLine('8.1_TELEPORTATION')
 
-        await this.app.choicesManager
+        await this.app.uiManager
             .showChoices({
                 choice1: 'Encore des mensonges ?',
                 choice2: 'Non dites moi ?!',
@@ -346,7 +349,7 @@ export default class StoryManager {
             .then(async choiceIndex => {
                 if (choiceIndex === 1) {
                     glitchController.setFrequencyLevel(1)
-                    this.app.soundManager.playMoreMusic('suspense')
+                    // this.app.soundManager.playMoreMusic('suspense') // TODO: add suspense music
                     await this.app.soundManager.playVoiceLine('8.2_CHOIX1')
                 }
             })

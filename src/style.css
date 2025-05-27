@@ -108,7 +108,7 @@ body {
 
 /* ====== BUTTONS BASE ====== */
 
-.choices-container {
+#choices-container {
     position: fixed;
     width: 100%;
     bottom: 160px;
@@ -119,12 +119,24 @@ body {
     gap: 32px;
 }
 
-.choices-buttons-container {
+.tutorial-container {
+    position: fixed;
+    width: 100%;
+    top: 10%;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+}
+
+#choices-buttons-container {
     display: flex;
     gap: 42px;
 }
 
-.choices-title {
+#choices-title {
     font-family: 'montserrat', sans-serif;
     font-weight: 500;
     font-size: 20px;
@@ -132,6 +144,65 @@ body {
     text-align: center;
     background-color: rgba(0, 0, 0, 50%);
     padding: 10px 20px;
+}
+
+/* animation, le texte devient  */
+.choosed{
+    transition: all 0.3s ease-out;
+    background-color: rgba(0, 21, 68, 1) !important;
+    backdrop-filter: blur(0px);
+    animation: choosed 0.3s ease-in-out;
+}
+
+@keyframes choosed {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(0.95);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.pressed{
+    transition: all 0.3s ease-in-out;
+    background-color: rgba(57, 150, 75, 0.7) !important;
+    color: #fff;
+}
+
+.all-keys-pressed{
+    background-color: rgba(57, 150, 75, 0.7) !important;
+    animation: all-keys-pressed 0.5s ease-in-out;
+    animation-delay: 0.3s;
+}
+
+@keyframes all-keys-pressed {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0.9);
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+}
+
+.key-letter{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border: 2px solid #fff ;
+    background-color: rgba(255, 255, 255, 0.1);
+    font-family: 'montserrat', sans-serif;
+    text-align: center;
+    line-height: 1;
+    font-weight: 500;
+    font-size: 20px;
 }
 
 .btn-base {
@@ -143,11 +214,12 @@ body {
     font-size: 2em;
     border: 1px solid #fff;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.3s ease-in-out;
     user-select: none;
     text-align: center;
     outline: none;
     display: flex;
+    gap: 16px;
     align-items: center;
     justify-content: center;
     background-color: rgba(0, 21, 68, 0.5);
@@ -158,13 +230,6 @@ body {
 .start-button {
     font-size: 32px;
     top: 30%;
-}
-
-.key-letter {
-    padding-top: 4px;
-    margin: 0 12px;
-    width: 30px;
-    height: 30px;
 }
 
 /* ====== FOOTER ====== */

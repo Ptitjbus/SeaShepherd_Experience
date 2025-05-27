@@ -35,7 +35,7 @@ export default [
     {
         name: 'Dauphins',
         type: 'gltf',
-        path: '/models/glb/Dauphins_v5.glb',
+        path: '/models/glb/Dauphins_v6.glb',
         license: '',
         author: 'Kilian Rizzo',
         url: ''
@@ -43,7 +43,7 @@ export default [
     {
         name: 'Couloir',
         type: 'gltf',
-        path: '/models/glb/Couloir_v3.glb',
+        path: '/models/glb/Couloir_v4.glb',
         license: '',
         author: 'Kilian Rizzo',
         url: ''
@@ -83,7 +83,7 @@ export default [
     {
         name: 'BoatScene',
         type: 'gltf',
-        path: '/models/glb/Bateau_V4.glb',
+        path: '/models/glb/Bateau_V5.glb',
         license: '',
         author: 'Kilian Rizzo',
         url: ''
