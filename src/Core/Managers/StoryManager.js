@@ -436,7 +436,8 @@ export default class StoryManager {
 
         this.saveManager.saveProgress('end')
         this.activeTasks.push('end')
-         this.app.doorManager.removeDoorsFromScene()
+        this.app.doorManager.removeDoorsFromScene()
+    this.app.objectManager.removeAllEventTriggers()
 
         const endRoomPosition = new THREE.Vector3(50, 0, -50)
 
