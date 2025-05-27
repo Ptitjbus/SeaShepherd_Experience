@@ -14,12 +14,6 @@ export class UiManager extends EventEmitter {
     init() {
         const container = document.getElementById('choices-container')
         container.style.display = 'none'
-
-        const keysTutorialContainer = document.getElementById('keys-tutorial-container')
-        keysTutorialContainer.style.display = 'none'
-
-        const mouseTutorialContainer = document.getElementById('mouse-tutorial-container')
-        mouseTutorialContainer.style.display = 'none'
     }
 
     handleChoice(choiceIndex, resolve) {
@@ -38,7 +32,7 @@ export class UiManager extends EventEmitter {
 
     showTutorial() {
         const container = document.getElementById('keys-tutorial-container')
-        container.style.display = 'flex'
+        container.classList.add('show-tutorial')
 
         const containerKeys = container.querySelectorAll('.key-letter')
 
@@ -66,7 +60,7 @@ export class UiManager extends EventEmitter {
 
     showMouseTutorial() {
         const container = document.getElementById('mouse-tutorial-container')
-        container.style.display = 'flex'
+        container.classList.add('show-tutorial')
 
         document.addEventListener('mousemove', (event) => {
             if (this.passedMouseTutorial) return

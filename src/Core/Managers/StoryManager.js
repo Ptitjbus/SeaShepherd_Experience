@@ -27,8 +27,8 @@ export default class StoryManager {
         if (!this.savedStep) {
             this.app.objectManager.add('Dauphins', new THREE.Vector3(0, 0, 0))
             this.teleportPlayerTo(
-                new THREE.Vector3(35, 1.3, 0),
-                new THREE.Vector3(0, Math.PI / 2, 0)
+                new THREE.Vector3(24, 1.3, 14),
+                new THREE.Vector3(0, Math.PI, 0)
             )
             return
         }
@@ -61,8 +61,8 @@ export default class StoryManager {
             default:
                 this.app.objectManager.add('Dauphins', new THREE.Vector3(0, 0, 0))
                 this.teleportPlayerTo(
-                    new THREE.Vector3(35, 1.3, 0),
-                    new THREE.Vector3(0, Math.PI / 2, 0)
+                    new THREE.Vector3(24, 1.3, 14),
+                    new THREE.Vector3(0, Math.PI, 0)
                 )
         }
     }
@@ -81,7 +81,7 @@ export default class StoryManager {
         if (!this.checkActiveTask('intro')) return
         setTimeout(() => {
             this.app.uiManager.showTutorial()
-        }, 1000)
+        }, 3000)
         await this.app.soundManager.playVoiceLine('1_INTRO')
 
         if (!this.checkActiveTask('intro')) return
