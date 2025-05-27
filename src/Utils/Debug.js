@@ -867,6 +867,7 @@ export default class Debug extends EventEmitter {
                     showChoice1: () => {
                         this.app.uiManager.showChoices(
                             {
+                                title: "...",
                                 choice1: "Pour l'instant je suis pas convaincu …",
                                 choice2: 'qsibqsdiqusd',
                             },

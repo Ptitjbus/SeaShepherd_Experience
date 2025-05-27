@@ -146,6 +146,7 @@ export default class StoryManager {
         if (!this.checkActiveTask('aquarium')) return
         await this.app.uiManager
             .showChoices({
+                title: "...",
                 choice1: "Dites m'en plus je veux tout savoir !",
                 choice2: 'Vous avez rien de plus intéressant ?',
             })
@@ -179,6 +180,7 @@ export default class StoryManager {
         if (!this.checkActiveTask('corridor')) return
         await this.app.uiManager
             .showChoices({
+                title: "Lancer la publicité ?",
                 choice1: 'Lancer la publicité',
                 choice2: 'Ne pas supporter le musée',
             })
@@ -207,6 +209,7 @@ export default class StoryManager {
         if (!this.checkActiveTask('corridor')) return
         await this.app.uiManager
             .showChoices({
+                title: "On reprend la visite... ?",
                 choice1: 'Oui, allons-y !',
                 choice2: "J'ai l'impression qu'on ne me dit pas tout",
             })
@@ -301,6 +304,7 @@ export default class StoryManager {
         if (!this.checkActiveTask('aquaturtle')) return
         await this.app.uiManager
             .showChoices({
+                title: "On reste là-dessus...",
                 choice1: "C'est trop mignon les tortues !",
                 choice2: 'Connaître la vérité',
             })
@@ -342,6 +346,7 @@ export default class StoryManager {
 
         await this.app.uiManager
             .showChoices({
+                title: "4E65206C27E9636F757465207061732C20696C207465206D656E74",
                 choice1: 'Encore des mensonges ?',
                 choice2: 'Non dites moi ?!',
                 disabledIndex: 1,
@@ -563,6 +568,7 @@ export default class StoryManager {
 
         await this.app.choicesManager
             .showChoices({
+                title: "...",
                 choice1: "Soutenir leur combat",
                 choice2: 'Rejoindre Sea Shepherd',
             })
