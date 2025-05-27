@@ -52,12 +52,12 @@ export default class DoorPair {
         this.scene.add(this.container)
 
         // Positions locales (relatives au conteneur)
-        this.leftInitialPos = new Vector3(-width / 2, height / 2, 0)
-        this.rightInitialPos = new Vector3(width / 2, height / 2, 0)
+        this.leftInitialPos = new Vector3(-width / 2, 0, 0) // Y à 0 car le modèle 3D a sa propre hauteur
+        this.rightInitialPos = new Vector3(width / 2, 0, 0)
 
         // Positions d'ouverture (locales)
-        this.leftOpenPos = new Vector3(-width * 1.5, height / 2, 0)
-        this.rightOpenPos = new Vector3(width * 1.5, height / 2, 0)
+        this.leftOpenPos = new Vector3(-width * 1.5, 0, 0)
+        this.rightOpenPos = new Vector3(width * 1.5, 0, 0)
 
         // Corps physiques
         this.leftBody = null
@@ -75,8 +75,41 @@ export default class DoorPair {
     }
 
     createDoors(colorLeft, colorRight) {
-        // Significantly thicker doors for better visibility
-        const doorThickness = 0.07 // Increase visual thickness
+        // Charger le modèle GLB depuis l'AssetManager
+        const doorModel = this.app.assetManager.getItem('SingleDoor')
+        
+        if (!doorModel || !doorModel.scene) {
+            console.error('Modèle de porte SingleDoor non trouvé dans l\'AssetManager')
+            // Fallback vers les anciennes portes planes
+            this.createPlaneDoors(colorLeft, colorRight)
+            return
+        }
+
+        // Cloner le modèle pour la porte gauche
+        this.leftDoor = doorModel.scene.clone()
+        this.leftDoor.position.copy(this.leftInitialPos)
+        
+        // Cloner le modèle pour la porte droite
+        this.rightDoor = doorModel.scene.clone()
+        this.rightDoor.position.copy(this.rightInitialPos)
+        
+        // Appliquer les couleurs si nécessaire (optionnel)
+        this.applyColorToDoor(this.leftDoor, colorLeft)
+        this.applyColorToDoor(this.rightDoor, colorRight)
+
+        // Ajout au conteneur
+        this.container.add(this.leftDoor)
+        this.container.add(this.rightDoor)
+
+        // Créer les corps physiques via le physics manager
+        this.createPhysicsBodies()
+    }
+
+    // Méthode fallback pour créer les anciennes portes planes
+    createPlaneDoors(colorLeft, colorRight) {
+        console.warn('Utilisation des portes planes comme fallback')
+        
+        const doorThickness = 0.07
         const doorGeometry = new BoxGeometry(this.width, this.height, doorThickness)
 
         // Matériaux
@@ -99,6 +132,17 @@ export default class DoorPair {
         this.createPhysicsBodies()
     }
 
+    // Méthode pour appliquer une couleur au modèle 3D
+    applyColorToDoor(doorObject, color) {
+        doorObject.traverse(child => {
+            if (child.isMesh && child.material) {
+                // Cloner le matériau pour éviter de modifier l'original
+                child.material = child.material.clone()
+                child.material.color.setHex(color)
+            }
+        })
+    }
+
     createPhysicsBodies() {
         if (!this.physicsManager) return
 
@@ -113,10 +157,10 @@ export default class DoorPair {
             this.rightBody = null
         }
 
-        // Créer des boîtes de collision correctement orientées
-        // On va échanger width et depth pour aligner avec la rotation à 90°
-        const doorThickness = this.width * 1.1 // Utiliser la largeur de la porte comme épaisseur
-        const doorWidth = 1 // Épaisseur de collision dans la direction perpendiculaire
+        // Pour les modèles 3D, on utilise les dimensions du modèle ou des valeurs par défaut
+        const doorThickness = 1 // Épaisseur de collision
+        const doorWidth = this.width // Largeur de la porte
+        const doorHeight = this.height // Hauteur de la porte
 
         // Obtenir les positions mondiales
         const leftWorldPos = new Vector3()
@@ -132,15 +176,15 @@ export default class DoorPair {
         // Créer des corps physiques avec les dimensions correctement orientées
         this.leftBody = this.physicsManager.createBox(
             {
-                width: doorWidth, // Épaisseur dans l'axe X (après rotation)
-                height: this.height * 1.1, // Hauteur inchangée
-                depth: doorThickness, // Largeur de la porte devient la profondeur
+                width: doorThickness, // Épaisseur dans l'axe X (après rotation)
+                height: doorHeight, // Hauteur inchangée
+                depth: doorWidth, // Largeur de la porte devient la profondeur
             },
             {
                 mass: 0, // Corps statique
                 position: {
                     x: leftWorldPos.x,
-                    y: leftWorldPos.y,
+                    y: leftWorldPos.y + doorHeight / 2, // Ajuster pour centrer verticalement
                     z: leftWorldPos.z,
                 },
                 quaternion: {
@@ -150,26 +194,26 @@ export default class DoorPair {
                     w: containerQuat.w,
                 },
                 material: {
-                    friction: 0.5, // Plus de friction
-                    restitution: 0.0, // Pas de rebond
+                    friction: 0.5,
+                    restitution: 0.0,
                 },
-                collisionFlags: 1, // Flag d'objet statique
-                collisionFilterGroup: 1, // Groupe de collision par défaut
+                collisionFlags: 1,
+                collisionFilterGroup: 1,
             },
             this.leftDoor
         )
 
         this.rightBody = this.physicsManager.createBox(
             {
-                width: doorWidth, // Épaisseur dans l'axe X (après rotation)
-                height: this.height * 1.1, // Hauteur inchangée
-                depth: doorThickness, // Largeur de la porte devient la profondeur
+                width: doorThickness,
+                height: doorHeight,
+                depth: doorWidth,
             },
             {
-                mass: 0, // Corps statique
+                mass: 0,
                 position: {
                     x: rightWorldPos.x,
-                    y: rightWorldPos.y,
+                    y: rightWorldPos.y + doorHeight / 2,
                     z: rightWorldPos.z,
                 },
                 quaternion: {
@@ -179,11 +223,11 @@ export default class DoorPair {
                     w: containerQuat.w,
                 },
                 material: {
-                    friction: 0.5, // Plus de friction
-                    restitution: 0.0, // Pas de rebond
+                    friction: 0.5,
+                    restitution: 0.0,
                 },
-                collisionFlags: 1, // Flag d'objet statique
-                collisionFilterGroup: 1, // Groupe de collision par défaut
+                collisionFlags: 1,
+                collisionFilterGroup: 1,
             },
             this.rightDoor
         )

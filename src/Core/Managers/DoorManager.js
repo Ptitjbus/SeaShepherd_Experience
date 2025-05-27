@@ -16,8 +16,8 @@ export default class DoorManager {
 
     addDoorPair(
         position,
-        width = 3,
-        height = 5,
+        width = 5,
+        height = 7,
         colorLeft = 0x707070,
         colorRight = 0x707070,
         canBeOpened = true,

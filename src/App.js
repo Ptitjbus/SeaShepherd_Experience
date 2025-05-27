@@ -132,6 +132,10 @@ export default class App extends EventEmitter {
         this.animationLoop.start()
         this.debug.init()
         this.debug.showAnimationClipLine(this.assetManager.getItem('Dauphins'))
+        
+        // Initialiser les volumes sauvegardés
+        this.loadSavedVolumeSettings()
+        
         await this.storyManager.startOrResume()
         this.isSceneReady = true
         this.assetManager.showMainScreen()
@@ -239,7 +243,6 @@ export default class App extends EventEmitter {
             document.addEventListener('keydown', async e => {
                 if (e.key === 'Enter') {
                     this.startButton.classList.add('choosed')
-                    this.launchExperience()
                 }
             })
         }
@@ -273,6 +276,9 @@ export default class App extends EventEmitter {
                 this.startOverlay.style.opacity = '0'
                 creditsOverlay.classList.add('hidden')
                 optionsOverlay.classList.remove('hidden')
+                
+                // Synchroniser les sliders avec les valeurs actuelles
+                this.syncVolumeSliders()
             })
         }
 
@@ -283,21 +289,48 @@ export default class App extends EventEmitter {
             })
         }
 
+        // Gestion des sliders de volume
         const musicSlider = document.getElementById('music-volume')
         const sfxSlider = document.getElementById('sfx-volume')
 
         if (musicSlider) {
             musicSlider.addEventListener('input', e => {
-                const value = e.target.value
+                const value = parseInt(e.target.value)
                 e.target.nextElementSibling.textContent = `${value}%`
+                
+                // Mettre à jour le volume de la musique
+                if (this.soundManager) {
+                    this.soundManager.setMasterMusicVolume(value / 100)
+                }
+                
+                // Sauvegarder dans localStorage
+                localStorage.setItem('musicVolume', value)
             })
+            
+            // Charger la valeur sauvegardée ou utiliser la valeur par défaut
+            const savedMusicVolume = localStorage.getItem('musicVolume') || '50'
+            musicSlider.value = savedMusicVolume
+            musicSlider.nextElementSibling.textContent = `${savedMusicVolume}%`
         }
 
         if (sfxSlider) {
             sfxSlider.addEventListener('input', e => {
-                const value = e.target.value
+                const value = parseInt(e.target.value)
                 e.target.nextElementSibling.textContent = `${value}%`
+                
+                // Mettre à jour le volume des effets sonores
+                if (this.soundManager) {
+                    this.soundManager.setMasterSfxVolume(value / 100)
+                }
+                
+                // Sauvegarder dans localStorage
+                localStorage.setItem('sfxVolume', value)
             })
+            
+            // Charger la valeur sauvegardée ou utiliser la valeur par défaut
+            const savedSfxVolume = localStorage.getItem('sfxVolume') || '70'
+            sfxSlider.value = savedSfxVolume
+            sfxSlider.nextElementSibling.textContent = `${savedSfxVolume}%`
         }
 
         const switchContainer = document.querySelector('.switch-container')
@@ -348,6 +381,28 @@ export default class App extends EventEmitter {
                 }
             }
         })
+    }
+
+    /**
+     * Synchronise les sliders avec les valeurs actuelles du SoundManager
+     */
+    syncVolumeSliders() {
+        if (!this.soundManager) return
+
+        const musicSlider = document.getElementById('music-volume')
+        const sfxSlider = document.getElementById('sfx-volume')
+
+        if (musicSlider) {
+            const currentMusicVolume = Math.round(this.soundManager.getMasterMusicVolume() * 100)
+            musicSlider.value = currentMusicVolume
+            musicSlider.nextElementSibling.textContent = `${currentMusicVolume}%`
+        }
+
+        if (sfxSlider) {
+            const currentSfxVolume = Math.round(this.soundManager.getMasterSfxVolume() * 100)
+            sfxSlider.value = currentSfxVolume
+            sfxSlider.nextElementSibling.textContent = `${currentSfxVolume}%`
+        }
     }
 
     showOptionsFromGame() {
@@ -544,5 +599,23 @@ export default class App extends EventEmitter {
                 duration: 15000, // en ms
             },
         })
+    }
+
+    /**
+     * Charge les paramètres de volume sauvegardés
+     */
+    loadSavedVolumeSettings() {
+        if (!this.soundManager) return
+
+        const savedMusicVolume = localStorage.getItem('musicVolume')
+        const savedSfxVolume = localStorage.getItem('sfxVolume')
+
+        if (savedMusicVolume) {
+            this.soundManager.setMasterMusicVolume(parseInt(savedMusicVolume) / 100)
+        }
+
+        if (savedSfxVolume) {
+            this.soundManager.setMasterSfxVolume(parseInt(savedSfxVolume) / 100)
+        }
     }
 }
