@@ -2,6 +2,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
 import { GlitchPass } from 'three/examples/jsm/postprocessing/GlitchPass.js'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
+import { BokehPass } from 'three/examples/jsm/postprocessing/BokehPass.js'
 import { FisheyeShader } from '../../Shaders/FisheyeShader.js'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
 import App from '../../App.js'
@@ -18,6 +19,16 @@ export default class PostProcessingManager {
         this.fisheyePass = new ShaderPass(FisheyeShader)
         this.fisheyePass.uniforms['strength'].value = 0.5
         this.glitchPass = new GlitchPass()
+
+        // Configuration du BokehPass pour l'effet de depth of field
+        const bokehParams = {
+            focus: 5.0,
+            aperture: 0.00002,
+            maxblur: 1.0,
+            width: window.innerWidth,
+            height: window.innerHeight
+        }
+        this.bokehPass = new BokehPass(scene, camera, bokehParams)
 
         const bloomParams = {
             strength: 0.5,
@@ -37,6 +48,7 @@ export default class PostProcessingManager {
         this.composer.addPass(this.renderPass)
         this.composer.addPass(this.fisheyePass)
         this.composer.addPass(this.glitchPass)
+        this.composer.addPass(this.bokehPass)  // Ajout du BokehPass avant le BloomPass
         this.composer.addPass(this.bloomPass)
     }
 
@@ -169,6 +181,9 @@ export default class PostProcessingManager {
     resize(width, height) {
         const scaleFactor = 0.8
         this.composer.setSize(width * scaleFactor, height * scaleFactor)
+        // Mise à jour de la taille pour le BokehPass
+        this.bokehPass.uniforms['width'].value = width * scaleFactor
+        this.bokehPass.uniforms['height'].value = height * scaleFactor
     }
 
     destroy() {

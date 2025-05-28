@@ -23,8 +23,8 @@ export default class StoryManager {
         this.savedStep = this.saveManager.loadProgress()
     }
 
-    async startOrResume() {
-        if (!this.savedStep) {
+    async startOrResume(room = null) {
+        if (!this.savedStep && !room) {
             this.app.objectManager.add('Dauphins', new THREE.Vector3(0, 0, 0))
             this.teleportPlayerTo(
                 new THREE.Vector3(24, 1.3, 14),
@@ -32,7 +32,7 @@ export default class StoryManager {
             )
             return
         }
-        switch (this.savedStep) {
+        switch (room ? room : this.savedStep) {
             case 'aquarium':
                 this.app.objectManager.add('Dauphins', new THREE.Vector3(0, 0, 0))
                 this.teleportPlayerTo(
@@ -228,6 +228,8 @@ export default class StoryManager {
         await this.initRoom('aquaturtle')
 
         this.app.soundManager.playMusic('aquaturtles')
+
+        const aquaturtle = this.app.objectManager.get('Aquaturtle')
 
         if (!this.checkActiveTask('aquaturtle')) return
         await this.app.soundManager.playVoiceLine('7.1_TORTUES')

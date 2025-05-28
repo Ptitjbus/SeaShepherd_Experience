@@ -44,7 +44,8 @@ export const CausticShader = {
 
     void main() {
       vec3 baseColor = texture2D(baseMap, vUv).rgb;
-      vec2 uv = vWorldPosition.xz * scale + vec2(time * 0.05, time * 0.02);
+      float reducedTime = time * 0.3;
+      vec2 uv = vWorldPosition.xz * scale + vec2(reducedTime * 0.05, reducedTime * 0.02);
       float c = texture2D(causticsMap, uv).r;
 
       vec3 finalColor = baseColor + causticTint * c * intensity * clamp(vWorldPosition.y + 1.0, 0.0, 3.0);

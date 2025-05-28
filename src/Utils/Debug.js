@@ -504,6 +504,21 @@ export default class Debug extends EventEmitter {
         postProcessingFolder
             .add(this.app.postProcessing.bloomPass, 'radius', 0.0, 1.0)
             .name('Radius')
+
+        // Contrôles pour le BokehPass
+        postProcessingFolder
+            .add(this.app.postProcessing.bokehPass, 'enabled', true)
+            .name('Enable Bokeh Pass')
+        postProcessingFolder
+            .add(this.app.postProcessing.bokehPass.uniforms['focus'], 'value', 0.0, 20.0)
+            .name('Focus Distance')
+        postProcessingFolder
+            .add(this.app.postProcessing.bokehPass.uniforms['aperture'], 'value', 0.0, 0.0001, 0.000001)
+            .name('Aperture')
+        postProcessingFolder
+            .add(this.app.postProcessing.bokehPass.uniforms['maxblur'], 'value', 0.0, 1.0)
+            .name('Max Blur')
+            
         postProcessingFolder.add(this.app.postProcessing, 'triggerGlitch').name('Trigger Glitch')
         postProcessingFolder
             .add(this.app.postProcessing, 'triggerBigGlitch')
@@ -1083,6 +1098,54 @@ export default class Debug extends EventEmitter {
                 'teleport'
             )
             .name('Teleport')
+
+        folder
+            .add(
+                {
+                    initAquarium: () => {
+                        this.app.storyManager.saveManager.saveProgress('aquarium')
+                        this.app.storyManager.startOrResume('aquarium')
+                    },
+                },
+                'initAquarium'
+            )
+            .name('Init Aquarium')
+
+        folder
+            .add(
+                {
+                    initCorridor: () => {
+                        this.app.storyManager.saveManager.saveProgress('corridor')
+                        this.app.storyManager.startOrResume('corridor')
+                    },
+                },
+                'initCorridor'
+            )
+            .name('Init Corridor')
+
+        folder
+            .add(
+                {
+                    initAquaTurtle: () => {
+                        this.app.storyManager.saveManager.saveProgress('aquaturtle')
+                        this.app.storyManager.startOrResume('aquaturtle')
+                    },
+                },
+                'initAquaTurtle'
+            )
+            .name('Init Aqua Turtle')
+
+        folder
+            .add(
+                {
+                    initBoat: () => {
+                        this.app.storyManager.saveManager.saveProgress('boat')
+                        this.app.storyManager.startOrResume('boat')
+                    },
+                },
+                'initBoat'
+            )
+            .name('Init Boat')
 
         folder
             .add(

@@ -35,7 +35,7 @@ export default [
     {
         name: 'Dauphins',
         type: 'gltf',
-        path: '/models/glb/Dauphins_v6.glb',
+        path: '/models/glb/Dauphins_v7.glb',
         license: '',
         author: 'Kilian Rizzo',
         url: ''
@@ -43,7 +43,7 @@ export default [
     {
         name: 'Couloir',
         type: 'gltf',
-        path: '/models/glb/Couloir_v4.glb',
+        path: '/models/glb/Couloir_v5.glb',
         license: '',
         author: 'Kilian Rizzo',
         url: ''
@@ -51,7 +51,7 @@ export default [
     {
         name: 'Aquaturtle',
         type: 'gltf',
-        path: '/models/glb/Tortues_bas_V3_optimize.glb',
+        path: '/models/glb/Tortues_bas_V4.glb',
         license: '',
         author: 'Kilian Rizzo',
         url: ''
@@ -59,7 +59,7 @@ export default [
     {
         name: 'AquaturtleHaut',
         type: 'gltf',
-        path: '/models/glb/Tortues_haut_V5_optimize.glb',
+        path: '/models/glb/Tortues_haut_V5.glb',
         license: '',
         author: 'Kilian Rizzo',
         url: ''
