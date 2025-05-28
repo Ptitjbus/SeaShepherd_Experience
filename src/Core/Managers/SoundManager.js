@@ -17,6 +17,11 @@ export default class SoundManager extends EventEmitter {
         this.subtitles = {} // Store active subtitles by sound name
         this.subtitleElement = null // Element to display subtitles
         this.sounds = {} // Store preloaded sounds
+        
+        // Volume settings
+        this.masterMusicVolume = 0.5 // 50% par défaut
+        this.masterSfxVolume = 0.7   // 70% par défaut
+        
         this.initSubtitleDisplay()
     }
 
@@ -191,6 +196,10 @@ export default class SoundManager extends EventEmitter {
         }
 
         const finalOptions = { ...defaultOptions, ...sound.options, ...options }
+        
+        // Appliquer le volume master pour les SFX
+        const adjustedVolume = finalOptions.volume * this.masterSfxVolume
+        sound.howl.volume(adjustedVolume)
 
         this.customSounds[name] = sound.howl
         return sound.howl.play()
@@ -287,6 +296,11 @@ export default class SoundManager extends EventEmitter {
         }
 
         const finalOptions = { ...defaultOptions, ...sound.options, ...options }
+
+        // Appliquer le volume master approprié
+        const masterVolume = finalOptions.isMusic ? this.masterMusicVolume : this.masterSfxVolume
+        const adjustedVolume = finalOptions.volume * masterVolume
+        sound.howl.volume(adjustedVolume)
 
         if (finalOptions.onend) {
             sound.howl.once('end', finalOptions.onend)
@@ -697,6 +711,68 @@ export default class SoundManager extends EventEmitter {
         if (this.subtitleElement) {
             this.subtitleElement.style.display = 'none'
         }
+    }
+
+    /**
+     * Met à jour le volume principal de la musique
+     * @param {number} volume - Volume entre 0 et 1
+     */
+    setMasterMusicVolume(volume) {
+        this.masterMusicVolume = Math.max(0, Math.min(1, volume))
+        
+        // Appliquer aux musiques en cours
+        Object.entries(this.musics).forEach(([name, sound]) => {
+            if (Array.isArray(sound)) {
+                sound.forEach(s => {
+                    const originalVolume = this.sounds[name]?.options?.volume || 1.0
+                    s.volume(originalVolume * this.masterMusicVolume)
+                })
+            } else if (sound.howl) {
+                const originalVolume = this.sounds[name]?.options?.volume || 1.0
+                sound.howl.volume(originalVolume * this.masterMusicVolume)
+            }
+        })
+    }
+
+    /**
+     * Met à jour le volume principal des effets sonores
+     * @param {number} volume - Volume entre 0 et 1
+     */
+    setMasterSfxVolume(volume) {
+        this.masterSfxVolume = Math.max(0, Math.min(1, volume))
+        
+        // Appliquer aux sons/voix en cours
+        Object.entries(this.customSounds).forEach(([name, sound]) => {
+            if (Array.isArray(sound)) {
+                sound.forEach(s => {
+                    const originalVolume = this.sounds[name]?.options?.volume || 1.0
+                    if (s.howl) {
+                        s.howl.volume(originalVolume * this.masterSfxVolume)
+                    } else {
+                        s.volume(originalVolume * this.masterSfxVolume)
+                    }
+                })
+            } else if (sound.howl) {
+                const originalVolume = this.sounds[name]?.options?.volume || 1.0
+                sound.howl.volume(originalVolume * this.masterSfxVolume)
+            }
+        })
+    }
+
+    /**
+     * Obtient le volume principal de la musique
+     * @returns {number} Volume entre 0 et 1
+     */
+    getMasterMusicVolume() {
+        return this.masterMusicVolume
+    }
+
+    /**
+     * Obtient le volume principal des effets sonores
+     * @returns {number} Volume entre 0 et 1
+     */
+    getMasterSfxVolume() {
+        return this.masterSfxVolume
     }
 
     destroy() {

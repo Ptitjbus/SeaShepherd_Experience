@@ -261,6 +261,27 @@ export default class ObjectManager {
         })
     }
 
+        removeAllEventTriggers() {
+        // Supprimer les corps physiques des triggers
+        this.triggers.forEach(trigger => {
+            if (trigger.body) {
+                this.app.physicsManager.world.removeBody(trigger.body)
+            }
+        })
+        
+        // Supprimer les wireframes de debug des triggers
+        this.triggersWireframes.forEach(wireframe => {
+            this.app.scene.remove(wireframe)
+            // Libérer la mémoire
+            wireframe.geometry.dispose()
+            wireframe.material.dispose()
+        })
+        
+        // Vider les tableaux
+        this.triggers = []
+        this.triggersWireframes = []
+    }
+
     checkTriggers() {
         const playerPos = this.app.physicsManager.sphereBody.position
 

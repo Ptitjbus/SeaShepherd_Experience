@@ -132,6 +132,10 @@ export default class App extends EventEmitter {
         this.animationLoop.start()
         this.debug.init()
         this.debug.showAnimationClipLine(this.assetManager.getItem('Dauphins'))
+        
+        // Initialiser les volumes sauvegardés
+        this.loadSavedVolumeSettings()
+        
         await this.storyManager.startOrResume()
         this.isSceneReady = true
         this.assetManager.showMainScreen()
@@ -163,15 +167,15 @@ export default class App extends EventEmitter {
         this.doorManager = new DoorManager(this.scene)
 
         // Porte 1
-        this.doorManager.addDoorPair(new Vector3(-8.01, 0, 0.05))
+        this.doorManager.addDoorPair(new Vector3(-8.01, 0, 0.05), 2.3, 5)
         this.doorManager.doorPairs[0].setRotation(Math.PI / 2)
 
         // Porte 2
-        this.doorManager.addDoorPair(new Vector3(-50.86, 0, -30.41))
+        this.doorManager.addDoorPair(new Vector3(-50.86, 0, -30.41), 2.3, 5)
         this.doorManager.doorPairs[1].setRotation((0.42 * Math.PI) / 180)
 
         // Porte 3
-        this.doorManager.addDoorPair(new Vector3(-68.2, 0, -121))
+        this.doorManager.addDoorPair(new Vector3(-68, 0, -120.8), 2.4, 5)
         this.doorManager.doorPairs[2].setRotation(Math.PI / 2)
 
         this.objectManager.addEventTrigger(new Vector3(-40, 1, -5), 40, 7, 20, () => {
@@ -239,7 +243,6 @@ export default class App extends EventEmitter {
             document.addEventListener('keydown', async e => {
                 if (e.key === 'Enter') {
                     this.startButton.classList.add('choosed')
-                    this.launchExperience()
                 }
             })
         }
@@ -273,6 +276,9 @@ export default class App extends EventEmitter {
                 this.startOverlay.style.opacity = '0'
                 creditsOverlay.classList.add('hidden')
                 optionsOverlay.classList.remove('hidden')
+                
+                // Synchroniser les sliders avec les valeurs actuelles
+                this.syncVolumeSliders()
             })
         }
 
@@ -283,21 +289,48 @@ export default class App extends EventEmitter {
             })
         }
 
+        // Gestion des sliders de volume
         const musicSlider = document.getElementById('music-volume')
         const sfxSlider = document.getElementById('sfx-volume')
 
         if (musicSlider) {
             musicSlider.addEventListener('input', e => {
-                const value = e.target.value
+                const value = parseInt(e.target.value)
                 e.target.nextElementSibling.textContent = `${value}%`
+                
+                // Mettre à jour le volume de la musique
+                if (this.soundManager) {
+                    this.soundManager.setMasterMusicVolume(value / 100)
+                }
+                
+                // Sauvegarder dans localStorage
+                localStorage.setItem('musicVolume', value)
             })
+            
+            // Charger la valeur sauvegardée ou utiliser la valeur par défaut
+            const savedMusicVolume = localStorage.getItem('musicVolume') || '50'
+            musicSlider.value = savedMusicVolume
+            musicSlider.nextElementSibling.textContent = `${savedMusicVolume}%`
         }
 
         if (sfxSlider) {
             sfxSlider.addEventListener('input', e => {
-                const value = e.target.value
+                const value = parseInt(e.target.value)
                 e.target.nextElementSibling.textContent = `${value}%`
+                
+                // Mettre à jour le volume des effets sonores
+                if (this.soundManager) {
+                    this.soundManager.setMasterSfxVolume(value / 100)
+                }
+                
+                // Sauvegarder dans localStorage
+                localStorage.setItem('sfxVolume', value)
             })
+            
+            // Charger la valeur sauvegardée ou utiliser la valeur par défaut
+            const savedSfxVolume = localStorage.getItem('sfxVolume') || '70'
+            sfxSlider.value = savedSfxVolume
+            sfxSlider.nextElementSibling.textContent = `${savedSfxVolume}%`
         }
 
         const switchContainer = document.querySelector('.switch-container')
@@ -322,10 +355,22 @@ export default class App extends EventEmitter {
                         this.postProcessing.fisheyePass.enabled = false
                         this.postProcessing.bloomPass.enabled = false
                         console.log('Post-processing désactivé pour le mode performance')
+                        
+                        // Désactiver les boids
+                        if (this.objectManager) {
+                            this.objectManager.removeBoids()
+                            console.log('Boids désactivés pour le mode performance')
+                        }
                     } else {
                         this.postProcessing.fisheyePass.enabled = true
                         this.postProcessing.bloomPass.enabled = true
                         console.log('Post-processing réactivé')
+                        
+                        // Réactiver les boids
+                        if (this.objectManager) {
+                            this.recreateBoids()
+                            console.log('Boids réactivés')
+                        }
                     }
                 })
             })
@@ -348,6 +393,28 @@ export default class App extends EventEmitter {
                 }
             }
         })
+    }
+
+    /**
+     * Synchronise les sliders avec les valeurs actuelles du SoundManager
+     */
+    syncVolumeSliders() {
+        if (!this.soundManager) return
+
+        const musicSlider = document.getElementById('music-volume')
+        const sfxSlider = document.getElementById('sfx-volume')
+
+        if (musicSlider) {
+            const currentMusicVolume = Math.round(this.soundManager.getMasterMusicVolume() * 100)
+            musicSlider.value = currentMusicVolume
+            musicSlider.nextElementSibling.textContent = `${currentMusicVolume}%`
+        }
+
+        if (sfxSlider) {
+            const currentSfxVolume = Math.round(this.soundManager.getMasterSfxVolume() * 100)
+            sfxSlider.value = currentSfxVolume
+            sfxSlider.nextElementSibling.textContent = `${currentSfxVolume}%`
+        }
     }
 
     showOptionsFromGame() {
@@ -544,5 +611,45 @@ export default class App extends EventEmitter {
                 duration: 15000, // en ms
             },
         })
+    }
+
+    /**
+     * Charge les paramètres de volume sauvegardés
+     */
+    loadSavedVolumeSettings() {
+        if (!this.soundManager) return
+
+        const savedMusicVolume = localStorage.getItem('musicVolume')
+        const savedSfxVolume = localStorage.getItem('sfxVolume')
+
+        if (savedMusicVolume) {
+            this.soundManager.setMasterMusicVolume(parseInt(savedMusicVolume) / 100)
+        }
+
+        if (savedSfxVolume) {
+            this.soundManager.setMasterSfxVolume(parseInt(savedSfxVolume) / 100)
+        }
+    }
+
+    /**
+     * Recrée tous les boids avec les mêmes paramètres qu'à l'initialisation
+     */
+    recreateBoids() {
+        if (!this.objectManager) return
+
+        // Recréer les boids avec les mêmes paramètres que dans initScene()
+        this.objectManager.addBoids(15, 10, new Vector3(26, 4, 31))
+        this.objectManager.addBoids(5, 7, new Vector3(31, 2, 24))
+        this.objectManager.addBoids(3, 10, new Vector3(25, 2, 30))
+
+        this.objectManager.addBoids(50, 15, new Vector3(-51, 1.5, 18))
+        this.objectManager.addBoids(20, 10, new Vector3(-77, 1.5, -25))
+        this.objectManager.addBoids(10, 5, new Vector3(-37, 1.5, -8))
+        this.objectManager.addBoids(20, 10, new Vector3(-30, 1.5, -30))
+        this.objectManager.addBoids(20, 10, new Vector3(-30, 1.5, 25))
+        this.objectManager.addBoids(30, 15, new Vector3(-80, 1.5, 18))
+        this.objectManager.addBoids(30, 15, new Vector3(-30, 6, 0))
+        this.objectManager.addBoids(30, 15, new Vector3(-70, 5, -5))
+        this.objectManager.addBoids(2, 6, new Vector3(-12, 1.5, -12))
     }
 }

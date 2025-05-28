@@ -87,5 +87,5 @@ export default [
         license: '',
         author: 'Kilian Rizzo',
         url: ''
-    },
+    }
 ]

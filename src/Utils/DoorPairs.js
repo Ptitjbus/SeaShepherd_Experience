@@ -7,6 +7,7 @@ import {
     Vector3,
     Quaternion,
     Euler,
+    TextureLoader,
 } from 'three'
 import { gsap } from 'gsap'
 import App from '../App.js'
@@ -76,12 +77,22 @@ export default class DoorPair {
 
     createDoors(colorLeft, colorRight) {
         // Significantly thicker doors for better visibility
-        const doorThickness = 0.07 // Increase visual thickness
+        const doorThickness = 0.07
         const doorGeometry = new BoxGeometry(this.width, this.height, doorThickness)
 
-        // Matériaux
-        const leftMaterial = new MeshBasicMaterial({ color: colorLeft })
-        const rightMaterial = new MeshBasicMaterial({ color: colorRight })
+        // Charger la texture de porte
+        const textureLoader = new TextureLoader()
+        const doorTexture = textureLoader.load('/textures/doors/door.png')
+
+        // Matériaux avec texture (MeshBasicMaterial ne dépend pas de l'éclairage)
+        const leftMaterial = new MeshBasicMaterial({ 
+            map: doorTexture,
+            side: DoubleSide
+        })
+        const rightMaterial = new MeshBasicMaterial({ 
+            map: doorTexture,
+            side: DoubleSide
+        })
 
         // Mesh des portes
         this.leftDoor = new Mesh(doorGeometry, leftMaterial)
