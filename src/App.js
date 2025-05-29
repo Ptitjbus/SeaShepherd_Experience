@@ -613,7 +613,7 @@ export default class App extends EventEmitter {
             },
             bigvideo: {
                 type: 'video',
-                src: '/videos/720p/bigvideo.webm',
+                src: '/videos/1080p/bigvideo.webm',
                 glitchType: 'big',
                 loop: false,
                 muted: false,
