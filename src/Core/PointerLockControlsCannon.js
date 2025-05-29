@@ -32,7 +32,6 @@ class PointerLockControlsCannon extends THREE.EventDispatcher {
     this.moveRight = false
     this.moveUp = false
     this.moveDown = false
-    this.sprint = false
 
     this.canJump = false
 
@@ -167,18 +166,13 @@ class PointerLockControlsCannon extends THREE.EventDispatcher {
         this.moveRight = true
         break
 
-        case 'ShiftLeft':
-        case 'ShiftRight':
-          this.sprint = true
-          break
+      case 'KeyE':
+        this.moveUp = true
+        break
 
-        case 'KeyE':
-          this.moveUp = true
-          break
-
-        case 'KeyQ':
-          this.moveDown = true
-          break
+      case 'KeyQ':
+        this.moveDown = true
+        break
 
       case 'Space':
         if (this.canJump) {
@@ -211,11 +205,6 @@ class PointerLockControlsCannon extends THREE.EventDispatcher {
         this.moveRight = false
         break
 
-      case 'ShiftLeft':
-      case 'ShiftRight':
-        this.sprint = false
-        break
-
       case 'KeyE':
         this.moveUp = false
         break
@@ -240,7 +229,7 @@ class PointerLockControlsCannon extends THREE.EventDispatcher {
     if (!this.enabled) return
 
     delta = Math.max(0.016, Math.min(delta, 0.04))
-    const speedFactor = delta * this.speed * (this.sprint ? 2 : 1) * 500
+    const speedFactor = delta * this.speed * 500
 
     this.inputVelocity.set(0, 0, 0)
 
