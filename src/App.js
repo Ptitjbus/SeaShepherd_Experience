@@ -375,20 +375,42 @@ export default class App extends EventEmitter {
             })
         }
 
-        // Ajouter l'écouteur pour la touche Echap
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape') {
+       let menuJustClosed = false
+
+
+        document.addEventListener('pointerlockchange', () => {
+            if (!document.pointerLockElement) {
+                if (menuJustClosed) {
+                    menuJustClosed = false
+                    return
+                }
+
                 const optionsOverlay = document.getElementById('options-overlay')
                 
-                // Si le menu options est ouvert, le fermer
                 if (!optionsOverlay.classList.contains('hidden')) {
-                    this.hideOptionsMenu()
                     return
                 }
                 
-                // Sinon, vérifier si l'expérience est en cours et ouvrir le menu
                 if (this.isSceneReady && this.startOverlay.classList.contains('hidden')) {
                     this.showOptionsFromGame()
+                }
+            }
+        })
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const optionsOverlay = document.getElementById('options-overlay')
+                
+                if (!optionsOverlay.classList.contains('hidden')) {
+                    menuJustClosed = true
+                    this.hideOptionsMenu()
+
+                    const isInGame = this.isSceneReady && this.startOverlay.classList.contains('hidden')
+                    if (isInGame && this.physicsManager && this.physicsManager.controls) {
+                        setTimeout(() => {
+                            this.physicsManager.controls.lock()
+                        }, 100)
+                    }
                 }
             }
         })
