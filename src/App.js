@@ -351,10 +351,11 @@ export default class App extends EventEmitter {
                     const isPerformanceMode = value === 'true'
                     console.log('Mode performance activé:', isPerformanceMode)
 
+                    // Mettre à jour la propriété enablePostProcessing
+                    this.enablePostProcessing = !isPerformanceMode
+
                     if (isPerformanceMode) {
-                        this.postProcessing.fisheyePass.enabled = false
-                        this.postProcessing.bloomPass.enabled = false
-                        console.log('Post-processing désactivé pour le mode performance')
+                        console.log('Post-processing complètement désactivé pour le mode performance')
                         
                         // Désactiver les boids
                         if (this.objectManager) {
@@ -362,9 +363,7 @@ export default class App extends EventEmitter {
                             console.log('Boids désactivés pour le mode performance')
                         }
                     } else {
-                        this.postProcessing.fisheyePass.enabled = true
-                        this.postProcessing.bloomPass.enabled = true
-                        console.log('Post-processing réactivé')
+                        console.log('Post-processing complètement réactivé')
                         
                         // Réactiver les boids
                         if (this.objectManager) {
@@ -479,9 +478,13 @@ export default class App extends EventEmitter {
         }
 
         this.debug.update()
-        if (this.enablePostProcessing) {
+        
+        // Gérer le rendu selon l'état du post-processing
+        if (this.enablePostProcessing && this.postProcessing) {
             this.postProcessing.render(this.camera.mainCamera)
         } else {
+            // Rendu direct sans post-processing, en s'assurant que le render target est null
+            this.renderer.instance.setRenderTarget(null)
             this.renderer.instance.render(this.scene, this.camera.mainCamera)
         }
 

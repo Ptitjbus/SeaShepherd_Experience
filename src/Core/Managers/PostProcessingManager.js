@@ -173,7 +173,11 @@ export default class PostProcessingManager {
     }
 
     render(camera = this.camera) {
+        // Toujours mettre à jour la caméra du renderPass, même si on n'utilise pas le composer
         this.renderPass.camera = camera
+        
+        // Mettre à jour la caméra principale de référence
+        this.camera = camera
 
         this.composer.render()
     }
