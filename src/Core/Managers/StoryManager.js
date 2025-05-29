@@ -123,6 +123,7 @@ export default class StoryManager {
 
         if (!this.checkActiveTask('intro')) return
         this.app.postProcessing.triggerGlitch()
+        this.app.eventsManager.displayAlert('Nous vous montrerons ce que ce musée ne veut pas vous dévoiler.')
 
         if (!this.checkActiveTask('intro')) return
         await this.app.soundManager.playVoiceLine('4_CONNEXION')
@@ -175,6 +176,7 @@ export default class StoryManager {
         }
 
         if (!this.checkActiveTask('corridor')) return
+        this.app.eventsManager.displayAlert('DÉCOUVREZ LA VÉRITÉ')
         await this.app.soundManager.playVoiceLine('6.1_PUB')
 
         if (!this.checkActiveTask('corridor')) return

@@ -53,9 +53,6 @@ export default class EventsManager extends EventEmitter {
             this.activeDialogs = this.activeDialogs.filter(d => d.id !== dialogId)
             this.trigger('dialogClosed', dialogId)
         }, 400)
-
-        let keyhint = document.getElementById('dialog-key-hint')
-        keyhint.style.opacity = '0'
     }
 
     /**
@@ -68,24 +65,38 @@ export default class EventsManager extends EventEmitter {
     displayAlert(message = null, type = 'information', title = null) {
         const displayMessage = message || 'Information'
 
-        // Récupérer et cloner le template
+        // Check if template exists, if not create dialog manually
         const template = document.getElementById('dialog-template')
-        const dialog = template.content.querySelector('dialog').cloneNode(true)
+        let dialog
+
+        if (template && template.content) {
+            dialog = template.content.querySelector('dialog').cloneNode(true)
+        } else {
+            // Create dialog manually if template doesn't exist
+            dialog = document.createElement('dialog')
+            dialog.innerHTML = `
+            <div class="dialog-content-wrapper">
+                <div class="dialog-title"></div>
+                <div class="dialog-content"></div>
+            </div>
+        `
+        }
 
         // Générer un ID unique
         const dialogId = `dialog-${++this.dialogCounter}`
         dialog.id = dialogId
 
-        dialog.querySelector('.dialog-title').textContent = title || 'Sea Shepherd'
-        dialog.querySelector('.dialog-content').innerHTML = displayMessage
+        // Set content
+        const titleElement = dialog.querySelector('.dialog-title')
+        const contentElement = dialog.querySelector('.dialog-content')
+
+        if (titleElement && title !== null) titleElement.textContent = title
+        if (contentElement) contentElement.innerHTML = displayMessage
 
         // Ajouter une classe basée sur le type
         if (type) {
             dialog.classList.add(`type-${type}`)
         }
-
-        let keyhint = document.getElementById('dialog-key-hint')
-        keyhint.style.opacity = '1'
 
         // Ajouter au conteneur
         this.dialogContainer.appendChild(dialog)
@@ -110,7 +121,7 @@ export default class EventsManager extends EventEmitter {
         setTimeout(() => {
             this.closeDialog(dialogId)
         }, 2000)
-
+        
         return dialogId
     }
 
