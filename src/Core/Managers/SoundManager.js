@@ -41,7 +41,6 @@ export default class SoundManager extends EventEmitter {
                             howl,
                             options: sound.options,
                         }
-                        console.log(`SoundManager :: new item stored : ${sound.name}`)
                         resolve()
                     },
                     onloaderror: (id, error) => {
@@ -55,7 +54,6 @@ export default class SoundManager extends EventEmitter {
         try {
             await Promise.all(loadPromises)
             this.trigger('ready')
-            console.log('All sounds loaded successfully')
         } catch (error) {
             console.error('Error loading sounds:', error)
         }

@@ -87,5 +87,30 @@ export default [
         license: '',
         author: 'Kilian Rizzo',
         url: ''
+    },
+    {
+        name: 'fish',
+        type: 'texture',
+        path: '/textures/paintings/fish.PNG'
+    },
+    {
+        name: 'fish2',
+        type: 'texture',
+        path: '/textures/paintings/fish2.PNG'
+    },
+    {
+        name: 'fish3',
+        type: 'texture',
+        path: '/textures/paintings/fish3.PNG'
+    },
+    {
+        name: 'fish4',
+        type: 'texture',
+        path: '/textures/paintings/fish4.PNG'
+    },
+    {
+        name: 'fish5',
+        type: 'texture',
+        path: '/textures/paintings/fish5.PNG'
     }
 ]

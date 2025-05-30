@@ -17,6 +17,7 @@ import { UiManager } from './Core/Managers/UIManager.js'
 import DoorManager from './Core/Managers/DoorManager.js'
 import PhysicsManager from './Core/Managers/PhysicsManager.js'
 import StoryManager from './Core/Managers/StoryManager.js'
+import PaintingManager from './Core/Managers/PaintingManager.js'
 
 let myAppInstance = null
 
@@ -71,13 +72,14 @@ export default class App extends EventEmitter {
         this.mediaManager = null
 
         this.uiManager = null
+        this.paintingManager = null
 
         this.doorManager = null
 
         this.physicsManager = null
 
         this.storyManager = null
-
+    
         this.init()
     }
 
@@ -99,10 +101,6 @@ export default class App extends EventEmitter {
         this.assetManager.load()
 
         this.eventsManager = new EventsManager()
-
-        this.eventsManager.on('popinShown', popinId => {
-            console.log(`Popin "${popinId}" affichée`)
-        })
 
         this.mediaManager = new MediaManager()
         this.mediaManager.init(this.scene)
@@ -139,6 +137,9 @@ export default class App extends EventEmitter {
         await this.storyManager.startOrResume()
         this.isSceneReady = true
         this.assetManager.showMainScreen()
+
+        this.paintingManager = new PaintingManager(this.uiManager)
+        this.setupPaintings()
     }
 
     initScene() {
@@ -250,7 +251,6 @@ export default class App extends EventEmitter {
         // Gestionnaire pour le bouton crédits
         if (creditsBtn) {
             creditsBtn.addEventListener('click', () => {
-                console.log('Credits button clicked')
                 this.startOverlay.style.opacity = '0'
                 creditsOverlay.classList.remove('hidden')
             })
@@ -259,7 +259,6 @@ export default class App extends EventEmitter {
         // Gestionnaire pour le bouton retour
         if (backBtn) {
             backBtn.addEventListener('click', () => {
-                console.log('Back button clicked')
                 creditsOverlay.classList.add('hidden')
                 this.startOverlay.style.opacity = '1'
             })
@@ -272,7 +271,6 @@ export default class App extends EventEmitter {
 
         if (optionsBtn) {
             optionsBtn.addEventListener('click', () => {
-                console.log('Options button clicked')
                 this.startOverlay.style.opacity = '0'
                 creditsOverlay.classList.add('hidden')
                 optionsOverlay.classList.remove('hidden')
@@ -284,7 +282,6 @@ export default class App extends EventEmitter {
 
         if (backOptionsBtn) {
             backOptionsBtn.addEventListener('click', () => {
-                console.log('Back options button clicked')
                 this.hideOptionsMenu()
             })
         }
@@ -349,26 +346,17 @@ export default class App extends EventEmitter {
                     switchContainer.setAttribute('data-active', value)
 
                     const isPerformanceMode = value === 'true'
-                    console.log('Mode performance activé:', isPerformanceMode)
 
                     // Mettre à jour la propriété enablePostProcessing
                     this.enablePostProcessing = !isPerformanceMode
 
                     if (isPerformanceMode) {
-                        console.log('Post-processing complètement désactivé pour le mode performance')
-                        
-                        // Désactiver les boids
                         if (this.objectManager) {
                             this.objectManager.removeBoids()
-                            console.log('Boids désactivés pour le mode performance')
                         }
                     } else {
-                        console.log('Post-processing complètement réactivé')
-                        
-                        // Réactiver les boids
                         if (this.objectManager) {
                             this.recreateBoids()
-                            console.log('Boids réactivés')
                         }
                     }
                 })
@@ -448,8 +436,6 @@ export default class App extends EventEmitter {
         
         // Afficher le menu options
         optionsOverlay.classList.remove('hidden')
-        
-        console.log('Menu options ouvert depuis le jeu')
     }
 
     hideOptionsMenu() {
@@ -468,14 +454,10 @@ export default class App extends EventEmitter {
                     this.physicsManager.controls.lock()
                 }
             }, 100)
-            
-            console.log('Retour au jeu depuis les options')
         } else {
             // Retour à l'écran d'accueil
             optionsOverlay.classList.add('hidden')
             this.startOverlay.style.opacity = '1'
-            
-            console.log('Retour à l\'écran d\'accueil depuis les options')
         }
     }
 
@@ -485,6 +467,12 @@ export default class App extends EventEmitter {
         if (this.soundManager) this.soundManager.updateListener()
         if (this.physicsManager) this.physicsManager.update(time.delta)
         if (this.doorManager) this.doorManager.update()
+        
+        // Mettre à jour le système de tableaux
+        if (this.paintingManager && this.physicsManager && this.physicsManager.controls) {
+            // Utiliser la position du contrôleur de physique, pas de la caméra
+            this.paintingManager.update(this.physicsManager.controls.getObject().position)
+        }
 
         this.renderer.instance.setRenderTarget(this.renderer.renderTarget)
         this.renderer.instance.render(this.scene, this.camera.mainCamera)
@@ -505,7 +493,6 @@ export default class App extends EventEmitter {
         if (this.enablePostProcessing && this.postProcessing) {
             this.postProcessing.render(this.camera.mainCamera)
         } else {
-            // Rendu direct sans post-processing, en s'assurant que le render target est null
             this.renderer.instance.setRenderTarget(null)
             this.renderer.instance.render(this.scene, this.camera.mainCamera)
         }
@@ -598,6 +585,11 @@ export default class App extends EventEmitter {
             this.storyManager = null
         }
 
+        if (this.paintingManager) {
+            this.paintingManager.destroy()
+            this.paintingManager = null
+        }
+        
         myAppInstance = null
     }
 
@@ -676,5 +668,60 @@ export default class App extends EventEmitter {
         this.objectManager.addBoids(30, 15, new Vector3(-30, 6, 0))
         this.objectManager.addBoids(30, 15, new Vector3(-70, 5, -5))
         this.objectManager.addBoids(2, 6, new Vector3(-12, 1.5, -12))
+    }
+
+    setupPaintings() {
+        const paintingConfigs = [
+            {
+                name: 'Painting001', // Remplacez par le vrai nom
+                textures: [
+                    this.assetManager.getItem('fish'),
+                ]
+            },
+            {
+                name: 'Painting002', // Remplacez par le vrai nom
+                textures: [
+                    this.assetManager.getItem('fish2'),
+                ]
+            },
+            {
+                name: 'Painting003', // Remplacez par le vrai nom
+                textures: [
+                    this.assetManager.getItem('fish3'),
+                ]
+            },
+            {
+                name: 'Painting004', // Remplacez par le vrai nom
+                textures: [
+                    this.assetManager.getItem('fish4'),
+                ]
+            },
+            {
+                name: 'Painting005', // Remplacez par le vrai nom
+                textures: [
+                    this.assetManager.getItem('fish5'),
+                ]
+            }
+
+        ]
+        
+        paintingConfigs.forEach(config => {
+            const painting = this.scene.getObjectByName(config.name)
+            if (painting && painting.material && painting.material.map) {
+                // Filtrer les textures null/undefined
+                const validTextures = config.textures.filter(texture => texture !== null && texture !== undefined)
+                
+                if (validTextures.length === 0) {
+                    // Si pas de texture alternative, utiliser la texture actuelle
+                    validTextures.push(painting.material.map)
+                }
+                
+                this.paintingManager.addPainting(
+                    painting.position.clone(), // Ce paramètre n'est plus utilisé
+                    validTextures,
+                    painting
+                )
+            }
+        })
     }
 }

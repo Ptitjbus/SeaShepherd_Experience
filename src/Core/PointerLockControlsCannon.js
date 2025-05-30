@@ -112,7 +112,6 @@ class PointerLockControlsCannon extends THREE.EventDispatcher {
     } else {
       this.cannonBody.type = CANNON.Body.DYNAMIC
     }
-    console.log(`Fly mode: ${enabled ? 'enabled' : 'disabled'}`)
   }
 
   onPointerlockChange = () => {

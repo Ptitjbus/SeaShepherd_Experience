@@ -9,11 +9,63 @@ export class UiManager extends EventEmitter {
 
         this.passedKeysTutorial = false
         this.passedMouseTutorial = false
+
+        this.keyHintContainer = null
+        this.currentKeyHint = null
+        this.createKeyHintSystem()
     }
     
     init() {
         const container = document.getElementById('choices-container')
         container.style.display = 'none'
+    }
+
+    createKeyHintSystem() {
+        this.keyHintContainer = document.createElement('div')
+        this.keyHintContainer.className = 'tutorial-container'
+        this.keyHintContainer.id = 'interaction-keyhint-container'
+        this.keyHintContainer.style.top = '50%'
+        this.keyHintContainer.style.color = '#fff'
+        document.body.appendChild(this.keyHintContainer)
+    }
+
+    showKeyHint(key) {
+        if(this.currentKeyHint){
+            return;
+        }
+
+        this.currentKeyHint = document.createElement('div')
+        this.currentKeyHint.className = 'key-hint'
+
+        this.currentKeyHint.style.position = 'fixed'
+        this.currentKeyHint.style.top = '50%'
+
+        this.keyHintContainer.innerHTML = `
+        <div class="key-letter">${key.toUpperCase()}</div>
+        `
+
+        this.keyHintContainer.classList.add('show-tutorial')
+        this.currentKeyHint = { key }
+    }
+
+    hideKeyHint() {
+        if (this.keyHintContainer) {
+            this.keyHintContainer.classList.remove('show-tutorial')
+            this.currentKeyHint = null
+
+            setTimeout(() => {
+                this.keyHintContainer.innerHTML = ''
+            }, 300)
+        }
+    }
+
+    destroy() {
+        this.hideKeyHint()
+        if (this.keyHintContainer && this.keyHintContainer.parentNode) {
+            this.keyHintContainer.parentNode.removeChild(this.keyHintContainer)
+        }
+        this.keyHintContainer = null
+        this.currentKeyHint = null
     }
 
     handleChoice(choiceIndex, resolve) {

@@ -73,7 +73,6 @@ export default class AssetManager extends EventEmitter {
         this.loadingManager = new THREE.LoadingManager(
             // Loaded callback
             () => {
-                console.log("loadingManager loaded") 
                 this.assetsReady = true
                 this.checkAllReady()
             },
@@ -90,16 +89,13 @@ export default class AssetManager extends EventEmitter {
     }
 
     soundReadyHandler() {
-        console.log(`AssetManager :: sound ready`)
         this.soundReady = true
         this.checkAllReady()
     }
 
     checkAllReady() {
-        console.log(`AssetManager :: checkAllReady - soundReady: ${this.soundReady}, assetsReady: ${this.assetsReady}`)
         if (this.soundReady && this.assetsReady) {
             this.allReady = true
-            console.log(`AssetManager :: all assets loaded and ready`)
             this.loadingBarElement.style.width = `100%`
             this.loadingBarElement.style.opacity = 0
             this.videoManager.showSkipButton()
@@ -206,7 +202,6 @@ export default class AssetManager extends EventEmitter {
     }
 
     loadComplete(asset, object) {
-        console.log(`AssetManager :: new item stored : ${asset.name}`)
         this.items[asset.name] = object
 
     }

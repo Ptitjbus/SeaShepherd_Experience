@@ -10,7 +10,6 @@ export class SaveManager {
                 timestamp: new Date().getTime(),
             }
             localStorage.setItem('seaShepherdProgress', JSON.stringify(savedData))
-            console.log(`Progression sauvegardée: ${step}`)
         } catch (error) {
             console.error('Erreur lors de la sauvegarde de la progression:', error)
         }
@@ -29,12 +28,9 @@ export class SaveManager {
             const maxAge = 7 * 24 * 60 * 60 * 1000 // 7 jours en millisecondes
 
             if (currentTime - savedTime > maxAge) {
-                console.log('Sauvegarde expirée, suppression...')
                 this.clearProgress()
                 return null
             }
-
-            console.log(`Progression chargée: ${parsedData.step}`)
             return parsedData.step
         } catch (error) {
             console.error('Erreur lors du chargement de la progression:', error)
@@ -45,7 +41,6 @@ export class SaveManager {
     clearProgress() {
         try {
             localStorage.removeItem('seaShepherdProgress')
-            console.log('Progression effacée')
         } catch (error) {
             console.error('Erreur lors de la suppression de la progression:', error)
         }

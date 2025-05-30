@@ -32,7 +32,6 @@ export default class VideoManager extends EventEmitter {
     }
 
     loadVideo(videoSrc) {
-        console.log(`Loading video: ${videoSrc}`)
         // Vérifier si le chemin commence par '/'
         if (videoSrc.startsWith('/')) {
             // S'assurer que le chemin est relatif à la racine du site
@@ -58,7 +57,6 @@ export default class VideoManager extends EventEmitter {
 
     startVideo() {
         if (!this.isVideoPlaying && !this.videoEnded) {
-            console.log('Starting video playback')
             this.isVideoPlaying = true
 
             // Assurer que le son est activé
@@ -69,7 +67,6 @@ export default class VideoManager extends EventEmitter {
             if (playPromise !== undefined) {
                 playPromise
                     .then(() => {
-                        console.log('Video playback started successfully')
                     })
                     .catch(error => {
                         console.error('Video playback failed:', error)
@@ -123,7 +120,6 @@ export default class VideoManager extends EventEmitter {
     }
 
     handleVideoEnded() {
-        console.log('Video ended')
         this.videoEnded = true
         this.app.assetManager.showMainScreen()
     }

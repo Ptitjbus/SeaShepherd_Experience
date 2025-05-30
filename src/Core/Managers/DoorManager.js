@@ -36,7 +36,7 @@ export default class DoorManager {
             disposeHierarchy(pair.rightDoor)
             disposeHierarchy(pair.leftCollisionHelper)
             disposeHierarchy(pair.rightCollisionHelper)
-            console.log(pair)
+
             this.app.physicsManager.world.removeBody(pair.leftBody)
             this.app.physicsManager.world.removeBody(pair.rightBody)
         })
