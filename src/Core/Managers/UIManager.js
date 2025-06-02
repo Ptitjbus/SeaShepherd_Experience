@@ -209,11 +209,6 @@ export class UiManager extends EventEmitter {
             const container = document.getElementById('end-choices-container')
             container.style.display = 'flex'
 
-            if (options.title) {
-                const titleElement = document.getElementById('choices-title')
-                titleElement.textContent = options.title
-            }
-
             const button1Wrapper = document.getElementById('dialog-button-end-1')
             const button2Wrapper = document.getElementById('dialog-button-end-2')
 
