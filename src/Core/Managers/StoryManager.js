@@ -461,6 +461,7 @@ export default class StoryManager {
         this.activeTasks.push('end')
         this.app.doorManager.removeDoorsFromScene()
         this.app.objectManager.removeAllEventTriggers()
+        this.app.postProcessing.fisheyePass.enabled = false
 
         // Afficher l'image avec la classe 'end-cursor'
         const endCursorImage = document.createElement('img')
