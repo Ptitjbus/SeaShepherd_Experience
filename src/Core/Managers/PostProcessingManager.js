@@ -93,7 +93,7 @@ export default class PostProcessingManager {
         setTimeout(() => {
             this.glitchPass.goWild = false
             this.glitchPass.randX = 0
-        }, 2000)
+        }, 4000)
     }
 
     /**

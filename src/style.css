@@ -235,6 +235,11 @@ body {
     backdrop-filter: blur(10px);
 }
 
+.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
 .start-button {
     font-size: 32px;
     top: 8%;

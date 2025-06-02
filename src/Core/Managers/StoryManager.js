@@ -26,6 +26,7 @@ export default class StoryManager {
     async startOrResume(room = null) {
         if (!this.savedStep && !room) {
             this.app.objectManager.add('Dauphins', new THREE.Vector3(0, 0, 0))
+            this.app.objectManager.add('Dauphin', new THREE.Vector3(0, 0, 0))
             this.teleportPlayerTo(
                 new THREE.Vector3(24, 1.3, 14),
                 new THREE.Vector3(0, Math.PI, 0)
@@ -35,6 +36,7 @@ export default class StoryManager {
         switch (room ? room : this.savedStep) {
             case 'aquarium':
                 this.app.objectManager.add('Dauphins', new THREE.Vector3(0, 0, 0))
+                this.app.objectManager.add('Dauphin', new THREE.Vector3(0, 0, 0))
                 this.teleportPlayerTo(
                     new THREE.Vector3(-14, 1.3, 0),
                     new THREE.Vector3(0, Math.PI / 2, 0)
@@ -342,10 +344,10 @@ export default class StoryManager {
 
         setTimeout(() => {
             this.turnOnSpotsLights('paquebot')
-        }, 25000)
+        }, 2500)
         setTimeout(() => {
             this.turnOnSpotsLights('pyrogue')
-        }, 32000)
+        }, 3200)
         await this.app.soundManager.playVoiceLine('8.1_TELEPORTATION')
 
         await this.app.uiManager
@@ -358,7 +360,7 @@ export default class StoryManager {
             .then(async choiceIndex => {
                 if (choiceIndex === 1) {
                     glitchController.setFrequencyLevel(1)
-                    // this.app.soundManager.playMoreMusic('suspense') // TODO: add suspense music
+                    // this.app.soundManager.playMusic('suspense', false, false) // TODO: add suspense music
                     await this.app.soundManager.playVoiceLine('8.2_CHOIX1')
                 }
             })
@@ -373,13 +375,8 @@ export default class StoryManager {
         const playMusicPromise = new Promise(resolve => {
             setTimeout(async () => {
                 setTimeout(() => {
-                    const paquebot = this.app.objectManager.getItemFromObject(
-                        'Paquebot001',
-                        this.app.objectManager.get('BoatScene').object.scene
-                    )
-                    paquebot.visible = false
                     const buggyObject = this.app.objectManager.getItemFromObject(
-                        'Paquebot002',
+                        'Paquebot001',
                         this.app.objectManager.get('BoatScene').object.scene
                     )
                     this.app.postProcessing.triggerBigGlitch()
@@ -418,11 +415,28 @@ export default class StoryManager {
 
         let spotsManager = null
 
-        setTimeout(() => {
-            this.app.soundManager.playVoiceLine('8.4_LAFERME')
-            spotsManager = this.startRandomSpotsEffect()
-        }, 6000)
+        this.app.soundManager.playVoiceLine('8.3.2_SEASHEPHERD')
+
+        const playCraquagePromise = new Promise(resolve => {
+            setTimeout(async () => {
+                this.app.postProcessing.triggerBigGlitch()
+                this.app.objectManager.waterUniformData.uColor2.value.set(0x4b0b0b)
+                this.app.soundManager.playVoiceLine('8.4_LAFERME')
+                spotsManager = this.startRandomSpotsEffect()
+                resolve()
+            }, 7000)
+        })
+
+        const playStopPromise = new Promise(resolve => {
+            setTimeout(async () => {
+                this.app.soundManager.playVoiceLine('8.6.2_SEASHEPHERD', true)
+                resolve()
+            }, 12000)
+        })
+        
         await this.app.mediaManager.playMediaWithGlitch('bigvideo')
+        await Promise.all([playCraquagePromise, playStopPromise])
+
 
         setTimeout(() => {
             this.app.postProcessing.triggerHugeGlitch()
@@ -780,6 +794,7 @@ export default class StoryManager {
                 await this.sleep(2000)
                 this.app.postProcessing.triggerGlitch()
                 this.app.objectManager.remove('Dauphins')
+                this.app.objectManager.remove('Dauphin')
                 this.app.objectManager.removeBoids()
                 this.app.soundManager.playMusic('corridor_ambiance')
                 this.corridorRoomLoaded = true
@@ -794,11 +809,13 @@ export default class StoryManager {
                 await this.sleep(2000)
                 this.app.postProcessing.triggerGlitch()
                 this.app.objectManager.remove('Dauphins')
+                this.app.objectManager.remove('Dauphin')
                 this.app.objectManager.removeBoids()
                 this.app.objectManager.remove('Couloir')
                 break
             case 'boat':
                 this.clearTasks()
+                this.app.physicsManager.controls.speed = 0.5
                 this.app.doorManager.removeDoorsFromScene()
                 this.saveManager.saveProgress(roomName)
                 this.activeTasks.push(roomName)
@@ -809,6 +826,7 @@ export default class StoryManager {
                 this.app.soundManager.attachToSpeakers()
                 this.app.soundManager.stopAllMusicSounds(true, false)
                 this.app.objectManager.remove('Dauphins')
+                this.app.objectManager.remove('Dauphin')
                 this.app.objectManager.removeBoids()
                 this.app.objectManager.remove('Couloir')
                 this.app.objectManager.remove('Aquaturtle')
@@ -827,6 +845,7 @@ export default class StoryManager {
                 this.app.soundManager.stopAllMusicSounds(true, false)
                 this.app.postProcessing.triggerGlitch()
                 this.app.objectManager.remove('Dauphins')
+                this.app.objectManager.remove('Dauphin')
                 this.app.objectManager.removeBoids()
                 this.app.objectManager.remove('Couloir')
                 this.app.objectManager.remove('Aquaturtle')

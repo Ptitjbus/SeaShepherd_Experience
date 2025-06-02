@@ -35,7 +35,15 @@ export default [
     {
         name: 'Dauphins',
         type: 'gltf',
-        path: '/models/glb/Dauphins_v7.glb',
+        path: '/models/glb/Dauphins_v8.glb',
+        license: '',
+        author: 'Kilian Rizzo',
+        url: ''
+    },
+    {
+        name: 'Dauphin',
+        type: 'gltf',
+        path: '/models/glb/Dauphin-anim_v2.glb',
         license: '',
         author: 'Kilian Rizzo',
         url: ''
@@ -67,7 +75,7 @@ export default [
     {
         name: 'Tortue',
         type: 'gltf',
-        path: '/models/glb/Tortue_V1.glb',
+        path: '/models/glb/Tortue_V2.glb',
         license: '',
         author: 'Kilian Rizzo',
         url: ''

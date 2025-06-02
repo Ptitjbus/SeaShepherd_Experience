@@ -242,8 +242,14 @@ export default class App extends EventEmitter {
 
             // Si on appuye sur la touche 'Enter'
             document.addEventListener('keydown', async e => {
+                e.preventDefault()
                 if (e.key === 'Enter') {
-                    this.startButton.classList.add('choosed')
+                    if (this.startButton.experienceStarted) {
+                        this.startButton.classList.add('choosed')
+                    }else{
+                        this.launchExperience()
+                    }
+
                 }
             })
         }
@@ -373,20 +379,21 @@ export default class App extends EventEmitter {
                     return
                 }
 
-                const optionsOverlay = document.getElementById('options-overlay')
+                // const optionsOverlay = document.getElementById('options-overlay')
                 
-                if (!optionsOverlay.classList.contains('hidden')) {
-                    return
-                }
+                // if (!optionsOverlay.classList.contains('hidden')) {
+                //     return
+                // }
                 
-                if (this.isSceneReady && this.startOverlay.classList.contains('hidden')) {
-                    this.showOptionsFromGame()
-                }
+                // if (this.isSceneReady && this.startOverlay.classList.contains('hidden')) {
+                //     this.showOptionsFromGame()
+                // }
             }
         })
 
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
+                e.preventDefault()
                 const optionsOverlay = document.getElementById('options-overlay')
                 
                 if (!optionsOverlay.classList.contains('hidden')) {
