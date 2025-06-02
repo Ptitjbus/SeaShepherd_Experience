@@ -1,5 +1,6 @@
 import App from '../../App'
 import * as THREE from 'three'
+import * as CANNON from 'cannon-es'
 import { SaveManager } from './SaveManager'
 
 export default class StoryManager {
@@ -541,9 +542,33 @@ export default class StoryManager {
             panel.rotation.y = Math.PI - angle
             panel.name = `videoPanel_${i}`
 
-            panel.lookAt(0, panel.position.y, 0) // Oriente le panel vers le centre de la scène (ou vers la caméra si tu veux)
+            panel.lookAt(0, panel.position.y, 0)
 
             panelsContainer.add(panel)
+
+            // Ajouter la physique au panel
+            const panelWorldPosition = new THREE.Vector3()
+            panel.getWorldPosition(panelWorldPosition)
+            
+            // Créer un body physique pour le panel
+            const panelShape = new CANNON.Box(new CANNON.Vec3(panelWidth / 2, panelHeight / 2, 0.1))
+            const panelBody = new CANNON.Body({ 
+                mass: 0, // Masse 0 = objet statique
+                type: CANNON.Body.KINEMATIC
+            })
+            panelBody.addShape(panelShape)
+            panelBody.position.set(panelWorldPosition.x, panelWorldPosition.y, panelWorldPosition.z)
+            
+            // Appliquer la même rotation que le panel
+            const quaternion = new CANNON.Quaternion()
+            quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), panel.rotation.y)
+            panelBody.quaternion = quaternion
+            
+            // Ajouter le body au monde physique
+            this.app.physicsManager.world.addBody(panelBody)
+            
+            // Stocker la référence pour le nettoyage
+            panel.userData.physicsBody = panelBody
 
             video.play().catch(e => console.error('Erreur lors de la lecture vidéo:', e))
 
@@ -552,16 +577,13 @@ export default class StoryManager {
                 transparent: true,
             })
             const sprite = new THREE.Sprite(spriteMaterial)
-            sprite.scale.set(3.25, 0.6, 1) // adapte la taille à ton besoin
+            sprite.scale.set(3.25, 0.6, 1)
 
-            // Place le sprite juste devant le panel
-            sprite.position.set(0, 0, 0.05) // 5cm derrière le panel
+            sprite.position.set(0, 0, 0.05)
             panel.add(sprite)
 
-            // Cache le sprite au début
             sprite.visible = false
 
-            // Stocke le sprite pour chaque panel
             if (!this.panelSprites) this.panelSprites = []
             this.panelSprites.push(sprite)
 
