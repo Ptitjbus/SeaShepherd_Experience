@@ -462,6 +462,24 @@ export default class StoryManager {
         this.app.doorManager.removeDoorsFromScene()
         this.app.objectManager.removeAllEventTriggers()
 
+        // Désactiver le fisheye pass
+        if (this.app.postProcessing && this.app.postProcessing.fisheyePass) {
+            this.app.postProcessing.fisheyePass.enabled = false
+        }
+
+        // Désactiver les déplacements du joueur, garder seulement la rotation
+        if (this.app.physicsManager && this.app.physicsManager.controls) {
+            this.app.physicsManager.controls.moveForward = false
+            this.app.physicsManager.controls.moveBackward = false
+            this.app.physicsManager.controls.moveLeft = false
+            this.app.physicsManager.controls.moveRight = false
+            this.app.physicsManager.controls.moveUp = false
+            this.app.physicsManager.controls.moveDown = false
+            
+            // Empêcher tout mouvement futur en désactivant la vélocité
+            this.app.physicsManager.controls.velocityFactor = 0
+        }
+
         // Initialiser le raycaster pour détecter les panels regardés
         this.raycaster = new THREE.Raycaster()
         this.currentLookedPanel = null
@@ -470,12 +488,34 @@ export default class StoryManager {
 
         const endRoomPosition = new THREE.Vector3(50, 0, -50)
 
-        this.app.renderer.toneMapping = THREE.NoToneMapping
-        this.app.renderer.outputColorSpace = THREE.LinearSRGBColorSpace
+        // Ajouter le fog pour masquer la délimitation océan/skybox
+        this.app.scene.fog = new THREE.Fog(0x001a33, 8, 50) // Fog plus proche : commence à 8 unités, complet à 50
 
-        if (this.app.scene.environment) {
-            this.app.scene.environment = null
-            this.app.scene.background = new THREE.Color(0x000000)
+        // Créer une skybox avec dégradé bleu océan
+        const skyboxGeometry = new THREE.SphereGeometry(1000, 32, 32)
+        const skyboxMaterial = new THREE.MeshBasicMaterial({
+            color: 0x001a33, // Bleu océan foncé pour s'harmoniser
+            side: THREE.BackSide,
+            fog: false // La skybox ne doit pas être affectée par le fog
+        })
+        const skybox = new THREE.Mesh(skyboxGeometry, skyboxMaterial)
+        skybox.position.copy(endRoomPosition)
+        this.app.scene.add(skybox)
+
+        // Changer le background pour qu'il corresponde à la skybox
+        this.app.scene.background = new THREE.Color(0x001a33) // Même couleur que la skybox
+
+        // Ajouter l'océan avec des vagues et des reflets
+        this.createEndOcean(endRoomPosition)
+
+        // Réactiver les reflets de l'eau si ils ont été désactivés
+        if (this.app.objectManager && this.app.objectManager.waterMaterial) {
+            // S'assurer que les reflets sont activés
+            this.app.objectManager.waterMaterial.uniforms.uReflectionEnabled = { value: true }
+            // Optionnel : ajuster l'intensité des reflets
+            if (this.app.objectManager.waterMaterial.uniforms.uReflectionIntensity) {
+                this.app.objectManager.waterMaterial.uniforms.uReflectionIntensity.value = 0.5
+            }
         }
 
         this.app.scene.traverse(object => {
@@ -484,7 +524,7 @@ export default class StoryManager {
             }
         })
 
-        this.teleportPlayerTo(endRoomPosition)
+        this.teleportPlayerTo( new THREE.Vector3(50, 0, -48))
         // await this.app.soundManager.playVoiceLine('9.4_OUTRO')
 
         await this.sleep(500)
@@ -503,7 +543,7 @@ export default class StoryManager {
         const radius = 8
         const arcAngle = Math.PI * 0.5
         const panelWidth = 4
-        const panelHeight = 6
+        const panelHeight = 5
 
         let panel1, panel2, panel3
 
@@ -894,6 +934,26 @@ export default class StoryManager {
     }
 
     destroy() {
+        // Nettoyer le fog
+        if (this.app.scene.fog) {
+            this.app.scene.fog = null
+        }
+        
+        // Nettoyer l'océan de fin
+        if (this.endOcean && this.endOcean.water) {
+            this.app.scene.remove(this.endOcean.water)
+            if (this.endOcean.water.geometry) this.endOcean.water.geometry.dispose()
+            if (this.endOcean.water.material) this.endOcean.water.material.dispose()
+            this.endOcean = null
+        }
+        
+        if (this.endOceanMesh) {
+            this.app.scene.remove(this.endOceanMesh)
+            if (this.endOceanMesh.geometry) this.endOceanMesh.geometry.dispose()
+            if (this.endOceanMesh.material) this.endOceanMesh.material.dispose()
+            this.endOceanMesh = null
+        }
+        
         // Nettoyer les contours
         if (this.endPanels) {
             this.endPanels.forEach(panel => {
@@ -1030,7 +1090,7 @@ export default class StoryManager {
                 // Optionnel : jouer le son du spot
                 if (
                     this.app.soundManager &&
-                    typeof this.app.soundManager.playSpotSound === 'function'
+                    typeof this.app.soundManager.playSpotSound
                 ) {
                     this.app.soundManager.playSpotSound(shuffled[i].name, 6)
                 }
@@ -1061,5 +1121,81 @@ export default class StoryManager {
         if (this.activeTasks.includes('end') && this.endPanels) {
             this.updateEndPanelsCTA()
         }
+        
+        // Mettre à jour l'océan si il existe
+        if (this.endOcean && this.endOcean.water && this.endOcean.water.material.uniforms.time) {
+            this.endOcean.water.material.uniforms.time.value += 0.01
+        }
+    }
+
+    createEndOcean(centerPosition) {
+        // Importer Ocean si ce n'est pas déjà fait
+        import('../../World/Ocean.js').then(({ default: Ocean }) => {
+            // Créer l'océan simple avec Three.js Water pour les vagues
+            this.endOcean = new Ocean(this.app.scene, this.app.renderer)
+            
+            // Positionner l'océan dans la scène de fin
+            this.endOcean.water.position.set(centerPosition.x, -2, centerPosition.z)
+            
+            // Ajuster les propriétés pour la scène de fin - HARMONIE AVEC SKYBOX ET FOG
+            this.endOcean.water.material.uniforms.waterColor.value.setHex(0x001a33) // Même couleur que skybox
+            this.endOcean.water.material.uniforms.sunColor.value.setHex(0x336699) // Reflets bleu océan
+            this.endOcean.water.material.uniforms.sunDirection.value.set(0.5, 0.8, 0.3).normalize()
+            this.endOcean.water.material.uniforms.distortionScale.value = 3.7 // Réfraction de la lumière
+            
+            // Pour des vagues plus hautes, modifier ces paramètres :
+            if (this.endOcean.water.material.uniforms.size) {
+                this.endOcean.water.material.uniforms.size.value = 2.0 // Taille des vagues
+            }
+            
+            // Activer le fog sur l'océan pour la fusion
+            this.endOcean.water.material.fog = true
+            
+            // Ajuster la taille de l'océan pour couvrir la zone
+            this.endOcean.water.scale.set(5, 5, 5) // Plus grand pour bien fusionner avec le fog
+            
+            // Réduire la transparence pour une meilleure fusion
+            if (this.endOcean.water.material.uniforms.alpha) {
+                this.endOcean.water.material.uniforms.alpha.value = 0.9
+            }
+        }).catch(error => {
+            console.warn('Impossible de charger Ocean.js, création d\'un plan d\'eau basique:', error)
+            
+            // Fallback avec shader personnalisé pour vagues plus hautes
+            const oceanSize = 500
+            const oceanGeometry = new THREE.PlaneGeometry(oceanSize, oceanSize, 512, 512) // Plus de subdivisions
+            
+            // Utiliser le matériau d'eau existant ou en créer un nouveau
+            let oceanMaterial
+            if (this.app.objectManager && this.app.objectManager.waterMaterial) {
+                oceanMaterial = this.app.objectManager.waterMaterial.clone()
+                oceanMaterial.fog = true
+                
+                // Ajuster les paramètres pour des vagues plus hautes
+                if (oceanMaterial.uniforms.uDistortAmp) {
+                    oceanMaterial.uniforms.uDistortAmp.value = 0.02 // Amplitude des vagues
+                }
+                if (oceanMaterial.uniforms.uDistortFreq) {
+                    oceanMaterial.uniforms.uDistortFreq.value = 15.0 // Fréquence des vagues
+                }
+            } else {
+                oceanMaterial = new THREE.MeshStandardMaterial({
+                    color: 0x001a33,
+                    transparent: true,
+                    opacity: 0.9,
+                    roughness: 0.05,
+                    metalness: 0.05,
+                    fog: true
+                })
+            }
+            
+            const oceanMesh = new THREE.Mesh(oceanGeometry, oceanMaterial)
+            oceanMesh.rotation.x = -Math.PI / 2
+            oceanMesh.position.set(centerPosition.x, -2, centerPosition.z)
+            oceanMesh.name = 'endOcean'
+            
+            this.app.scene.add(oceanMesh)
+            this.endOceanMesh = oceanMesh
+        })
     }
 }
