@@ -35,13 +35,12 @@ export class UiManager extends EventEmitter {
         }
 
         this.currentKeyHint = document.createElement('div')
-        this.currentKeyHint.className = 'key-hint'
 
         this.currentKeyHint.style.position = 'fixed'
         this.currentKeyHint.style.top = '50%'
 
         this.keyHintContainer.innerHTML = `
-        <div class="key-letter">${key.toUpperCase()}</div>
+        <div class="btn-base">${key}</div>
         `
 
         this.keyHintContainer.classList.add('show-tutorial')

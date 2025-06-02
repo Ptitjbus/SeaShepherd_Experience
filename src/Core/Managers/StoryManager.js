@@ -442,8 +442,7 @@ export default class StoryManager {
             this.app.postProcessing.triggerHugeGlitch()
         }, 500)
 
-        await this.app.soundManager.playVoiceLine('8.6_AGONIE')
-
+        await this.app.soundManager.playVoiceLine('8.6_AGONIE') 
         glitchController.stop()
         spotsManager.stop()
         this.turnOffSpotsLights()

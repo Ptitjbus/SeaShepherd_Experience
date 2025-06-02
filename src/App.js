@@ -138,7 +138,7 @@ export default class App extends EventEmitter {
         this.isSceneReady = true
         this.assetManager.showMainScreen()
 
-        this.paintingManager = new PaintingManager(this.uiManager)
+        this.paintingManager = new PaintingManager(this)
         this.setupPaintings()
     }
 
@@ -634,6 +634,14 @@ export default class App extends EventEmitter {
                 muted: true,
                 duration: 15000, // en ms
             },
+            seashepherd_hope: {
+                type: 'video',
+                src: '/videos/720p/seashepherd_hope.webm',
+                glitchType: 'big',
+                loop: false,
+                muted: false,
+                duration: 30000, // en ms
+            },
         })
     }
 
@@ -682,31 +690,31 @@ export default class App extends EventEmitter {
             {
                 name: 'Painting001', // Remplacez par le vrai nom
                 textures: [
-                    this.assetManager.getItem('fish'),
+                    this.assetManager.getItem('dauphin_hacked'),
                 ]
             },
             {
                 name: 'Painting002', // Remplacez par le vrai nom
                 textures: [
-                    this.assetManager.getItem('fish2'),
+                    this.assetManager.getItem('tortue_hacked'),
                 ]
             },
             {
                 name: 'Painting003', // Remplacez par le vrai nom
                 textures: [
-                    this.assetManager.getItem('fish3'),
+                    this.assetManager.getItem('pirogue_hacked'),
                 ]
             },
             {
                 name: 'Painting004', // Remplacez par le vrai nom
                 textures: [
-                    this.assetManager.getItem('fish4'),
+                    this.assetManager.getItem('captain_igloo_hacked'),
                 ]
             },
             {
                 name: 'Painting005', // Remplacez par le vrai nom
                 textures: [
-                    this.assetManager.getItem('fish5'),
+                    this.assetManager.getItem('chalutier_hacked'),
                 ]
             }
 
