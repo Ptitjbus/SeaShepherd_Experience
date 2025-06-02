@@ -462,6 +462,17 @@ export default class StoryManager {
         this.app.doorManager.removeDoorsFromScene()
         this.app.objectManager.removeAllEventTriggers()
 
+        // Afficher l'image avec la classe 'end-cursor'
+        const endCursorImage = document.createElement('img')
+        endCursorImage.src = '/images/ui/cursor.svg' // Ajustez le chemin selon votre structure
+        endCursorImage.className = 'end-cursor'
+        endCursorImage.style.position = 'fixed'
+
+        document.body.appendChild(endCursorImage)
+
+        // Stocker la référence pour le nettoyage
+        this.endCursorImage = endCursorImage
+
         // Désactiver le fisheye pass
         if (this.app.postProcessing && this.app.postProcessing.fisheyePass) {
             this.app.postProcessing.fisheyePass.enabled = false
@@ -934,6 +945,12 @@ export default class StoryManager {
     }
 
     destroy() {
+        // Nettoyer l'image end-cursor
+        if (this.endCursorImage) {
+            document.body.removeChild(this.endCursorImage)
+            this.endCursorImage = null
+        }
+        
         // Nettoyer le fog
         if (this.app.scene.fog) {
             this.app.scene.fog = null

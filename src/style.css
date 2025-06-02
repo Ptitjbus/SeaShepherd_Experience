@@ -250,12 +250,11 @@ body {
 .panel-hint {
     position: fixed;
     left: calc(50% - 160px);
-    top: 45%;
+    top: 55%;
     opacity: 0;
     transform: translateY(20px);
     transition: all 0.3s ease-in-out;
     pointer-events: none;
-    z-index: 1000;
 }
 
 .panel-hint.visible {
@@ -282,6 +281,15 @@ body {
     background-size: contain;
     border: none;
     backdrop-filter: none;
+}
+
+.end-cursor {
+    position: fixed;
+    top: calc(50% - 12.5px);
+    left: calc(50% - 12.5px);
+    width: 25px;
+    height: 25px;
+    pointer-events: none;
 }
 
 /* ====== FOOTER ====== */
