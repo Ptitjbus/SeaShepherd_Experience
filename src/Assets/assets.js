@@ -89,28 +89,28 @@ export default [
         url: ''
     },
     {
-        name: 'fish',
+        name: 'captain_igloo_hacked',
         type: 'texture',
-        path: '/textures/paintings/fish.PNG'
+        path: '/textures/paintings/Capitaine_igloo_Hacked.jpeg'
     },
     {
-        name: 'fish2',
+        name: 'chalutier_hacked',
         type: 'texture',
-        path: '/textures/paintings/fish2.PNG'
+        path: '/textures/paintings/Chalutier_Hacked.jpeg'
     },
     {
-        name: 'fish3',
+        name: 'dauphin_hacked',
         type: 'texture',
-        path: '/textures/paintings/fish3.PNG'
+        path: '/textures/paintings/Dauphin_Hacked.jpeg'
     },
     {
-        name: 'fish4',
+        name: 'pirogue_hacked',
         type: 'texture',
-        path: '/textures/paintings/fish4.PNG'
+        path: '/textures/paintings/Pirogue_Hacked.jpeg'
     },
     {
-        name: 'fish5',
+        name: 'tortue_hacked',
         type: 'texture',
-        path: '/textures/paintings/fish5.PNG'
+        path: '/textures/paintings/Tortue_Hacked.jpeg'
     }
 ]

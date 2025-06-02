@@ -2,9 +2,9 @@ import { Vector3, Raycaster } from 'three'
 import EventEmitter from '../../Utils/EventEmitter'
 
 export default class PaintingManager extends EventEmitter {
-    constructor(uiManager) {
+    constructor(app) {
         super()
-        this.uiManager = uiManager
+        this.app = app
         this.paintings = []
         this.currentNearPainting = null
         this.interactionDistance = 3
@@ -55,6 +55,7 @@ export default class PaintingManager extends EventEmitter {
             return
         }
         
+        this.app.postProcessing.triggerBigGlitch()
         painting.currentTextureIndex = (painting.currentTextureIndex + 1) % painting.textures.length
         
         const newTexture = painting.textures[painting.currentTextureIndex]
@@ -82,13 +83,13 @@ export default class PaintingManager extends EventEmitter {
         if (nearPainting && nearPainting !== this.currentNearPainting) {
             this.currentNearPainting = nearPainting
             
-            if (this.uiManager && typeof this.uiManager.showKeyHint === 'function') {
-                this.uiManager.showKeyHint('⏎')
+            if (this.app.uiManager && typeof this.app.uiManager.showKeyHint === 'function') {
+                this.app.uiManager.showKeyHint('Découvrir la vérité')
             }
         } else if (!nearPainting && this.currentNearPainting) {
             this.currentNearPainting = null
-            if (this.uiManager && typeof this.uiManager.hideKeyHint === 'function') {
-                this.uiManager.hideKeyHint()
+            if (this.app.uiManager && typeof this.app.uiManager.hideKeyHint === 'function') {
+                this.app.uiManager.hideKeyHint()
             }
         }
     }
@@ -100,8 +101,8 @@ export default class PaintingManager extends EventEmitter {
             }
         })
         this.paintings = []
-        if (this.uiManager && typeof this.uiManager.hideKeyHint === 'function') {
-            this.uiManager.hideKeyHint()
+        if (this.app.uiManager && typeof this.app.uiManager.hideKeyHint === 'function') {
+            this.app.uiManager.hideKeyHint()
         }
         
         // Supprimer correctement l'event listener
