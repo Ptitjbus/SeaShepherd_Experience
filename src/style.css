@@ -246,6 +246,9 @@ body {
 }
 
 /* ====== END PANELS ====== */
+#end-choices-container {
+    top: 80%;
+}
 
 .panel-hint {
     position: fixed;

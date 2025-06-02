@@ -680,21 +680,8 @@ export default class StoryManager {
 
         window.addEventListener('keydown', this.handleEndPanelEnter)
 
-        await this.app.uiManager
-            .showEndChoices({
-                title: "...",
-                choice1: "Soutenir leur combat",
-                choice2: 'Rejoindre Sea Shepherd',
-            })
-            .then(async choiceIndex => {
-                if (choiceIndex === 1) {
-                    window.open('https://www.helloasso.com/associations/sea-shepherd-france/formulaires/1', '_blank')
-                } else {
-                    window.open('https://seashepherd.fr/nous-rejoindre/', '_blank')
-                }
-            })
-
-        // this.app.soundManager.playMusic('end_ambience');
+        // Créer les boutons 3D dans la scène AVANT showEndChoices
+        this.createEnd3DButtons(endRoomPosition)
 
         await this.sleep(1000)
         if (!this.checkActiveTask('end')) return
@@ -1213,6 +1200,183 @@ export default class StoryManager {
             
             this.app.scene.add(oceanMesh)
             this.endOceanMesh = oceanMesh
+        })
+    }
+
+    createEnd3DButtons(centerPosition) {
+        const loader = new THREE.TextureLoader()
+        
+        // Créer un conteneur pour les boutons
+        const buttonsContainer = new THREE.Object3D()
+        buttonsContainer.name = 'endButtonsContainer'
+        buttonsContainer.position.copy(centerPosition)
+        this.app.scene.add(buttonsContainer)
+        
+        // Paramètres des boutons
+        const buttonWidth = 5
+        const buttonHeight = 1
+        const buttonSeparation = 3
+        
+        // Positions des boutons (côte à côte avec espace)
+        const button1Position = new THREE.Vector3(-buttonSeparation, 0, -5)
+        const button2Position = new THREE.Vector3(buttonSeparation, 0, -5)
+        
+        // Charger la texture du bouton
+        const buttonTexture = loader.load('/images/ui/btn_primary_end.svg')
+        const buttonHoverTexture = loader.load('/images/ui/btn_primary_end_hover.svg')
+        
+        // Créer le premier bouton "Soutenir leur combat"
+        const button1Geometry = new THREE.PlaneGeometry(buttonWidth, buttonHeight)
+        const button1Material = new THREE.MeshBasicMaterial({
+            map: buttonTexture,
+            transparent: true,
+            side: THREE.DoubleSide
+        })
+        
+        const button1 = new THREE.Mesh(button1Geometry, button1Material)
+        button1.position.copy(button1Position)
+        button1.rotation.y = Math.PI * 0.1 // Légère rotation vers la droite
+        button1.name = 'endButton1'
+        
+        // Créer le deuxième bouton "Rejoindre Sea Shepherd"
+        const button2Geometry = new THREE.PlaneGeometry(buttonWidth, buttonHeight)
+        const button2Material = new THREE.MeshBasicMaterial({
+            map: buttonTexture,
+            transparent: true,
+            side: THREE.DoubleSide
+        })
+        
+        const button2 = new THREE.Mesh(button2Geometry, button2Material)
+        button2.position.copy(button2Position)
+        button2.rotation.y = -Math.PI * 0.1 // Légère rotation vers la gauche
+        button2.name = 'endButton2'
+        
+        // Ajouter les keyhints et textes sur les boutons
+        this.addKeyHintToButton(button1, "U", -1.3)
+        this.addTextToButton(button1, "SOUTENIR LEUR COMBAT")
+        
+        this.addKeyHintToButton(button2, "I", -1.5)
+        this.addTextToButton(button2, "REJOINDRE SEA SHEPHERD")
+        
+        buttonsContainer.add(button1)
+        buttonsContainer.add(button2)
+        
+        // Stocker les références pour l'interaction
+        this.endButtons = [
+            { 
+                mesh: button1, 
+                url: 'https://www.helloasso.com/associations/sea-shepherd-france/formulaires/1',
+                material: button1Material,
+                hoverTexture: buttonHoverTexture,
+                key: 'U'
+            },
+            { 
+                mesh: button2, 
+                url: 'https://seashepherd.fr/nous-rejoindre/',
+                material: button2Material,
+                hoverTexture: buttonHoverTexture,
+                key: 'I'
+            }
+        ]
+        
+        // Ajouter les corps physiques pour l'interaction
+        this.addPhysicsToButtons()
+    }
+
+    addTextToButton(buttonMesh, text) {
+        // Créer un canvas pour le texte
+        const canvas = document.createElement('canvas')
+        canvas.width = 1024
+        canvas.height = 256
+        const ctx = canvas.getContext('2d')
+        
+        // Style du texte
+        ctx.fillStyle = 'white'
+        ctx.font = 'bold 64px Arial'
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+        
+        // Dessiner le texte
+        ctx.fillText(text, canvas.width / 2, canvas.height / 2)
+        
+        // Créer la texture à partir du canvas
+        const textTexture = new THREE.CanvasTexture(canvas)
+        textTexture.minFilter = THREE.LinearFilter
+        
+        // Créer le mesh du texte
+        const textGeometry = new THREE.PlaneGeometry(3.5, 0.7)
+        const textMaterial = new THREE.MeshBasicMaterial({
+            map: textTexture,
+            transparent: true,
+            depthTest: false
+        })
+        
+        const textMesh = new THREE.Mesh(textGeometry, textMaterial)
+        // Positionner le texte plus près de la keyhint et plus centré
+        textMesh.position.set(0.4, 0, 0.01) // Réduit l'espacement de 0.8 à 0.4
+
+    buttonMesh.add(textMesh)
+}
+
+addKeyHintToButton(buttonMesh, keyLetter, xOffset = -0.6) {
+    // Créer un canvas pour la keyhint
+    const canvas = document.createElement('canvas')
+    canvas.width = 256
+    canvas.height = 256
+    const ctx = canvas.getContext('2d')
+    
+    // Dessiner le carré avec bordure
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.1)'
+    ctx.fillRect(78, 78, 100, 100)
+    
+    ctx.strokeStyle = 'white'
+    ctx.lineWidth = 4
+    ctx.strokeRect(78, 78, 100, 100)
+    
+    // Dessiner la lettre
+    ctx.fillStyle = 'white'
+    ctx.font = 'bold 60px Arial'
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillText(keyLetter, 128, 128)
+    
+    // Créer la texture à partir du canvas
+    const keyTexture = new THREE.CanvasTexture(canvas)
+    keyTexture.minFilter = THREE.LinearFilter
+    
+    // Créer le mesh de la keyhint - AUGMENTER LA TAILLE
+    const keyGeometry = new THREE.PlaneGeometry(0.8, 0.8) // Augmenté de 0.6 à 0.8
+    const keyMaterial = new THREE.MeshBasicMaterial({
+        map: keyTexture,
+        transparent: true,
+        depthTest: false
+    })
+    
+    const keyMesh = new THREE.Mesh(keyGeometry, keyMaterial)
+    
+    // Positionner la keyhint plus à gauche
+    keyMesh.position.set(xOffset, 0, 0.02)
+
+    buttonMesh.add(keyMesh)
+}
+
+addPhysicsToButtons() {
+        this.endButtons.forEach(button => {
+            const buttonWorldPosition = new THREE.Vector3()
+            button.mesh.getWorldPosition(buttonWorldPosition)
+            
+            const buttonShape = new CANNON.Box(new CANNON.Vec3(4, 1, 0.1))
+            const buttonBody = new CANNON.Body({ mass: 0, type: CANNON.Body.KINEMATIC })
+            buttonBody.addShape(buttonShape)
+            buttonBody.position.set(buttonWorldPosition.x, buttonWorldPosition.y, buttonWorldPosition.z)
+            
+            // Appliquer la rotation
+            const quaternion = new CANNON.Quaternion()
+            quaternion.setFromEuler(button.mesh.rotation.x, button.mesh.rotation.y, button.mesh.rotation.z)
+            buttonBody.quaternion = quaternion
+            
+            this.app.physicsManager.world.addBody(buttonBody)
+            button.mesh.userData.physicsBody = buttonBody
         })
     }
 }
