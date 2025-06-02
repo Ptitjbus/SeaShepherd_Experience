@@ -429,7 +429,7 @@ export default class StoryManager {
 
         const playStopPromise = new Promise(resolve => {
             setTimeout(async () => {
-                this.app.soundManager.playVoiceLine('8.6.2_SEASHEPHERD', true)
+                this.app.soundManager.playVoiceLine('8.5_CRAQUAGE_GLITCH', true)
                 resolve()
             }, 12000)
         })
@@ -442,7 +442,12 @@ export default class StoryManager {
             this.app.postProcessing.triggerHugeGlitch()
         }, 500)
 
-        await this.app.soundManager.playVoiceLine('8.6_AGONIE') 
+        await this.app.soundManager.playVoiceLine('8.6.1_AGONIE_GLITCH') 
+        await this.app.soundManager.playVoiceLine('8.6.2_SEASHEPHERD', true)
+        await this.app.soundManager.playVoiceLine('9.1_SEASHEPHERD')
+        await this.app.soundManager.playVoiceLine('9.2_SEASHEPHERD')
+
+        await this.app.mediaManager.playMediaWithGlitch('seashepherd_hope')
         glitchController.stop()
         spotsManager.stop()
         this.turnOffSpotsLights()
@@ -454,7 +459,7 @@ export default class StoryManager {
         this.saveManager.saveProgress('end')
         this.activeTasks.push('end')
         this.app.doorManager.removeDoorsFromScene()
-    this.app.objectManager.removeAllEventTriggers()
+        this.app.objectManager.removeAllEventTriggers()
 
         const endRoomPosition = new THREE.Vector3(50, 0, -50)
 
@@ -473,6 +478,7 @@ export default class StoryManager {
         })
 
         this.teleportPlayerTo(endRoomPosition)
+        await this.app.soundManager.playVoiceLine('9.4_OUTRO_FC')
 
         await this.sleep(500)
 

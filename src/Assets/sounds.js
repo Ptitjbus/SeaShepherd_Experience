@@ -477,10 +477,23 @@ export default [
         author: '',
         url: ''
     },
+    {   
+        name: '8.6.2_SEASHEPHERD',
+        type: 'voice',
+        path: '/audio/voices/8.6.2_SEASHEPHERD_FC.mp3',
+        options: {
+            loop: false,
+            volume: 2.0,
+            vttSrc: 'audio/subtitles/8.6.2_SEASHEPHERD.vtt'
+        },
+        license: '',
+        author: '',
+        url: ''
+    },
     {
         name: '9.1_SEASHEPHERD',
         type: 'voice',
-        path: '/audio/voices/9.1_SEASHEPHERD.mp3',
+        path: '/audio/voices/9.1_SEASHEPHERD_FC.mp3',
         options: {
             loop: false,
             volume: 2.0,
@@ -493,7 +506,7 @@ export default [
     {
         name: '9.2_SEASHEPHERD',
         type: 'voice',
-        path: '/audio/voices/9.2_SEASHEPHERD.mp3',
+        path: '/audio/voices/9.2_SEASHEPHERD_FC.mp3',
         options: {
             loop: false,
             volume: 2.0,
@@ -504,13 +517,13 @@ export default [
         url: ''
     },
     {
-        name: '9.3_OUTRO',
+        name: '9.4_OUTRO',
         type: 'voice',
-        path: '/audio/voices/9.3_OUTRO.mp3',
+        path: '/audio/voices/9.4_OUTRO_FC.mp3',
         options: {
             loop: false,
             volume: 2.0,
-            vttSrc: 'audio/subtitles/9.3_OUTRO.vtt'
+            vttSrc: 'audio/subtitles/9.4_OUTRO.vtt'
         },
         license: '',
         author: '',
