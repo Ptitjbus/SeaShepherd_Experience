@@ -283,6 +283,7 @@ body {
     backdrop-filter: none;
     min-width: 400px;
     padding: 32px;
+    font-size: 24px;
     transition: none;
 }
 
