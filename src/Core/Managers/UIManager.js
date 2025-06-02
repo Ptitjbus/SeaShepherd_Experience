@@ -203,6 +203,82 @@ export class UiManager extends EventEmitter {
         })
     }
 
+    showEndChoices(options, callback) {
+        return new Promise((resolve) => {
+
+            const container = document.getElementById('end-choices-container')
+            container.style.display = 'flex'
+
+            if (options.title) {
+                const titleElement = document.getElementById('choices-title')
+                titleElement.textContent = options.title
+            }
+
+            const button1Wrapper = document.getElementById('dialog-button-end-1')
+            const button2Wrapper = document.getElementById('dialog-button-end-2')
+
+            const button1 = button1Wrapper.querySelector('button')
+            const button1Text = button1.querySelector('span')
+
+            const button2 = button2Wrapper.querySelector('button')
+            const button2Text = button2.querySelector('span')
+
+            button1Text.textContent = options.choice1
+            button2Text.textContent = options.choice2
+
+            if (options.disabledIndex === 0) {
+                button1.setAttribute('disabled', 'disabled')
+                button1.classList.add('disabled')
+            }
+
+            button1.addEventListener('click', () => this.handleChoice(1, resolve))            
+
+            button2Text.innerText = options.choice2
+            if (options.disabledIndex === 1) {
+                button2.setAttribute('disabled', 'disabled')
+                button2.classList.add('disabled')
+            }
+
+            button2.addEventListener('click', () => this.handleChoice(2, resolve))
+        
+            const keyHandler = (event) => {
+                if (event.code === 'KeyU') {
+                    if (options.disabledIndex === 0) {
+                        button1.classList.add('shake')
+                        this.app.postProcessing.triggerGlitch()
+                        setTimeout(() => button1.classList.remove('shake'), 200)
+                    } else {
+                        document.removeEventListener('keydown', keyHandler)
+                        this._currentKeyHandler = null
+                        button1.classList.add('choosed')
+                        setTimeout(() => button1.classList.remove('choosed'), 500)
+                        this.handleChoice(1, resolve)
+                    }
+                } else if (event.code === 'KeyI') {
+                    if (options.disabledIndex === 1) {
+                        button2.classList.add('shake')
+                        this.app.postProcessing.triggerGlitch()
+                        setTimeout(() => button2.classList.remove('shake'), 200)
+                    } else {
+                        document.removeEventListener('keydown', keyHandler)
+                        this._currentKeyHandler = null
+                        button2.classList.add('choosed')
+                        setTimeout(() => button2.classList.remove('choosed'), 500)
+                        this.handleChoice(2, resolve)
+                    }
+                }
+            }
+
+            if (this._currentKeyHandler) {
+                document.removeEventListener('keydown', this._currentKeyHandler)
+            }
+
+            this._currentKeyHandler = keyHandler
+
+            document.addEventListener('keydown', this._currentKeyHandler)
+        })
+    }
+
     /**
      * Affiche une icône SVG avec du texte dans le HUD pour les interactions des panels
      * @param {string} svgPath - Chemin vers le fichier SVG

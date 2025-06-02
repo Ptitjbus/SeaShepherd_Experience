@@ -108,7 +108,7 @@ body {
 
 /* ====== BUTTONS BASE ====== */
 
-#choices-container {
+#choices-container, #end-choices-container {
     position: fixed;
     width: 100%;
     bottom: 160px;
@@ -272,6 +272,19 @@ body {
 .panel-hint img {
     width: 320px;
 }
+
+.end-btn {
+    position: relative;
+    background-color: transparent;
+    background-image: url(../static/images/ui/btn_primary_end.svg);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+    border: none;
+    backdrop-filter: none;;
+
+}
+
 /* ====== FOOTER ====== */
 .footer-container {
     position: fixed;

@@ -630,7 +630,7 @@ export default class StoryManager {
         window.addEventListener('keydown', this.handleEndPanelEnter)
 
         await this.app.uiManager
-            .showChoices({
+            .showEndChoices({
                 title: "...",
                 choice1: "Soutenir leur combat",
                 choice2: 'Rejoindre Sea Shepherd',
