@@ -443,7 +443,7 @@ export default class StoryManager {
         }, 500)
 
         await this.app.soundManager.playVoiceLine('8.6.1_AGONIE_GLITCH') 
-        await this.app.soundManager.playVoiceLine('8.6.2_SEASHEPHERD', true)
+        await this.app.soundManager.playVoiceLine('8.6.2_SEASHEPHERD')
         await this.app.soundManager.playVoiceLine('9.1_SEASHEPHERD')
         await this.app.soundManager.playVoiceLine('9.2_SEASHEPHERD')
 
