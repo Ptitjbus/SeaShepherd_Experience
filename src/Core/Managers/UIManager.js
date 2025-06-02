@@ -17,7 +17,9 @@ export class UiManager extends EventEmitter {
     
     init() {
         const container = document.getElementById('choices-container')
+        const endContainer = document.getElementById('end-choices-container')
         container.style.display = 'none'
+        endContainer.style.display = 'none'
     }
 
     createKeyHintSystem() {

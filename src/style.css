@@ -281,8 +281,7 @@ body {
     background-repeat: no-repeat;
     background-size: contain;
     border: none;
-    backdrop-filter: none;;
-    display: none;
+    backdrop-filter: none;
 }
 
 /* ====== FOOTER ====== */

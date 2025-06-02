@@ -62,6 +62,7 @@ export default class PaintingManager extends EventEmitter {
         if (newTexture) {
             painting.mesh.material.map = newTexture
             painting.mesh.material.needsUpdate = true
+            this.app.postProcessing.triggerBigGlitch()
         }
     }
 
