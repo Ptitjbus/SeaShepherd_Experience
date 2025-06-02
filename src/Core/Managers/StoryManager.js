@@ -860,14 +860,41 @@ export default class StoryManager {
         // Utiliser la caméra des contrôles de physique
         const controlsObject = this.app.physicsManager.controls.getObject()
         
-        // Raycasting pour détecter le panneau regardé
-        const direction = new THREE.Vector3(0, 0, -1) // Direction vers l'avant
-        direction.applyQuaternion(controlsObject.quaternion) // Appliquer la rotation
+        // CORRIGÉ: Raycasting avec direction simple qui suit la rotation
+        const direction = new THREE.Vector3(0, 0, -1)
+        direction.applyQuaternion(controlsObject.quaternion)
+        
         this.raycaster.set(controlsObject.position, direction)
         
-        // Créer un array avec tous les meshes des panels (sans les sprites)
-        const panelMeshes = this.endPanels.map(panel => panel.mesh)
-        const intersects = this.raycaster.intersectObjects(panelMeshes, false)
+        // NOUVEAU: Visualiser le raycast
+        this.visualizeRaycast(controlsObject.position, direction)
+        
+        // CORRIGÉ: Tester TOUS les objets interactifs en une seule fois
+        const allInteractiveObjects = []
+        
+        // Ajouter les panels
+        if (this.endPanels) {
+            this.endPanels.forEach(panel => allInteractiveObjects.push(panel.mesh))
+        }
+        
+        // Ajouter les boutons
+        if (this.endButtons) {
+            this.endButtons.forEach(button => allInteractiveObjects.push(button.mesh))
+        }
+        
+        const intersects = this.raycaster.intersectObjects(allInteractiveObjects, false)
+        
+        // DEBUG: Afficher les intersections
+        console.log('Intersections trouvées:', intersects.length)
+        if (intersects.length > 0) {
+            console.log('Premier objet intersecté:', intersects[0].object.name)
+        }
+        
+        // NOUVEAU: Visualiser les zones de détection des panels
+        this.visualizePanelBounds()
+        
+        // NOUVEAU: Visualiser les zones de détection des boutons
+        this.visualizeButtonBounds()
         
         // Supprimer tous les contours existants
         this.endPanels.forEach(panel => {
@@ -888,10 +915,16 @@ export default class StoryManager {
         
         // Gestion du panneau regardé (contour blanc)
         let lookedPanel = null
+        let lookedButton = null
+        
         if (intersects.length > 0) {
-            const intersectedPanel = this.endPanels.find(panel => panel.mesh === intersects[0].object)
+            const intersectedObject = intersects[0].object
+            
+            // Vérifier si c'est un panel
+            const intersectedPanel = this.endPanels.find(panel => panel.mesh === intersectedObject)
             if (intersectedPanel) {
                 lookedPanel = intersectedPanel
+                console.log('Panel détecté !') // Debug
                 
                 // Créer un contour avec des couches multiples pour l'épaisseur
                 const outlineGeometry = new THREE.EdgesGeometry(intersectedPanel.mesh.geometry)
@@ -919,9 +952,37 @@ export default class StoryManager {
                 intersectedPanel.mesh.add(outlineGroup)
                 intersectedPanel.outlineMesh = outlineGroup
             }
+            
+            // Vérifier si c'est un bouton
+            const intersectedButton = this.endButtons.find(button => button.mesh === intersectedObject)
+            if (intersectedButton) {
+                lookedButton = intersectedButton
+                console.log('Bouton détecté:', intersectedButton.key) // Debug
+            }
         }
         
         this.currentLookedPanel = lookedPanel
+
+        // Gestion des boutons - Réinitialiser tous les boutons puis mettre en surbrillance le bon
+        if (this.endButtons) {
+            this.endButtons.forEach(button => {
+                // Revenir à la texture normale
+                if (button.material.map === button.hoverTexture) {
+                    button.material.map = button.material.map.userData?.normalTexture || button.material.map
+                    button.material.needsUpdate = true
+                }
+            })
+            
+            // Mettre en surbrillance le bouton regardé
+            if (lookedButton && lookedButton.hoverTexture) {
+                // Sauvegarder la texture normale si pas déjà fait
+                if (!lookedButton.material.map.userData?.normalTexture) {
+                    lookedButton.material.map.userData = { normalTexture: lookedButton.material.map }
+                }
+                lookedButton.material.map = lookedButton.hoverTexture
+                lookedButton.material.needsUpdate = true
+            }
+        }
 
         // Gestion de l'affichage du CTA quand on regarde un panel
         if (lookedPanel) {
@@ -939,7 +1000,7 @@ export default class StoryManager {
                     this.currentLookedPanelIndex = lookedIndex
                     this.app.uiManager.showPanelHint('/images/ui/btn_see_more.svg')
                 }
-                // Si on reste sur le même panel, on s'assure que le hint est visible
+                // Si on reste sur le même panel, on s'assurer que le hint est visible
                 else if (this.currentLookedPanelIndex === lookedIndex) {
                     this.app.uiManager.showPanelHint('/images/ui/btn_see_more.svg')
                 }
@@ -975,14 +1036,98 @@ export default class StoryManager {
         }
     }
 
-    handleEndPanelEnter = e => {
-        if (e.key === 'Enter' && this.currentLookedPanelIndex !== null) {
-            const url = this.endPanels[this.currentLookedPanelIndex].url
-            window.open(url, '_blank')
+    // NOUVEAU: Méthode pour visualiser le raycast
+    visualizeRaycast(origin, direction) {
+        // Supprimer l'ancien raycast visuel s'il existe
+        if (this.raycastVisualLine) {
+            this.app.scene.remove(this.raycastVisualLine)
+            this.raycastVisualLine.geometry.dispose()
+            this.raycastVisualLine.material.dispose()
+        }
+        
+        // Créer une ligne pour visualiser le raycast
+        const rayLength = 15 // Longueur du ray visible
+        const end = origin.clone().add(direction.clone().multiplyScalar(rayLength))
+        
+        const geometry = new THREE.BufferGeometry().setFromPoints([origin, end])
+        const material = new THREE.LineBasicMaterial({ 
+            color: 0xff0000, // Rouge pour le raycast
+            transparent: true,
+            opacity: 0.8
+        })
+        
+        this.raycastVisualLine = new THREE.Line(geometry, material)
+        this.app.scene.add(this.raycastVisualLine)
+    }
+
+    // NOUVEAU: Méthode pour visualiser les bounding boxes des panels
+    visualizePanelBounds() {
+        // Supprimer les anciens helpers s'ils existent
+        if (this.panelBoundingBoxHelpers) {
+            this.panelBoundingBoxHelpers.forEach(helper => {
+                this.app.scene.remove(helper)
+            })
+        }
+        this.panelBoundingBoxHelpers = []
+        
+        // Créer des wireframes pour chaque panel
+        this.endPanels.forEach((panel, index) => {
+            const box = new THREE.Box3().setFromObject(panel.mesh)
+            const helper = new THREE.Box3Helper(box, new THREE.Color(0x00ff00)) // Vert pour les zones de détection
+            helper.material.transparent = true
+            helper.material.opacity = 0.5
+            this.app.scene.add(helper)
+            this.panelBoundingBoxHelpers.push(helper)
+        })
+    }
+
+    // NOUVEAU: Méthode pour visualiser les bounding boxes des boutons
+    visualizeButtonBounds() {
+        // Supprimer les anciens helpers s'ils existent
+        if (this.buttonBoundingBoxHelpers) {
+            this.buttonBoundingBoxHelpers.forEach(helper => {
+                this.app.scene.remove(helper)
+            })
+        }
+        this.buttonBoundingBoxHelpers = []
+        
+        // Créer des wireframes pour chaque bouton
+        if (this.endButtons) {
+            this.endButtons.forEach((button, index) => {
+                const box = new THREE.Box3().setFromObject(button.mesh)
+                const helper = new THREE.Box3Helper(box, new THREE.Color(0x0000ff)) // Bleu pour les boutons
+                helper.material.transparent = true
+                helper.material.opacity = 0.5
+                this.app.scene.add(helper)
+                this.buttonBoundingBoxHelpers.push(helper)
+            })
         }
     }
 
     destroy() {
+        // Nettoyer les visualisations de debug
+        if (this.raycastVisualLine) {
+            this.app.scene.remove(this.raycastVisualLine)
+            this.raycastVisualLine.geometry.dispose()
+            this.raycastVisualLine.material.dispose()
+            this.raycastVisualLine = null
+        }
+        
+        if (this.panelBoundingBoxHelpers) {
+            this.panelBoundingBoxHelpers.forEach(helper => {
+                this.app.scene.remove(helper)
+            })
+            this.panelBoundingBoxHelpers = null
+        }
+        
+        // NOUVEAU: Nettoyer les helpers des boutons
+        if (this.buttonBoundingBoxHelpers) {
+            this.buttonBoundingBoxHelpers.forEach(helper => {
+                this.app.scene.remove(helper)
+            })
+            this.buttonBoundingBoxHelpers = null
+        }
+        
         // Nettoyer l'image end-cursor
         if (this.endCursorImage) {
             document.body.removeChild(this.endCursorImage)
