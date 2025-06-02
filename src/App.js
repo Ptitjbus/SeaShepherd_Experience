@@ -654,6 +654,14 @@ export default class App extends EventEmitter {
                 muted: true,
                 duration: 44000, // en ms
             },
+            connexion: {
+                type: 'video',
+                src: '/videos/1080p/connexion.webm',
+                glitchType: 'small',
+                loop: false,
+                muted: false,
+                duration: 13000, // en ms
+            },
             seashepherd_hope: {
                 type: 'video',
                 src: '/videos/720p/seashepherd_hope.webm',

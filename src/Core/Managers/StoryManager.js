@@ -1,5 +1,6 @@
 import App from '../../App'
 import * as THREE from 'three'
+import * as CANNON from 'cannon-es'
 import { SaveManager } from './SaveManager'
 
 export default class StoryManager {
@@ -120,7 +121,7 @@ export default class StoryManager {
             })
 
         if (!this.checkActiveTask('intro')) return
-        await this.app.mediaManager.playMediaWithGlitch('connexion', 2)
+        await this.app.mediaManager.playMediaWithGlitch('connexion', 3)
 
         if (!this.checkActiveTask('intro')) return
         this.app.postProcessing.triggerGlitch()
@@ -219,6 +220,7 @@ export default class StoryManager {
                 if (choiceIndex === 1) {
                     await this.app.soundManager.playVoiceLine('6.4_CHOIX1')
                 } else {
+                    this.app.eventsManager.displayAlert('Il ne vous dit pas tout en effet...')
                     await this.app.soundManager.playVoiceLine('6.5_CHOIX2')
                 }
             })
@@ -508,16 +510,74 @@ export default class StoryManager {
         this.saveManager.saveProgress('end')
         this.activeTasks.push('end')
         this.app.doorManager.removeDoorsFromScene()
-    this.app.objectManager.removeAllEventTriggers()
+        this.app.objectManager.removeAllEventTriggers()
+        this.app.postProcessing.fisheyePass.enabled = false
+
+        // Afficher l'image avec la classe 'end-cursor'
+        const endCursorImage = document.createElement('img')
+        endCursorImage.src = '/images/ui/cursor.svg' // Ajustez le chemin selon votre structure
+        endCursorImage.className = 'end-cursor'
+        endCursorImage.style.position = 'fixed'
+
+        document.body.appendChild(endCursorImage)
+
+        // Stocker la référence pour le nettoyage
+        this.endCursorImage = endCursorImage
+
+        // Désactiver le fisheye pass
+        if (this.app.postProcessing && this.app.postProcessing.fisheyePass) {
+            this.app.postProcessing.fisheyePass.enabled = false
+        }
+
+        // Désactiver les déplacements du joueur, garder seulement la rotation
+        if (this.app.physicsManager && this.app.physicsManager.controls) {
+            this.app.physicsManager.controls.moveForward = false
+            this.app.physicsManager.controls.moveBackward = false
+            this.app.physicsManager.controls.moveLeft = false
+            this.app.physicsManager.controls.moveRight = false
+            this.app.physicsManager.controls.moveUp = false
+            this.app.physicsManager.controls.moveDown = false
+            
+            // Empêcher tout mouvement futur en désactivant la vélocité
+            this.app.physicsManager.controls.velocityFactor = 0
+        }
+
+        // Initialiser le raycaster pour détecter les panels regardés
+        this.raycaster = new THREE.Raycaster()
+        this.currentLookedPanel = null
+        this.currentLookedPanelIndex = null
+        this.hideHintTimeout = null
 
         const endRoomPosition = new THREE.Vector3(50, 0, -50)
 
-        this.app.renderer.toneMapping = THREE.NoToneMapping
-        this.app.renderer.outputColorSpace = THREE.LinearSRGBColorSpace
+        // Ajouter le fog pour masquer la délimitation océan/skybox
+        this.app.scene.fog = new THREE.Fog(0x001a33, 8, 50) // Fog plus proche : commence à 8 unités, complet à 50
 
-        if (this.app.scene.environment) {
-            this.app.scene.environment = null
-            this.app.scene.background = new THREE.Color(0x000000)
+        // Créer une skybox avec dégradé bleu océan
+        const skyboxGeometry = new THREE.SphereGeometry(1000, 32, 32)
+        const skyboxMaterial = new THREE.MeshBasicMaterial({
+            color: 0x001a33, // Bleu océan foncé pour s'harmoniser
+            side: THREE.BackSide,
+            fog: false // La skybox ne doit pas être affectée par le fog
+        })
+        const skybox = new THREE.Mesh(skyboxGeometry, skyboxMaterial)
+        skybox.position.copy(endRoomPosition)
+        this.app.scene.add(skybox)
+
+        // Changer le background pour qu'il corresponde à la skybox
+        this.app.scene.background = new THREE.Color(0x001a33) // Même couleur que la skybox
+
+        // Ajouter l'océan avec des vagues et des reflets
+        this.createEndOcean(endRoomPosition)
+
+        // Réactiver les reflets de l'eau si ils ont été désactivés
+        if (this.app.objectManager && this.app.objectManager.waterMaterial) {
+            // S'assurer que les reflets sont activés
+            this.app.objectManager.waterMaterial.uniforms.uReflectionEnabled = { value: true }
+            // Optionnel : ajuster l'intensité des reflets
+            if (this.app.objectManager.waterMaterial.uniforms.uReflectionIntensity) {
+                this.app.objectManager.waterMaterial.uniforms.uReflectionIntensity.value = 0.5
+            }
         }
 
         this.app.scene.traverse(object => {
@@ -526,7 +586,8 @@ export default class StoryManager {
             }
         })
 
-        this.teleportPlayerTo(endRoomPosition)
+        this.teleportPlayerTo( new THREE.Vector3(50, 0, -48))
+        // await this.app.soundManager.playVoiceLine('9.4_OUTRO')
 
         await this.sleep(500)
 
@@ -536,21 +597,23 @@ export default class StoryManager {
         this.app.scene.add(panelsContainer)
 
         const videos = [
-            { id: 'fishing-video', src: '/videos/720p/PUBDEMERDE.mp4' },
-            { id: 'dolphins-video', src: '/videos/720p/PUBDEMERDE.mp4' },
-            { id: 'turtle-video', src: '/videos/720p/PUBDEMERDE.mp4' },
+            { id: 'fishing-video', src: '/videos/1080p/BOUCLE_CHALUT.mp4' },
+            { id: 'dolphins-video', src: '/videos/1080p/BOUCLE_DAUPHIN.mp4' },
+            { id: 'turtle-video', src: '/videos/1080p/BOUCLE_TORTUE.mp4' },
         ]
 
         const radius = 8
         const arcAngle = Math.PI * 0.5
         const panelWidth = 4
-        const panelHeight = 6
+        const panelHeight = 5
 
         let panel1, panel2, panel3
 
         const loader = new THREE.TextureLoader()
-        const labelTexture = loader.load('images/ui/test_enter.png') // Ton image "Appuyez sur Entrée"
+        const labelTexture = loader.load('images/ui/btn_see_more.svg') // Ton image "Appuyez sur Entrée"
 
+        const titles = ['OceanKillers', 'DolphinByCatch', 'Braconnage à Mayotte']
+        
         for (let i = 0; i < 3; i++) {
             const angle = -arcAngle / 2 + (i * arcAngle) / 2
 
@@ -581,9 +644,33 @@ export default class StoryManager {
             panel.rotation.y = Math.PI - angle
             panel.name = `videoPanel_${i}`
 
-            panel.lookAt(0, panel.position.y, 0) // Oriente le panel vers le centre de la scène (ou vers la caméra si tu veux)
+            panel.lookAt(0, panel.position.y, 0)
 
             panelsContainer.add(panel)
+
+            // Ajouter la physique au panel
+            const panelWorldPosition = new THREE.Vector3()
+            panel.getWorldPosition(panelWorldPosition)
+            
+            // Créer un body physique pour le panel
+            const panelShape = new CANNON.Box(new CANNON.Vec3(panelWidth / 2, panelHeight / 2, 0.1))
+            const panelBody = new CANNON.Body({ 
+                mass: 0, // Masse 0 = objet statique
+                type: CANNON.Body.KINEMATIC
+            })
+            panelBody.addShape(panelShape)
+            panelBody.position.set(panelWorldPosition.x, panelWorldPosition.y, panelWorldPosition.z)
+            
+            // Appliquer la même rotation que le panel
+            const quaternion = new CANNON.Quaternion()
+            quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), panel.rotation.y)
+            panelBody.quaternion = quaternion
+            
+            // Ajouter le body au monde physique
+            this.app.physicsManager.world.addBody(panelBody)
+            
+            // Stocker la référence pour le nettoyage
+            panel.userData.physicsBody = panelBody
 
             video.play().catch(e => console.error('Erreur lors de la lecture vidéo:', e))
 
@@ -592,38 +679,43 @@ export default class StoryManager {
                 transparent: true,
             })
             const sprite = new THREE.Sprite(spriteMaterial)
-            sprite.scale.set(2, 0.6, 1) // adapte la taille à ton besoin
+            sprite.scale.set(3.25, 0.6, 1)
 
-            // Place le sprite juste devant le panel
-            sprite.position.set(0, 0, -0.05) // 5cm derrière le panel
+            sprite.position.set(0, 0, 0.05)
             panel.add(sprite)
 
-            // Cache le sprite au début
             sprite.visible = false
 
-            // Stocke le sprite pour chaque panel
             if (!this.panelSprites) this.panelSprites = []
             this.panelSprites.push(sprite)
 
-            const labelGeometry = new THREE.PlaneGeometry(2, 0.6) // adapte la taille si besoin
-            const labelMaterial = new THREE.MeshBasicMaterial({
-                map: labelTexture,
+            const titleCanvas = document.createElement('canvas')
+            titleCanvas.width = 1024
+            titleCanvas.height = 256
+            const titleCtx = titleCanvas.getContext('2d')
+            titleCtx.fillStyle = 'white'
+            titleCtx.font = '94px pf-videotext'
+            titleCtx.textAlign = 'center'
+            titleCtx.fillText(titles[i], titleCanvas.width / 2, titleCanvas.height / 2 + 20)
+
+            const titleTexture = new THREE.CanvasTexture(titleCanvas)
+            titleTexture.minFilter = THREE.LinearFilter
+
+            const titleGeometry = new THREE.PlaneGeometry(4, 1)
+            const titleMaterial = new THREE.MeshBasicMaterial({
+                map: titleTexture,
                 transparent: true,
-                depthTest: false, // optionnel, pour éviter les soucis de z-fighting
+                depthTest: false,
             })
-            const labelMesh = new THREE.Mesh(labelGeometry, labelMaterial)
+            const titleMesh = new THREE.Mesh(titleGeometry, titleMaterial)
 
-            // Place le label juste devant le panel, centré
-            labelMesh.position.set(0, 0, 0.15) // 11cm devant le panel
-            // Pas de rotation : il reste dans le repère local du panel
+            titleMesh.position.set(0, 3.25, 0.15)
+            titleMesh.visible = true
 
-            labelMesh.visible = false // caché par défaut
+            panel.add(titleMesh)
 
-            panel.add(labelMesh)
-
-            // Stocke le mesh pour chaque panel
-            if (!this.panelLabelMeshes) this.panelLabelMeshes = []
-            this.panelLabelMeshes.push(labelMesh)
+            if (!this.panelTitleMeshes) this.panelTitleMeshes = []
+            this.panelTitleMeshes.push(titleMesh)
 
             if (i === 0) panel1 = panel
             if (i === 1) panel2 = panel
@@ -631,29 +723,16 @@ export default class StoryManager {
         }
 
         this.endPanels = [
-            { mesh: panel1, url: 'https://google.com' },
-            { mesh: panel2, url: 'https://x.com' },
-            { mesh: panel3, url: 'https://instagram.com' },
+            { mesh: panel1, url: 'https://www.youtube.com/watch?v=U5mrc8sFzVc' }, //cahlut
+            { mesh: panel2, url: 'https://www.youtube.com/watch?v=9H9MWUN_T3Q' }, //dauphin
+            { mesh: panel3, url: 'https://www.youtube.com/watch?v=EgpCkloASaQ' }, //tortue
         ]
         this.activePanelIndex = null
 
         window.addEventListener('keydown', this.handleEndPanelEnter)
 
-        await this.app.uiManager
-            .showChoices({
-                title: "...",
-                choice1: "Soutenir leur combat",
-                choice2: 'Rejoindre Sea Shepherd',
-            })
-            .then(async choiceIndex => {
-                if (choiceIndex === 1) {
-                    window.open('https://www.helloasso.com/associations/sea-shepherd-france/formulaires/1', '_blank')
-                } else {
-                    window.open('https://seashepherd.fr/nous-rejoindre/', '_blank')
-                }
-            })
-
-        // this.app.soundManager.playMusic('end_ambience');
+        // Créer les boutons 3D dans la scène AVANT showEndChoices
+        this.createEnd3DButtons(endRoomPosition)
 
         await this.sleep(1000)
         if (!this.checkActiveTask('end')) return
@@ -690,7 +769,274 @@ export default class StoryManager {
         }, 100)
     }
 
+    async initRoom(roomName) {
+        switch (roomName) {
+            case 'intro':
+                this.activeTasks.push(roomName)
+                break
+            case 'aquarium':
+                this.clearTasks(true)
+                this.activeTasks.push(roomName)
+                this.saveManager.saveProgress(roomName)
+                this.app.doorManager.triggerCloseDoorByIndex(0)
+                break
+            case 'corridor':
+                this.clearTasks()
+                this.activeTasks.push(roomName)
+                this.saveManager.saveProgress(roomName)
+                this.app.soundManager.attachToSpeakers()
+                this.app.soundManager.stopAllMusicSounds(true, false)
+                this.app.doorManager.triggerCloseDoorByIndex(1)
+                await this.sleep(2000)
+                this.app.postProcessing.triggerGlitch()
+                this.app.objectManager.remove('Dauphins')
+                this.app.objectManager.remove('Dauphin')
+                this.app.objectManager.removeBoids()
+                this.app.soundManager.playMusic('corridor_ambiance')
+                this.corridorRoomLoaded = true
+                break
+            case 'aquaturtle':
+                this.clearTasks()
+                this.saveManager.saveProgress(roomName)
+                this.activeTasks.push(roomName)
+                this.app.soundManager.attachToSpeakers()
+                this.app.soundManager.stopAllMusicSounds(true, false)
+                this.app.doorManager.triggerCloseDoorByIndex(2)
+                await this.sleep(2000)
+                this.app.postProcessing.triggerGlitch()
+                this.app.objectManager.remove('Dauphins')
+                this.app.objectManager.remove('Dauphin')
+                this.app.objectManager.removeBoids()
+                this.app.objectManager.remove('Couloir')
+                break
+            case 'boat':
+                this.clearTasks()
+                this.app.physicsManager.controls.speed = 0.5
+                this.app.doorManager.removeDoorsFromScene()
+                this.saveManager.saveProgress(roomName)
+                this.activeTasks.push(roomName)
+                this.app.objectManager.add('BoatScene', new THREE.Vector3(0, 0, 0))
+                this.initSpotsLights()
+                this.turnOffScreens()
+                this.app.environment.setBlackEnvironment()
+                this.app.soundManager.attachToSpeakers()
+                this.app.soundManager.stopAllMusicSounds(true, false)
+                this.app.objectManager.remove('Dauphins')
+                this.app.objectManager.remove('Dauphin')
+                this.app.objectManager.removeBoids()
+                this.app.objectManager.remove('Couloir')
+                this.app.objectManager.remove('Aquaturtle')
+                this.app.objectManager.remove('Elevator')
+                this.app.objectManager.remove('Tortue')
+                this.app.objectManager.remove('AquaturtleHaut')
+                this.app.objectManager.waterUniformData.uColor2.value.setHex(0x020222)
+                this.app.objectManager.removeBoids()
+                this.teleportPlayerTo(new THREE.Vector3(0, 3.5, 47), new THREE.Vector3(0, 0, 0))
+                break
+            case 'end':
+                this.clearTasks()
+                this.saveManager.saveProgress(roomName)
+                this.activeTasks.push(roomName)
+                this.app.soundManager.attachToSpeakers()
+                this.app.soundManager.stopAllMusicSounds(true, false)
+                this.app.postProcessing.triggerGlitch()
+                this.app.objectManager.remove('Dauphins')
+                this.app.objectManager.remove('Dauphin')
+                this.app.objectManager.removeBoids()
+                this.app.objectManager.remove('Couloir')
+                this.app.objectManager.remove('Aquaturtle')
+                this.app.objectManager.remove('Elevator')
+                this.app.objectManager.remove('Tortue')
+                this.app.objectManager.remove('AquaturtleHaut')
+        }
+    }
+
+    // Version de test simplifiée - à mettre temporairement
+    updateEndPanelsCTA() {
+        if (!this.endPanels) return
+
+        const playerPos = this.app.physicsManager.controls.getObject().position
+        
+        // Utiliser la caméra des contrôles de physique
+        const controlsObject = this.app.physicsManager.controls.getObject()
+        
+        // Raycasting pour détecter le panneau regardé
+        const direction = new THREE.Vector3(0, 0, -1) // Direction vers l'avant
+        direction.applyQuaternion(controlsObject.quaternion) // Appliquer la rotation
+        this.raycaster.set(controlsObject.position, direction)
+        
+        // Créer un array avec tous les meshes des panels (sans les sprites)
+        const panelMeshes = this.endPanels.map(panel => panel.mesh)
+        const intersects = this.raycaster.intersectObjects(panelMeshes, false)
+        
+        // Supprimer tous les contours existants
+        this.endPanels.forEach(panel => {
+            if (panel.outlineMesh) {
+                panel.mesh.remove(panel.outlineMesh)
+                
+                // Nettoyer tous les enfants du groupe (les LineSegments)
+                if (panel.outlineMesh.children) {
+                    panel.outlineMesh.children.forEach(child => {
+                        if (child.geometry) child.geometry.dispose()
+                        if (child.material) child.material.dispose()
+                    })
+                }
+                
+                panel.outlineMesh = null
+            }
+        })
+        
+        // Gestion du panneau regardé (contour blanc)
+        let lookedPanel = null
+        if (intersects.length > 0) {
+            const intersectedPanel = this.endPanels.find(panel => panel.mesh === intersects[0].object)
+            if (intersectedPanel) {
+                lookedPanel = intersectedPanel
+                
+                // Créer un contour avec des couches multiples pour l'épaisseur
+                const outlineGeometry = new THREE.EdgesGeometry(intersectedPanel.mesh.geometry)
+                
+                // Créer un groupe pour contenir plusieurs contours
+                const outlineGroup = new THREE.Group()
+                
+                // Créer plusieurs couches de contours pour l'épaisseur
+                for (let i = 0; i < 3; i++) {
+                    const outlineMaterial = new THREE.LineBasicMaterial({
+                        color: 0xffffff,
+                        transparent: true,
+                        opacity: 0.8 - (i * 0.2) // Opacité décroissante pour l'effet
+                    })
+                    
+                    const outlineMesh = new THREE.LineSegments(outlineGeometry, outlineMaterial)
+                    const scale = 1.02 + (i * 0.005) // Échelles légèrement différentes
+                    outlineMesh.scale.setScalar(scale)
+                    outlineMesh.position.set(0, 0, 0.02 + (i * 0.001))
+                    
+                    outlineGroup.add(outlineMesh)
+                }
+                
+                // Ajouter le groupe au panel regardé
+                intersectedPanel.mesh.add(outlineGroup)
+                intersectedPanel.outlineMesh = outlineGroup
+            }
+        }
+        
+        this.currentLookedPanel = lookedPanel
+
+        // Gestion de l'affichage du CTA quand on regarde un panel
+        if (lookedPanel) {
+            // Annuler le timeout de masquage si on regarde un panel
+            if (this.hideHintTimeout) {
+                clearTimeout(this.hideHintTimeout)
+                this.hideHintTimeout = null
+            }
+            
+            // Trouver l'index du panel regardé
+            const lookedIndex = this.endPanels.findIndex(panel => panel === lookedPanel)
+            if (lookedIndex !== -1) {
+                // Si on change de panel, on met à jour immédiatement
+                if (this.currentLookedPanelIndex !== lookedIndex) {
+                    this.currentLookedPanelIndex = lookedIndex
+                    this.app.uiManager.showPanelHint('/images/ui/btn_see_more.svg')
+                }
+                // Si on reste sur le même panel, on s'assure que le hint est visible
+                else if (this.currentLookedPanelIndex === lookedIndex) {
+                    this.app.uiManager.showPanelHint('/images/ui/btn_see_more.svg')
+                }
+            }
+        } else {
+            // Quand on ne regarde plus de panel, masquer immédiatement
+            if (this.currentLookedPanelIndex !== null) {
+                this.currentLookedPanelIndex = null
+                this.app.uiManager.hidePanelHint()
+            }
+        }
+
+        // Gestion de la proximité (hint "Appuyez sur Entrée" - gardé pour la compatibilité)
+        let found = false
+        let closestIndex = null
+        let minDist = Infinity
+
+        this.endPanels.forEach((panel, idx) => {
+            const panelPos = new THREE.Vector3()
+            panel.mesh.getWorldPosition(panelPos)
+            const dist = panelPos.distanceTo(playerPos)
+            if (dist < 4.5 && dist < minDist) {
+                found = true
+                closestIndex = idx
+                minDist = dist
+            }
+        })
+
+        if (found && closestIndex !== null) {
+            this.activePanelIndex = closestIndex
+        } else {
+            this.activePanelIndex = null
+        }
+    }
+
+    handleEndPanelEnter = e => {
+        if (e.key === 'Enter' && this.currentLookedPanelIndex !== null) {
+            const url = this.endPanels[this.currentLookedPanelIndex].url
+            window.open(url, '_blank')
+        }
+    }
+
     destroy() {
+        // Nettoyer l'image end-cursor
+        if (this.endCursorImage) {
+            document.body.removeChild(this.endCursorImage)
+            this.endCursorImage = null
+        }
+        
+        // Nettoyer le fog
+        if (this.app.scene.fog) {
+            this.app.scene.fog = null
+        }
+        
+        // Nettoyer l'océan de fin
+        if (this.endOcean && this.endOcean.water) {
+            this.app.scene.remove(this.endOcean.water)
+            if (this.endOcean.water.geometry) this.endOcean.water.geometry.dispose()
+            if (this.endOcean.water.material) this.endOcean.water.material.dispose()
+            this.endOcean = null
+        }
+        
+        if (this.endOceanMesh) {
+            this.app.scene.remove(this.endOceanMesh)
+            if (this.endOceanMesh.geometry) this.endOceanMesh.geometry.dispose()
+            if (this.endOceanMesh.material) this.endOceanMesh.material.dispose()
+            this.endOceanMesh = null
+        }
+        
+        // Nettoyer les contours
+        if (this.endPanels) {
+            this.endPanels.forEach(panel => {
+                if (panel.outlineMesh) {
+                    panel.mesh.remove(panel.outlineMesh)
+                    // Nettoyer tous les enfants du groupe
+                    if (panel.outlineMesh.children) {
+                        panel.outlineMesh.children.forEach(child => {
+                            if (child.geometry) child.geometry.dispose()
+                            if (child.material) child.material.dispose()
+                        })
+                    }
+                    panel.outlineMesh = null
+                }
+            })
+        }
+        
+        // Nettoyer les références des sprites et labels
+        this.panelSprites = null
+        this.panelLabelMeshes = null
+        this.panelTitleMeshes = null
+        this.currentLookedPanelIndex = null
+        
+        if (this.hideHintTimeout) {
+            clearTimeout(this.hideHintTimeout)
+            this.hideHintTimeout = null
+        }
+        
         window.removeEventListener('keydown', this.handleEndPanelEnter)
     }
 
@@ -802,7 +1148,7 @@ export default class StoryManager {
                 // Optionnel : jouer le son du spot
                 if (
                     this.app.soundManager &&
-                    typeof this.app.soundManager.playSpotSound === 'function'
+                    typeof this.app.soundManager.playSpotSound
                 ) {
                     this.app.soundManager.playSpotSound(shuffled[i].name, 6)
                 }
@@ -908,43 +1254,7 @@ export default class StoryManager {
                 this.app.objectManager.remove('Elevator')
                 this.app.objectManager.remove('Tortue')
                 this.app.objectManager.remove('AquaturtleHaut')
-        }
-    }
-
-    updateEndPanelsCTA() {
-        if (!this.endPanels) return
-
-        const playerPos = this.app.physicsManager.controls.getObject().position
-        let found = false
-        let closestIndex = null
-        let minDist = Infinity
-
-        // Cache tous les labels au début
-        this.panelLabelMeshes.forEach(mesh => (mesh.visible = false))
-
-        this.endPanels.forEach((panel, idx) => {
-            const panelPos = new THREE.Vector3()
-            panel.mesh.getWorldPosition(panelPos)
-            const dist = panelPos.distanceTo(playerPos)
-            if (dist < 4.5 && dist < minDist) {
-                found = true
-                closestIndex = idx
-                minDist = dist
-            }
-        })
-
-        if (found && closestIndex !== null) {
-            this.panelLabelMeshes[closestIndex].visible = true
-            this.activePanelIndex = closestIndex
-        } else {
-            this.activePanelIndex = null
-        }
-    }
-
-    handleEndPanelEnter = e => {
-        if (e.key === 'Enter' && this.activePanelIndex !== null) {
-            const url = this.endPanels[this.activePanelIndex].url
-            window.open(url, '_blank')
+                break
         }
     }
 
@@ -952,5 +1262,258 @@ export default class StoryManager {
         if (this.activeTasks.includes('end') && this.endPanels) {
             this.updateEndPanelsCTA()
         }
+        
+        // Mettre à jour l'océan si il existe
+        if (this.endOcean && this.endOcean.water && this.endOcean.water.material.uniforms.time) {
+            this.endOcean.water.material.uniforms.time.value += 0.01
+        }
+    }
+
+    createEndOcean(centerPosition) {
+        // Importer Ocean si ce n'est pas déjà fait
+        import('../../World/Ocean.js').then(({ default: Ocean }) => {
+            // Créer l'océan simple avec Three.js Water pour les vagues
+            this.endOcean = new Ocean(this.app.scene, this.app.renderer)
+            
+            // Positionner l'océan dans la scène de fin
+            this.endOcean.water.position.set(centerPosition.x, -2, centerPosition.z)
+            
+            // Ajuster les propriétés pour la scène de fin - HARMONIE AVEC SKYBOX ET FOG
+            this.endOcean.water.material.uniforms.waterColor.value.setHex(0x001a33) // Même couleur que skybox
+            this.endOcean.water.material.uniforms.sunColor.value.setHex(0x336699) // Reflets bleu océan
+            this.endOcean.water.material.uniforms.sunDirection.value.set(0.5, 0.8, 0.3).normalize()
+            this.endOcean.water.material.uniforms.distortionScale.value = 3.7 // Réfraction de la lumière
+            
+            // Pour des vagues plus hautes, modifier ces paramètres :
+            if (this.endOcean.water.material.uniforms.size) {
+                this.endOcean.water.material.uniforms.size.value = 2.0 // Taille des vagues
+            }
+            
+            // Activer le fog sur l'océan pour la fusion
+            this.endOcean.water.material.fog = true
+            
+            // Ajuster la taille de l'océan pour couvrir la zone
+            this.endOcean.water.scale.set(5, 5, 5) // Plus grand pour bien fusionner avec le fog
+            
+            // Réduire la transparence pour une meilleure fusion
+            if (this.endOcean.water.material.uniforms.alpha) {
+                this.endOcean.water.material.uniforms.alpha.value = 0.9
+            }
+        }).catch(error => {
+            console.warn('Impossible de charger Ocean.js, création d\'un plan d\'eau basique:', error)
+            
+            // Fallback avec shader personnalisé pour vagues plus hautes
+            const oceanSize = 500
+            const oceanGeometry = new THREE.PlaneGeometry(oceanSize, oceanSize, 512, 512) // Plus de subdivisions
+            
+            // Utiliser le matériau d'eau existant ou en créer un nouveau
+            let oceanMaterial
+            if (this.app.objectManager && this.app.objectManager.waterMaterial) {
+                oceanMaterial = this.app.objectManager.waterMaterial.clone()
+                oceanMaterial.fog = true
+                
+                // Ajuster les paramètres pour des vagues plus hautes
+                if (oceanMaterial.uniforms.uDistortAmp) {
+                    oceanMaterial.uniforms.uDistortAmp.value = 0.02 // Amplitude des vagues
+                }
+                if (oceanMaterial.uniforms.uDistortFreq) {
+                    oceanMaterial.uniforms.uDistortFreq.value = 15.0 // Fréquence des vagues
+                }
+            } else {
+                oceanMaterial = new THREE.MeshStandardMaterial({
+                    color: 0x001a33,
+                    transparent: true,
+                    opacity: 0.9,
+                    roughness: 0.05,
+                    metalness: 0.05,
+                    fog: true
+                })
+            }
+            
+            const oceanMesh = new THREE.Mesh(oceanGeometry, oceanMaterial)
+            oceanMesh.rotation.x = -Math.PI / 2
+            oceanMesh.position.set(centerPosition.x, -2, centerPosition.z)
+            oceanMesh.name = 'endOcean'
+            
+            this.app.scene.add(oceanMesh)
+            this.endOceanMesh = oceanMesh
+        })
+    }
+
+    createEnd3DButtons(centerPosition) {
+        const loader = new THREE.TextureLoader()
+        
+        // Créer un conteneur pour les boutons
+        const buttonsContainer = new THREE.Object3D()
+        buttonsContainer.name = 'endButtonsContainer'
+        buttonsContainer.position.copy(centerPosition)
+        this.app.scene.add(buttonsContainer)
+        
+        // Paramètres des boutons
+        const buttonWidth = 5
+        const buttonHeight = 1
+        const buttonSeparation = 3
+        
+        // Positions des boutons (côte à côte avec espace)
+        const button1Position = new THREE.Vector3(-buttonSeparation, 0, -5)
+        const button2Position = new THREE.Vector3(buttonSeparation, 0, -5)
+        
+        // Charger la texture du bouton
+        const buttonTexture = loader.load('/images/ui/btn_primary_end.svg')
+        const buttonHoverTexture = loader.load('/images/ui/btn_primary_end_hover.svg')
+        
+        // Créer le premier bouton "Soutenir leur combat"
+        const button1Geometry = new THREE.PlaneGeometry(buttonWidth, buttonHeight)
+        const button1Material = new THREE.MeshBasicMaterial({
+            map: buttonTexture,
+            transparent: true,
+            side: THREE.DoubleSide
+        })
+        
+        const button1 = new THREE.Mesh(button1Geometry, button1Material)
+        button1.position.copy(button1Position)
+        button1.rotation.y = Math.PI * 0.1 // Légère rotation vers la droite
+        button1.name = 'endButton1'
+        
+        // Créer le deuxième bouton "Rejoindre Sea Shepherd"
+        const button2Geometry = new THREE.PlaneGeometry(buttonWidth, buttonHeight)
+        const button2Material = new THREE.MeshBasicMaterial({
+            map: buttonTexture,
+            transparent: true,
+            side: THREE.DoubleSide
+        })
+        
+        const button2 = new THREE.Mesh(button2Geometry, button2Material)
+        button2.position.copy(button2Position)
+        button2.rotation.y = -Math.PI * 0.1 // Légère rotation vers la gauche
+        button2.name = 'endButton2'
+        
+        // Ajouter les keyhints et textes sur les boutons
+        this.addKeyHintToButton(button1, "U", -1.3)
+        this.addTextToButton(button1, "SOUTENIR LEUR COMBAT")
+        
+        this.addKeyHintToButton(button2, "I", -1.5)
+        this.addTextToButton(button2, "REJOINDRE SEA SHEPHERD")
+        
+        buttonsContainer.add(button1)
+        buttonsContainer.add(button2)
+        
+        // Stocker les références pour l'interaction
+        this.endButtons = [
+            { 
+                mesh: button1, 
+                url: 'https://www.helloasso.com/associations/sea-shepherd-france/formulaires/1',
+                material: button1Material,
+                hoverTexture: buttonHoverTexture,
+                key: 'U'
+            },
+            { 
+                mesh: button2, 
+                url: 'https://seashepherd.fr/nous-rejoindre/',
+                material: button2Material,
+                hoverTexture: buttonHoverTexture,
+                key: 'I'
+            }
+        ]
+        
+        // Ajouter les corps physiques pour l'interaction
+        this.addPhysicsToButtons()
+    }
+
+    addTextToButton(buttonMesh, text) {
+        // Créer un canvas pour le texte
+        const canvas = document.createElement('canvas')
+        canvas.width = 1024
+        canvas.height = 256
+        const ctx = canvas.getContext('2d')
+        
+        // Style du texte
+        ctx.fillStyle = 'white'
+        ctx.font = 'bold 64px Arial'
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+        
+        // Dessiner le texte
+        ctx.fillText(text, canvas.width / 2, canvas.height / 2)
+        
+        // Créer la texture à partir du canvas
+        const textTexture = new THREE.CanvasTexture(canvas)
+        textTexture.minFilter = THREE.LinearFilter
+        
+        // Créer le mesh du texte
+        const textGeometry = new THREE.PlaneGeometry(3.5, 0.7)
+        const textMaterial = new THREE.MeshBasicMaterial({
+            map: textTexture,
+            transparent: true,
+            depthTest: false
+        })
+        
+        const textMesh = new THREE.Mesh(textGeometry, textMaterial)
+        // Positionner le texte plus près de la keyhint et plus centré
+        textMesh.position.set(0.4, 0, 0.01) // Réduit l'espacement de 0.8 à 0.4
+
+    buttonMesh.add(textMesh)
+}
+
+addKeyHintToButton(buttonMesh, keyLetter, xOffset = -0.6) {
+    // Créer un canvas pour la keyhint
+    const canvas = document.createElement('canvas')
+    canvas.width = 256
+    canvas.height = 256
+    const ctx = canvas.getContext('2d')
+    
+    // Dessiner le carré avec bordure
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.1)'
+    ctx.fillRect(78, 78, 100, 100)
+    
+    ctx.strokeStyle = 'white'
+    ctx.lineWidth = 4
+    ctx.strokeRect(78, 78, 100, 100)
+    
+    // Dessiner la lettre
+    ctx.fillStyle = 'white'
+    ctx.font = 'bold 60px Arial'
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillText(keyLetter, 128, 128)
+    
+    // Créer la texture à partir du canvas
+    const keyTexture = new THREE.CanvasTexture(canvas)
+    keyTexture.minFilter = THREE.LinearFilter
+    
+    // Créer le mesh de la keyhint - AUGMENTER LA TAILLE
+    const keyGeometry = new THREE.PlaneGeometry(0.8, 0.8) // Augmenté de 0.6 à 0.8
+    const keyMaterial = new THREE.MeshBasicMaterial({
+        map: keyTexture,
+        transparent: true,
+        depthTest: false
+    })
+    
+    const keyMesh = new THREE.Mesh(keyGeometry, keyMaterial)
+    
+    // Positionner la keyhint plus à gauche
+    keyMesh.position.set(xOffset, 0, 0.02)
+
+    buttonMesh.add(keyMesh)
+}
+
+addPhysicsToButtons() {
+        this.endButtons.forEach(button => {
+            const buttonWorldPosition = new THREE.Vector3()
+            button.mesh.getWorldPosition(buttonWorldPosition)
+            
+            const buttonShape = new CANNON.Box(new CANNON.Vec3(4, 1, 0.1))
+            const buttonBody = new CANNON.Body({ mass: 0, type: CANNON.Body.KINEMATIC })
+            buttonBody.addShape(buttonShape)
+            buttonBody.position.set(buttonWorldPosition.x, buttonWorldPosition.y, buttonWorldPosition.z)
+            
+            // Appliquer la rotation
+            const quaternion = new CANNON.Quaternion()
+            quaternion.setFromEuler(button.mesh.rotation.x, button.mesh.rotation.y, button.mesh.rotation.z)
+            buttonBody.quaternion = quaternion
+            
+            this.app.physicsManager.world.addBody(buttonBody)
+            button.mesh.userData.physicsBody = buttonBody
+        })
     }
 }

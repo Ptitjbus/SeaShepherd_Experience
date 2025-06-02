@@ -17,7 +17,9 @@ export class UiManager extends EventEmitter {
     
     init() {
         const container = document.getElementById('choices-container')
+        const endContainer = document.getElementById('end-choices-container')
         container.style.display = 'none'
+        endContainer.style.display = 'none'
     }
 
     createKeyHintSystem() {
@@ -29,9 +31,10 @@ export class UiManager extends EventEmitter {
         document.body.appendChild(this.keyHintContainer)
     }
 
-    showKeyHint(key) {
-        if(this.currentKeyHint){
-            return;
+    showKeyHint(key, labelText) {
+        // Permettre de remplacer un hint existant avec la même clé
+        if(this.currentKeyHint && this.currentKeyHint.key === key && this.currentKeyHint.labelText === labelText){
+            return; // Même hint, pas besoin de le réafficher
         }
 
         this.currentKeyHint = document.createElement('div')
@@ -40,11 +43,14 @@ export class UiManager extends EventEmitter {
         this.currentKeyHint.style.top = '50%'
 
         this.keyHintContainer.innerHTML = `
-        <div class="btn-base">${key}</div>
+        <div class="btn-base">
+            <span class="key-letter">${key}</span>
+            <span class="label">${labelText}</span>
+        </div>
         `
 
         this.keyHintContainer.classList.add('show-tutorial')
-        this.currentKeyHint = { key }
+        this.currentKeyHint = { key, labelText }
     }
 
     hideKeyHint() {
@@ -197,5 +203,115 @@ export class UiManager extends EventEmitter {
 
             document.addEventListener('keydown', this._currentKeyHandler)
         })
+    }
+
+    showEndChoices(options, callback) {
+        return new Promise((resolve) => {
+
+            const container = document.getElementById('end-choices-container')
+            container.style.display = 'flex'
+
+            const button1Wrapper = document.getElementById('dialog-button-end-1')
+            const button2Wrapper = document.getElementById('dialog-button-end-2')
+
+            const button1 = button1Wrapper.querySelector('button')
+            const button1Text = button1.querySelector('span')
+
+            const button2 = button2Wrapper.querySelector('button')
+            const button2Text = button2.querySelector('span')
+
+            button1Text.textContent = options.choice1
+            button2Text.textContent = options.choice2
+
+            if (options.disabledIndex === 0) {
+                button1.setAttribute('disabled', 'disabled')
+                button1.classList.add('disabled')
+            }
+
+            button1.addEventListener('click', () => this.handleChoice(1, resolve))            
+
+            button2Text.innerText = options.choice2
+            if (options.disabledIndex === 1) {
+                button2.setAttribute('disabled', 'disabled')
+                button2.classList.add('disabled')
+            }
+
+            button2.addEventListener('click', () => this.handleChoice(2, resolve))
+        
+            const keyHandler = (event) => {
+                if (event.code === 'KeyU') {
+                    if (options.disabledIndex === 0) {
+                        button1.classList.add('shake')
+                        this.app.postProcessing.triggerGlitch()
+                        setTimeout(() => button1.classList.remove('shake'), 200)
+                    } else {
+                        document.removeEventListener('keydown', keyHandler)
+                        this._currentKeyHandler = null
+                        button1.classList.add('choosed')
+                        setTimeout(() => button1.classList.remove('choosed'), 500)
+                        this.handleChoice(1, resolve)
+                    }
+                } else if (event.code === 'KeyI') {
+                    if (options.disabledIndex === 1) {
+                        button2.classList.add('shake')
+                        this.app.postProcessing.triggerGlitch()
+                        setTimeout(() => button2.classList.remove('shake'), 200)
+                    } else {
+                        document.removeEventListener('keydown', keyHandler)
+                        this._currentKeyHandler = null
+                        button2.classList.add('choosed')
+                        setTimeout(() => button2.classList.remove('choosed'), 500)
+                        this.handleChoice(2, resolve)
+                    }
+                }
+            }
+
+            if (this._currentKeyHandler) {
+                document.removeEventListener('keydown', this._currentKeyHandler)
+            }
+
+            this._currentKeyHandler = keyHandler
+
+            document.addEventListener('keydown', this._currentKeyHandler)
+        })
+    }
+
+    /**
+     * Affiche une icône SVG avec du texte dans le HUD pour les interactions des panels
+     * @param {string} svgPath - Chemin vers le fichier SVG
+     * @param {string} text - Texte à afficher à côté de l'icône
+     */
+    showPanelHint(svgPath) {
+        // Créer ou récupérer l'élément de hint pour les panels
+        let panelHint = document.getElementById('panel-hint')
+        
+        if (!panelHint) {
+            panelHint = document.createElement('div')
+            panelHint.id = 'panel-hint'
+            panelHint.className = 'panel-hint'
+            panelHint.innerHTML = `
+                <div class="panel-hint-content">
+                    <img class="panel-hint-icon" src="${svgPath}" alt="Hint Icon">
+                </div>
+            `
+            document.body.appendChild(panelHint)
+        }
+        
+        const icon = panelHint.querySelector('.panel-hint-icon')
+        const textElement = panelHint.querySelector('.panel-hint-text')
+        
+        icon.src = svgPath
+        
+        panelHint.classList.add('visible')
+    }
+
+    /**
+     * Cache le hint des panels
+     */
+    hidePanelHint() {
+        const panelHint = document.getElementById('panel-hint')
+        if (panelHint) {
+            panelHint.classList.remove('visible')
+        }
     }
 }
