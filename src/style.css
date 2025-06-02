@@ -217,7 +217,7 @@ body {
     position: relative;
     color: #fff;
     font-family: 'montserrat', sans-serif;
-    padding: 15px 32px;
+    padding: 15px 24px;
     font-weight: 500;
     font-size: 2em;
     border: 0.5px solid #fff;
@@ -231,13 +231,13 @@ body {
     align-items: center;
     justify-content: center;
     background-color: rgba(0, 21, 68, 0.5);
-    min-width: 450px;
+    min-width: 400px;
     backdrop-filter: blur(10px);
 }
 
 .start-button {
-    font-size: 32px;
-    top: 8%;
+    font-size: 24px;
+    top: 12%;
 }
 
 /* ====== FOOTER ====== */
