@@ -1,12 +1,12 @@
-<svg width="571" height="90" viewBox="0 0 571 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-<rect x="5.5" y="5.5" width="559" height="79" fill="black" fill-opacity="0.11"/>
-<rect x="5.5" y="5.5" width="559" height="79" stroke="white"/>
-<line y1="-1" x2="36" y2="-1" transform="matrix(4.33692e-08 1 1 -4.48214e-08 2.11914 0)" stroke="white" stroke-width="2"/>
-<line y1="-1" x2="36" y2="-1" transform="matrix(-1 0 0 1 36.1191 2)" stroke="white" stroke-width="2"/>
-<line y1="-1" x2="36" y2="-1" transform="matrix(1 -8.70805e-08 -8.85328e-08 -1 0.119141 88)" stroke="white" stroke-width="2"/>
-<line y1="-1" x2="36" y2="-1" transform="matrix(4.37114e-08 1 1 -4.37114e-08 2.11914 54)" stroke="white" stroke-width="2"/>
-<line x1="569" y1="4.48214e-08" x2="569" y2="36" stroke="white" stroke-width="2"/>
-<line x1="534" y1="1" x2="570" y2="1" stroke="white" stroke-width="2"/>
-<line x1="570" y1="89" x2="534" y2="89" stroke="white" stroke-width="2"/>
-<line x1="569" y1="54" x2="569" y2="90" stroke="white" stroke-width="2"/>
+<svg width="511" height="88" viewBox="0 0 511 88" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect x="6" y="5" width="500" height="78" fill="black" fill-opacity="0.11"/>
+<rect x="6" y="5" width="500" height="78" stroke="white" stroke-width="2"/>
+<line x1="510" y1="4.48214e-08" x2="510" y2="36" stroke="white" stroke-width="2"/>
+<line x1="475" y1="1" x2="511" y2="1" stroke="white" stroke-width="2"/>
+<line y1="-1" x2="36" y2="-1" transform="matrix(4.33692e-08 1 1 -4.48214e-08 3.00195 0)" stroke="white" stroke-width="2"/>
+<line y1="-1" x2="36" y2="-1" transform="matrix(-1 0 0 1 36.9121 2)" stroke="white" stroke-width="2"/>
+<line x1="511.002" y1="87" x2="475.002" y2="87" stroke="white" stroke-width="2"/>
+<line x1="510.002" y1="52" x2="510.002" y2="88" stroke="white" stroke-width="2"/>
+<line y1="-1" x2="36" y2="-1" transform="matrix(1 -8.73351e-08 -8.82797e-08 -1 1 86)" stroke="white" stroke-width="2"/>
+<line y1="-1" x2="36" y2="-1" transform="matrix(4.34583e-08 1 1 -4.3966e-08 3 52)" stroke="white" stroke-width="2"/>
 </svg>

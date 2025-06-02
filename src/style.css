@@ -281,6 +281,14 @@ body {
     background-size: contain;
     border: none;
     backdrop-filter: none;
+    min-width: 400px;
+    padding: 32px;
+    transition: none;
+}
+
+.end-btn:hover {
+    background-image: url(../static/images/ui/btn_primary_end_hover.svg);
+    transition: none;
 }
 
 .end-cursor {
