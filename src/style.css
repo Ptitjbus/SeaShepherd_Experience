@@ -282,7 +282,7 @@ body {
     background-size: contain;
     border: none;
     backdrop-filter: none;;
-
+    display: none;
 }
 
 /* ====== FOOTER ====== */
