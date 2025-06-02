@@ -70,7 +70,7 @@ export default class MediaManager {
         })
     }
 
-    async playMedia(id) {
+    async playMedia(id, volume = 5) {
         if (!this.mediaElements.has(id)) {
             console.error(`MediaManager: Media with id ${id} not found`)
             return false
@@ -110,6 +110,10 @@ export default class MediaManager {
                 // Show existing mesh
                 mediaData.mesh.visible = true
             }
+
+            // Set video volume (convert from 0-10 scale to 0-1 scale)
+            const normalizedVolume = Math.max(0, Math.min(10, volume)) / 10
+            element.volume = normalizedVolume * this.app.soundManager.masterSfxVolume
 
             // Play the video
             element.currentTime = 0
@@ -221,8 +225,8 @@ export default class MediaManager {
     }
 
     // Add a convenience method to play media and trigger glitch simultaneously
-    async playMediaWithGlitch(id) {
-        await this.playMedia(id)
+    async playMediaWithGlitch(id, volume = 5) {
+        await this.playMedia(id, volume)
     }
 
     destroy() {

@@ -107,6 +107,7 @@ export default class PostProcessingManager {
             0: { min: 2000, max: 15000 }, // Faible: 10-20 secondes
             1: { min: 1000, max: 5000 }, // Moyenne: 5-10 secondes
             2: { min: 1000, max: 2000 }, // Forte: 2-5 secondes
+            3: { min: 0, max: 500 }, // Très forte: 0-1.5 secondes
         }
 
         // Définir les probabilités de gros glitch en fonction du niveau
@@ -114,6 +115,7 @@ export default class PostProcessingManager {
             0: 0.1, // 10% de chance de gros glitch
             1: 0.3, // 30% de chance de gros glitch
             2: 0.5, // 50% de chance de gros glitch
+            3: 0.7, // 70% de chance de gros glitch
         }
 
         let currentLevel = level
@@ -149,7 +151,7 @@ export default class PostProcessingManager {
                 }
             },
             setFrequencyLevel: newLevel => {
-                if (newLevel >= 0 && newLevel <= 2) {
+                if (newLevel >= 0 && newLevel <= 3) {
                     currentLevel = newLevel
                     currentInterval = intervals[newLevel]
                     currentBigGlitchProb = bigGlitchProbabilities[newLevel]
@@ -164,7 +166,7 @@ export default class PostProcessingManager {
                     }
                 } else {
                     console.warn(
-                        'Niveau de fréquence invalide. Utilisez 0 (faible), 1 (moyen) ou 2 (fort).'
+                        'Niveau de fréquence invalide. Utilisez 0 (faible), 1 (moyen), 2 (fort) ou 3 (très fort).'
                     )
                 }
             },

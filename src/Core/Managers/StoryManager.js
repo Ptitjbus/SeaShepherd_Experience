@@ -120,8 +120,7 @@ export default class StoryManager {
             })
 
         if (!this.checkActiveTask('intro')) return
-        this.app.soundManager.stopAllMusicSounds(true, true)
-        await this.app.mediaManager.playMediaWithGlitch('connexion')
+        await this.app.mediaManager.playMediaWithGlitch('connexion', 2)
 
         if (!this.checkActiveTask('intro')) return
         this.app.postProcessing.triggerGlitch()
@@ -178,7 +177,6 @@ export default class StoryManager {
         }
 
         if (!this.checkActiveTask('corridor')) return
-        this.app.eventsManager.displayAlert('DÉCOUVREZ LA VÉRITÉ')
         await this.app.soundManager.playVoiceLine('6.1_PUB')
 
         if (!this.checkActiveTask('corridor')) return
@@ -196,7 +194,7 @@ export default class StoryManager {
 
         const screenControls = this.app.objectManager.applyVideoToMultipleScreens(
             'Couloir',
-            ['Cube_1', 'Cube013_1'],
+            ['Screen_1', 'Screen_2', 'Screen_3', 'Screen_4', 'Screen_5'],
             'pub',
             'pub'
         )
@@ -237,14 +235,37 @@ export default class StoryManager {
 
         if (!this.checkActiveTask('aquaturtle')) return
         await this.app.soundManager.playVoiceLine('7.1_TORTUES')
+        // this.app.eventsManager.displayAlert('Aussi lentes que leurs procédures de protection environnementale.')
+
+        Promise.all(
+            aquaturtle.animations.map(clip => {
+                return new Promise(resolve => {
+                    const action = aquaturtle.mixer.clipAction(clip)
+                    action.reset()
+                    action.setLoop(THREE.LoopOnce, 1)
+                    action.clampWhenFinished = true
+                    action.play()
+
+                    aquaturtle.mixer.addEventListener('finished', function onFinish(e) {
+                        if (e.action === action) {
+                            aquaturtle.mixer.removeEventListener('finished', onFinish)
+                            resolve()
+                        }
+                    })
+                })
+            })
+        )
 
         this.app.objectManager.add('AquaturtleHaut', new THREE.Vector3(0, 0, 0))
+        this.app.soundManager.attachToSpeakers()
     }
 
     async initElevator() {
         const elevator = this.app.objectManager.get('Elevator')
 
-        await Promise.all(
+        const voicePromise = this.app.soundManager.playVoiceLine('7.2_TORTUES')
+
+        const animationPromise = Promise.all(
             elevator.animations.map(clip => {
                 return new Promise(resolve => {
                     const action = elevator.mixer.clipAction(clip)
@@ -283,6 +304,8 @@ export default class StoryManager {
             })
         )
 
+        await Promise.all([voicePromise, animationPromise])
+
         const playerY = this.app.physicsManager.controls.getObject().position.y
         if (playerY < 20) {
             this.teleportPlayerTo(
@@ -296,15 +319,20 @@ export default class StoryManager {
 
         this.app.mediaManager.showRoomTitle('Tortues de Mayotte')
         if (!this.checkActiveTask('aquaturtle')) return
-        await this.sleep(1000)
-        await this.app.soundManager.playVoiceLine('7.2_TORTUES')
+        await this.sleep(5000)
 
         if (!this.checkActiveTask('aquaturtle')) return
-        this.app.mediaManager.playMediaWithGlitch('error1')
-        await this.app.soundManager.playVoiceLine('7.3_VIDEO')
-
+        this.app.soundManager.stopAllMusicSounds(true, true)
+        const glitchController = this.app.postProcessing.startRandomGlitches(1)
+        setTimeout(async () => {
+            await this.app.soundManager.playVoiceLine('7.3_VIDEO')
+        }, 4000)
+        await this.app.mediaManager.playMediaWithGlitch('turtle_1')
+        
         if (!this.checkActiveTask('aquaturtle')) return
-        this.app.mediaManager.playMediaWithGlitch('bigvideo')
+        this.app.soundManager.playVoiceLine('7.3.2_SEASHEPHERD')
+        await this.app.mediaManager.playMediaWithGlitch('turtle_2')
+        this.app.soundManager.playMusic('aquaturtles_creepy')
         await this.app.soundManager.playVoiceLine('7.4_VIDEO')
 
         if (!this.checkActiveTask('aquaturtle')) return
@@ -315,16 +343,20 @@ export default class StoryManager {
                 choice2: 'Connaître la vérité',
             })
             .then(async choiceIndex => {
-                this.app.mediaManager.playMediaWithGlitch('bigvideo')
+                await this.app.mediaManager.playMediaWithGlitch('turtle_3')
             })
-        await this.app.soundManager.playVoiceLine('7.5_FAKENEWS')
-        this.app.postProcessing.triggerBigGlitch()
+
+            this.app.postProcessing.triggerBigGlitch()
+            await this.app.soundManager.playVoiceLine('7.5_FAKENEWS')
+            this.app.postProcessing.triggerBigGlitch()
+            await this.app.soundManager.playVoiceLine('7.5.2_SEASHEPHERD')
 
         if (!this.checkActiveTask('aquaturtle')) return
-        this.app.mediaManager.playMediaWithGlitch('error1')
         await this.app.soundManager.playVoiceLine('7.6_INTOX')
         this.app.postProcessing.triggerBigGlitch()
         this.app.postProcessing.triggerBigGlitch()
+
+        glitchController.stop()
 
         // ---
 
@@ -337,6 +369,12 @@ export default class StoryManager {
     }
 
     async initBoatRoom() {
+        const screenControls = this.app.objectManager.applyVideoToMultipleScreens(
+            'BoatScene',
+            ['Screen_bateau'],
+            'boat_bg',  
+        )
+        screenControls.turnOn(true)
         await this.sleep(1000)
 
         this.app.soundManager.playMusic('boat')
@@ -344,10 +382,10 @@ export default class StoryManager {
 
         setTimeout(() => {
             this.turnOnSpotsLights('paquebot')
-        }, 2500)
+        }, 25000)
         setTimeout(() => {
             this.turnOnSpotsLights('pyrogue')
-        }, 3200)
+        }, 32000)
         await this.app.soundManager.playVoiceLine('8.1_TELEPORTATION')
 
         await this.app.uiManager
@@ -360,41 +398,57 @@ export default class StoryManager {
             .then(async choiceIndex => {
                 if (choiceIndex === 1) {
                     glitchController.setFrequencyLevel(1)
-                    // this.app.soundManager.playMusic('suspense', false, false) // TODO: add suspense music
+                    setTimeout(() => {
+                        const buggyObject = this.app.objectManager.getItemFromObject(
+                            'Paquebot001',
+                            this.app.objectManager.get('BoatScene').object.scene
+                        )
+                        this.app.postProcessing.triggerBigGlitch()
+                        buggyObject.position.y += 4
+                        this.app.objectManager.makeObjectBuggy(buggyObject, {
+                            positionJitter: 0.1,
+                            rotationJitter: 0.05,
+                            collisionJitter: 0.2,
+                            updateFrequency: 2,
+                        })
+                        
+                    }, 3000)
                     await this.app.soundManager.playVoiceLine('8.2_CHOIX1')
                 }
             })
 
-        // On attend que la voix et la vidéo soient toutes les deux terminées avant de continuer
         const playVoiceLinePromise = new Promise(resolve => {
             setTimeout(async () => {
                 await this.app.soundManager.playVoiceLine('8.3_PIRATAGE')
                 resolve()
-            }, 10000)
+            }, 58000)
         })
         const playMusicPromise = new Promise(resolve => {
             setTimeout(async () => {
-                setTimeout(() => {
-                    const buggyObject = this.app.objectManager.getItemFromObject(
-                        'Paquebot001',
-                        this.app.objectManager.get('BoatScene').object.scene
-                    )
-                    this.app.postProcessing.triggerBigGlitch()
-                    buggyObject.position.y += 4
-                    this.app.objectManager.makeObjectBuggy(buggyObject, {
-                        positionJitter: 0.1,
-                        rotationJitter: 0.05,
-                        collisionJitter: 0.2,
-                        updateFrequency: 2,
-                    })
-                }, 2000)
+                const buggyObject = this.app.objectManager.getItemFromObject(
+                    'Paquebot001',
+                    this.app.objectManager.get('BoatScene').object.scene
+                )
+                this.app.postProcessing.triggerBigGlitch()
+                buggyObject.position.y += 4
+                this.app.objectManager.makeObjectBuggy(buggyObject, {
+                    positionJitter: 0.1,
+                    rotationJitter: 0.05,
+                    collisionJitter: 0.2,
+                    updateFrequency: 2,
+                })
                 resolve()
-            }, 3000)
+            }, 60000)
         })
 
-        const playMediaPromise = this.app.mediaManager.playMediaWithGlitch('bigvideo')
+        const playMediaPromise = new Promise(async (resolve) => {
+            this.app.soundManager.playMusic('suspense')
+            await this.app.mediaManager.playMediaWithGlitch('boat_1', 10)
+            resolve()
+        })
 
         await Promise.all([playVoiceLinePromise, playMediaPromise, playMusicPromise])
+
         const barque = this.app.objectManager.getItemFromObject(
             'Pirogue001',
             this.app.objectManager.get('BoatScene').object.scene
@@ -413,39 +467,39 @@ export default class StoryManager {
             })
         }
 
-        let spotsManager = null
-
-        this.app.soundManager.playVoiceLine('8.3.2_SEASHEPHERD')
-
-        const playCraquagePromise = new Promise(resolve => {
-            setTimeout(async () => {
-                this.app.postProcessing.triggerBigGlitch()
-                this.app.objectManager.waterUniformData.uColor2.value.set(0x4b0b0b)
-                this.app.soundManager.playVoiceLine('8.4_LAFERME')
-                spotsManager = this.startRandomSpotsEffect()
-                resolve()
-            }, 7000)
-        })
-
-        const playStopPromise = new Promise(resolve => {
-            setTimeout(async () => {
-                this.app.soundManager.playVoiceLine('8.6.2_SEASHEPHERD', true)
-                resolve()
-            }, 12000)
-        })
+        await this.app.soundManager.playVoiceLine('8.3.2_SEASHEPHERD')
         
-        await this.app.mediaManager.playMediaWithGlitch('bigvideo')
-        await Promise.all([playCraquagePromise, playStopPromise])
-
+        await this.app.mediaManager.playMediaWithGlitch('boat_2', 10)
+        screenControls.turnOff()
+        this.app.postProcessing.triggerBigGlitch()
+        this.app.objectManager.waterUniformData.uColor2.value.set(0x4b0b0b)
+        let spotsManager = this.startRandomSpotsEffect()
+        await this.app.soundManager.playVoiceLine('8.4_LAFERME')
 
         setTimeout(() => {
-            this.app.postProcessing.triggerHugeGlitch()
-        }, 500)
+            glitchController.setFrequencyLevel(3)
+    
+            this.app.objectManager.removeWithDisintegration('BoatScene', {
+                duration: 5000,
+                glitchIntensity: 1.0,
+                enableFade: false,
+                onComplete: () => {
+                    glitchController.stop()
+                    this.app.soundManager.stopAllMusicSounds(true, true, 5000)
+                }
+            })
+        }, 100)
 
-        await this.app.soundManager.playVoiceLine('8.6_AGONIE') 
-        glitchController.stop()
+        
+        await this.app.soundManager.playVoiceLine('8.7_DEFEAT')
+        
         spotsManager.stop()
-        this.turnOffSpotsLights()
+
+        this.initPreEnd()
+    }
+
+    async initPreEnd(){
+        await this.sleep(5000)
     }
 
     async initEnd() {
@@ -652,7 +706,10 @@ export default class StoryManager {
     }
 
     createTurtlesBottom() {
-        this.app.objectManager.add('Aquaturtle', new THREE.Vector3(0, 0, 0))
+        this.app.objectManager.add('Aquaturtle', new THREE.Vector3(0, 0, 0), {
+            playAnimation: false,   
+            dynamicCollision: true,
+        })
         this.app.objectManager.add('Elevator', new THREE.Vector3(0, 0, 0), {
             playAnimation: false,
             dynamicCollision: true,
@@ -752,7 +809,7 @@ export default class StoryManager {
             }
 
             // Définir le prochain délai aléatoire (entre 300ms et 2000ms)
-            const nextDelay = Math.random() * 100 + 50
+            const nextDelay = Math.random() * 300 + 50
             timeoutId = setTimeout(randomizeSpots, nextDelay)
         }
 
@@ -814,7 +871,7 @@ export default class StoryManager {
                 break
             case 'boat':
                 this.clearTasks()
-                this.app.physicsManager.controls.speed = 0.5
+                this.app.physicsManager.controls.speed = 0.4
                 this.app.doorManager.removeDoorsFromScene()
                 this.saveManager.saveProgress(roomName)
                 this.activeTasks.push(roomName)

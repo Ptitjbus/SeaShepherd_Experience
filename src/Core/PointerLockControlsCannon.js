@@ -255,9 +255,9 @@ class PointerLockControlsCannon extends THREE.EventDispatcher {
       const yawQuaternion = new THREE.Quaternion().setFromEuler(yawEuler)
       this.inputVelocity.applyQuaternion(yawQuaternion)
 
-      this.velocity.x = this.inputVelocity.x * 2
-      this.velocity.y = this.inputVelocity.y * 2
-      this.velocity.z = this.inputVelocity.z * 2
+      this.velocity.x = this.inputVelocity.x * 10
+      this.velocity.y = this.inputVelocity.y * 10
+      this.velocity.z = this.inputVelocity.z * 10
     } else {
       // Convert velocity to world coordinates
       this.euler.x = this.pitchObject.rotation.x

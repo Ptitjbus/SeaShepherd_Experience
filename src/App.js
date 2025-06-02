@@ -161,10 +161,6 @@ export default class App extends EventEmitter {
         this.objectManager.addBoids(30, 15, new Vector3(-70, 5, -5))
         this.objectManager.addBoids(2, 6, new Vector3(-12, 1.5, -12))
 
-        
-
-        // this.objectManager.addPlane(new Vector3(-105,44.5,-112), 50)
-
         this.doorManager = new DoorManager(this.scene)
 
         // Porte 1
@@ -176,7 +172,7 @@ export default class App extends EventEmitter {
         this.doorManager.doorPairs[1].setRotation((0.42 * Math.PI) / 180)
 
         // Porte 3
-        this.doorManager.addDoorPair(new Vector3(-68, 0, -120.8), 2.4, 5)
+        this.doorManager.addDoorPair(new Vector3(-68.2, 0, -120.8), 2.4, 5)
         this.doorManager.doorPairs[2].setRotation(Math.PI / 2)
 
         this.objectManager.addEventTrigger(new Vector3(-40, 1, -5), 40, 7, 20, () => {
@@ -191,7 +187,7 @@ export default class App extends EventEmitter {
             this.storyManager.initTurtleBottom()
         })
 
-        this.objectManager.addEventTrigger(new Vector3(-105, 1, -121), 10, 7, 10, () => {
+        this.objectManager.addEventTrigger(new Vector3(-108, 1, -121), 10, 7, 10, () => {
             this.storyManager.initElevator()
         })
     }
@@ -602,25 +598,49 @@ export default class App extends EventEmitter {
 
     async preloadMedias() {
         this.mediaManager.preloadMedia({
-            error1: {
+            turtle_1: {
                 type: 'video',
-                src: '/videos/massacre_dauphin.mp4',
+                src: '/videos/2_TORTUE_1.mp4',
                 glitchType: 'big',
                 loop: false,
                 muted: false,
-                duration: 2000, // en ms
+                duration: 6000, // en ms
             },
-            bigvideo: {
+            turtle_2: {
                 type: 'video',
-                src: '/videos/1080p/bigvideo.webm',
+                src: '/videos/2_TORTUE_2.mp4',
                 glitchType: 'big',
                 loop: false,
                 muted: false,
-                duration: 15000, // en ms
+                duration: 22000, // en ms
             },
-            connexion: {
+            turtle_3: {
                 type: 'video',
-                src: '/videos/1080p/connexion.webm',
+                src: '/videos/3_TORTUE_2.mp4',
+                glitchType: 'big',
+                loop: false,
+                muted: false,
+                duration: 73000, // en ms
+            },
+            boat_1: {
+                type: 'video',
+                src: '/videos/5_BATEAU_1.mp4',
+                glitchType: 'big',
+                loop: false,
+                muted: false,
+                duration: 59000, // en ms
+            },
+            boat_2: {
+                type: 'video',
+                src: '/videos/6_BATEAU_2.mp4',
+                glitchType: 'big',
+                loop: false,
+                muted: false,
+                duration: 43000, // en ms
+            },
+            boat_bg: {
+                type: 'video',
+                src: '/videos/boat_bg.mp4',
                 glitchType: 'small',
                 loop: false,
                 muted: false,
@@ -628,11 +648,11 @@ export default class App extends EventEmitter {
             },
             pub: {
                 type: 'video',
-                src: '/videos/1080p/pub.mp4',
+                src: '/videos/1_PUB.mp4',
                 glitchType: 'small',
                 loop: false,
                 muted: true,
-                duration: 15000, // en ms
+                duration: 44000, // en ms
             },
             seashepherd_hope: {
                 type: 'video',

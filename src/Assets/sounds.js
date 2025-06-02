@@ -45,7 +45,7 @@ export default [
         path: '/audio/musics/corridor_ambiance.mp3',
         options: {
             loop: true,
-            volume: 1
+            volume: 2
         },
         license: '',
         author: '',
@@ -54,9 +54,9 @@ export default [
     {
         name: 'pub',
         type: 'music',
-        path: '/audio/musics/pub.mp3',
+        path: '/audio/musics/1_PUB.mp3',
         options: {
-            loop: true,
+            loop: false,
             volume: 0.5
         },
         license: '',
@@ -69,10 +69,22 @@ export default [
         path: '/audio/musics/aquaturtles.mp3',
         options: {
             loop: true,
+            volume: 0.2
+        },
+        license: 'just kindness',
+        author: 'A World Of Madness',
+        url: 'https://youtu.be/fpGv8NWzlpw?si=p3oB_KJzGCTvkP3R'
+    },
+    {
+        name: 'aquaturtles_creepy',
+        type: 'music',
+        path: '/audio/musics/aquaturtles_creepy5.mp3',
+        options: {
+            loop: true,
             volume: 0.5
         },
         license: '',
-        author: '',
+        author: 'A World Of Madness - Mathis Viollet Remix',
         url: ''
     },
     {
@@ -93,7 +105,7 @@ export default [
         path: '/audio/musics/suspense.mp3',
         options: {
             loop: true,
-            volume: 0.5
+            volume: 1
         },
         license: '',
         author: '',
@@ -348,6 +360,19 @@ export default [
         url: ''
     },
     {
+        name: '7.3.2_SEASHEPHERD',
+        type: 'voice',
+        path: '/audio/voices/7.3.2_SEASHEPHERD.mp3',
+        options: {
+            loop: false,
+            volume: 1.0,
+            vttSrc: 'audio/subtitles/7.3.2_SEASHEPHERD.vtt'
+        },
+        license: '',
+        author: '',
+        url: ''
+    },
+    {
         name: '7.4_VIDEO',
         type: 'voice',
         path: '/audio/voices/7.4_VIDEO.mp3',
@@ -368,6 +393,19 @@ export default [
             loop: false,
             volume: 2.0,
             vttSrc: 'audio/subtitles/7.5_FAKENEWS.vtt'
+        },
+        license: '',
+        author: '',
+        url: ''
+    },
+    {
+        name: '7.5.2_SEASHEPHERD',
+        type: 'voice',
+        path: '/audio/voices/7.5.2_SEASHEPHERD.mp3',
+        options: {
+            loop: false,
+            volume: 1.0,
+            vttSrc: 'audio/subtitles/7.5.2_SEASHEPHERD.vtt'
         },
         license: '',
         author: '',
@@ -413,6 +451,19 @@ export default [
         url: ''
     },
     {
+        name: '8.2.2_SEASHEPHERD',
+        type: 'voice',
+        path: '/audio/voices/8.2.2_SEASHEPHERD.mp3',
+        options: {
+            loop: false,
+            volume: 1.0,
+            vttSrc: 'audio/subtitles/8.2.2_SEASHEPHERD.vtt'
+        },
+        license: '',
+        author: '',
+        url: ''
+    },
+    {
         name: '8.3_PIRATAGE',
         type: 'voice',
         path: '/audio/voices/8.3_PIRATAGE.mp3',
@@ -431,7 +482,7 @@ export default [
         path: '/audio/voices/8.3.2_SEASHEPHERD.mp3',
         options: {
             loop: false,
-            volume: 2.0,
+            volume: 1.0,
             vttSrc: 'audio/subtitles/8.3.2_SEASHEPHERD.vtt'
         },
         license: '',
@@ -457,7 +508,7 @@ export default [
         path: '/audio/voices/8.6.2_SEASHEPHERD.mp3',
         options: {
             loop: false,
-            volume: 4.0,
+            volume: 3.0,
             vttSrc: 'audio/subtitles/8.6.2_SEASHEPHERD.vtt'
         },
         license: '',
@@ -472,6 +523,19 @@ export default [
             loop: false,
             volume: 2.0,
             vttSrc: 'audio/subtitles/8.6_AGONIE.vtt'
+        },
+        license: '',
+        author: '',
+        url: ''
+    },
+    {
+        name: '8.7_DEFEAT',
+        type: 'voice',
+        path: '/audio/voices/8.7_DEFEAT.mp3',
+        options: {
+            loop: false,
+            volume: 2.0,
+            vttSrc: 'audio/subtitles/8.7_DEFEAT.vtt'
         },
         license: '',
         author: '',

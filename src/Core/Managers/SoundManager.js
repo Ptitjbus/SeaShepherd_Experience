@@ -499,16 +499,16 @@ export default class SoundManager extends EventEmitter {
     /**
      * Arrête tous les sons personnalisés
      */
-    stopAllCustomSounds(fade = false, downPitch = false) {
+    stopAllCustomSounds(fade = false, downPitch = false, duration = 1000) {
         Object.entries(this.customSounds).forEach(([name, sound]) => {
             if (Array.isArray(sound)) {
                 // Pour les sons joués sur les haut-parleurs
                 sound.forEach(s => {
                     if (fade) {
                         if (s.howl) {
-                            this.fadeOut(s.howl, s.howl.volume(), 0, 1000, downPitch) // Durée de 1 seconde
+                            this.fadeOut(s.howl, s.howl.volume(), 0, duration, downPitch) // Durée de 1 seconde
                         } else {
-                            this.fadeOut(s, s.volume(), 0, 1000, downPitch) // Durée de 1 seconde
+                            this.fadeOut(s, s.volume(), 0, duration, downPitch) // Durée de 1 seconde
                         }
                     } else {
                         s.stop()
@@ -517,9 +517,9 @@ export default class SoundManager extends EventEmitter {
             } else {
                 if (fade) {
                     if (sound.howl) {
-                        this.fadeOut(sound.howl, sound.howl.volume(), 0, 1000, downPitch) // Durée de 1 seconde
+                        this.fadeOut(sound.howl, sound.howl.volume(), 0, duration, downPitch) // Durée de 1 seconde
                     } else {
-                        this.fadeOut(sound, sound.volume(), 0, 1000, downPitch) // Durée de 1 seconde
+                        this.fadeOut(sound, sound.volume(), 0, duration, downPitch) // Durée de 1 seconde
                     }
                 } else {
                     sound.stop()
@@ -537,16 +537,16 @@ export default class SoundManager extends EventEmitter {
         this.hideSubtitle()
     }
 
-    stopAllMusicSounds(fade = false, downPitch = false) {
+    stopAllMusicSounds(fade = false, downPitch = false, duration = 1000) {
         Object.entries(this.musics).forEach(([name, sound]) => {
             if (Array.isArray(sound)) {
                 // Pour les sons joués sur les haut-parleurs
                 sound.forEach(s => {
                     if (fade) {
                         if (s.howl) {
-                            this.fadeOut(s.howl, s.howl.volume(), 0, 1000, downPitch) // Durée de 1 seconde
+                            this.fadeOut(s.howl, s.howl.volume(), 0, duration, downPitch) // Durée de 1 seconde
                         } else {
-                            this.fadeOut(s, s.volume(), 0, 1000, downPitch) // Durée de 1 seconde
+                            this.fadeOut(s, s.volume(), 0, duration, downPitch) // Durée de 1 seconde
                         }
                     } else {
                         s.stop()
@@ -555,9 +555,9 @@ export default class SoundManager extends EventEmitter {
             } else {
                 if (fade) {
                     if (sound.howl) {
-                        this.fadeOut(sound.howl, sound.howl.volume(), 0, 1000, downPitch) // Durée de 1 seconde
+                        this.fadeOut(sound.howl, sound.howl.volume(), 0, duration, downPitch) // Durée de 1 seconde
                     } else {
-                        this.fadeOut(sound, sound.volume(), 0, 1000, downPitch) // Durée de 1 seconde
+                        this.fadeOut(sound, sound.volume(), 0, duration, downPitch) // Durée de 1 seconde
                     }
                 } else {
                     sound.stop()
@@ -568,8 +568,8 @@ export default class SoundManager extends EventEmitter {
         // Attendre que tous les fade-outs soient terminés
     }
 
-    async playVoiceLine(name) {
-        this.stopAllCustomSounds(true)
+    async playVoiceLine(name, isPitchDown = false, duration = 1000) {
+        this.stopAllCustomSounds(true, isPitchDown, duration)
 
         return new Promise(resolve => {
             this.playSoundOnSpeakers(name, {
@@ -587,19 +587,6 @@ export default class SoundManager extends EventEmitter {
             this.playSoundOnSpeakers(name, {
                 loop: true,
                 isMusic: true,
-                onend: () => {
-                    resolve('end')
-                },
-            })
-        })
-    }
-
-    async playMoreMusic(name) {
-        return new Promise(resolve => {
-            this.playSoundOnSpeakers(name, {
-                loop: true,
-                maxDistance: 8,
-                stopAll: false,
                 onend: () => {
                     resolve('end')
                 },

@@ -10,6 +10,7 @@ import * as CANNON from 'cannon-es'
 import BoidManager from './BoidManager.js'
 import { WaterShader } from '../../Shaders/WaterShader.js'
 import { PerlinNoise } from '../../Shaders/PerlinNoise.js'
+import { BugShader } from '../../Shaders/BugShader.js'
 
 export default class ObjectManager {
     constructor() {
@@ -674,7 +675,7 @@ export default class ObjectManager {
         return found
     }
 
-    applyVideoToMultipleScreens(objectName, meshNames = [], mediaId, audioName = null) {
+    applyVideoToMultipleScreens(objectName, materialNames = [], mediaId, audioName = null) {
         const stored = this.objects.get(objectName)
         if (!stored) return
 
@@ -691,19 +692,28 @@ export default class ObjectManager {
 
         const sharedMaterial = new THREE.MeshBasicMaterial({
             map: videoTexture,
+            lightMap: videoTexture,
             side: THREE.FrontSide,
+            envMap: null,
         })
 
-        const targetMeshes = meshNames
-            .map(name => this.getItemFromObject(name, stored.object.scene))
-            .filter(Boolean)
+        const targetMeshes = []
+        stored.object.scene.traverse(child => {
+            if (child.isMesh && child.material) {
+                const materialName = child.material.name
+                if (materialNames.includes(materialName)) {
+                    targetMeshes.push(child)
+                }
+            }
+        })
 
-        targetMeshes.forEach(mesh => {
-            mesh.material?.dispose()
+        const originalMaterials = new Map()
+        targetMeshes.forEach((mesh, index) => {
+            originalMaterials.set(index, mesh.material)
             mesh.material = sharedMaterial
         })
 
-        const turnOn = async () => {
+        const turnOn = async (loop = false) => {
             return new Promise(async resolve => {
                 video.currentTime = 0
 
@@ -719,17 +729,21 @@ export default class ObjectManager {
                 }
 
                 setTimeout(() => {
-                    const blackMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 })
-                    targetMeshes.forEach(mesh => {
-                        mesh.material.dispose()
-                        mesh.material = blackMaterial
-                    })
-
-                    if (audioName) {
-                        this.app.soundManager.stopSound(audioName)
+                    if (!loop) {
+                        const blackMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 })
+                        targetMeshes.forEach(mesh => {
+                            mesh.material.dispose()
+                            mesh.material = blackMaterial
+                        })
+    
+                        if (audioName) {
+                            this.app.soundManager.stopSound(audioName)
+                        }
+    
+                        resolve(true)
+                    }else {
+                        turnOn(true)
                     }
-
-                    resolve(true)
                 }, mediaData.config.duration)
             })
         }
@@ -778,6 +792,186 @@ export default class ObjectManager {
         }
 
         this.objects.delete(name)
+    }
+
+    /**
+     * Supprime un objet avec un effet de glitch/bug chaotique
+     * @param {String} name - Nom de l'objet à supprimer
+     * @param {Object} options - Options d'animation
+     * @param {Number} options.duration - Durée de l'animation en millisecondes (défaut: 3000)
+     * @param {Number} options.glitchIntensity - Intensité du glitch (défaut: 1.0)
+     * @param {Boolean} options.enableFade - Active le fade progressif (défaut: true)
+     * @param {Number} options.chaosLevel - Niveau de chaos pour les disparitions (défaut: 0.8)
+     * @param {Function} options.onComplete - Callback appelé à la fin de l'animation
+     * @returns {Promise<Boolean>} - Promise qui se résout quand l'objet est supprimé
+     */
+    async removeWithDisintegration(name, options = {}) {
+        const {
+            duration = 3000,
+            glitchIntensity = 1.0,
+            enableFade = true,
+            chaosLevel = 0.8,
+            onComplete = null
+        } = options
+
+        const storedObject = this.objects.get(name)
+        if (!storedObject) {
+            console.warn(`Object with name "${name}" not found.`)
+            return false
+        }
+
+        return new Promise((resolve) => {
+            const object = storedObject.object.scene
+            const startTime = performance.now()
+            
+            // Créer un shader material pour l'effet de glitch
+            const meshes = []
+            const originalMaterials = new Map()
+            const originalPositions = new Map()
+            const originalRotations = new Map()
+            const originalScales = new Map()
+            const meshData = new Map() // Données spécifiques à chaque mesh
+            
+            object.traverse(child => {
+                if (child.isMesh && child.material) {
+                    meshes.push(child)
+                    originalMaterials.set(child, child.material)
+                    originalPositions.set(child, child.position.clone())
+                    originalRotations.set(child, child.rotation.clone())
+                    originalScales.set(child, child.scale.clone())
+                    
+                    // Assigner des paramètres aléatoires à chaque mesh
+                    const randomData = {
+                        disappearTime: Math.random() * Math.min(chaosLevel * 0.45, 0.1), // Délai très court (max 10% du temps total)
+                        glitchSpeed: 0.5 + Math.random() * 2.0,   // Vitesse du glitch
+                        colorSeed: Math.random() * 1000,          // Graine pour les couleurs
+                        motionSeed: Math.random() * 1000,         // Graine pour les mouvements
+                        isVisible: true,
+                        lastGlitchTime: 0,
+                        glitchInterval: 50 + Math.random() * 200   // Intervalle entre les glitches
+                    }
+                    meshData.set(child, randomData)
+                    
+                    // Appliquer le shader de glitch
+                    const glitchMaterial = new THREE.ShaderMaterial({
+                        uniforms: {
+                            uTime: { value: 0 },
+                            uProgress: { value: 0 },
+                            uTexture: { value: child.material.map },
+                            uGlitchIntensity: { value: glitchIntensity },
+                            uResolution: { value: new THREE.Vector2(1024, 1024) },
+                            uRandom: { value: randomData.colorSeed },
+                            uEnableFade: { value: enableFade ? 1.0 : 0.0 },
+                            uDisappearTime: { value: randomData.disappearTime },
+                            uChaosLevel: { value: chaosLevel }
+                        },
+                        vertexShader: BugShader.vertexShader,
+                        fragmentShader: BugShader.fragmentShader,
+                        transparent: true,
+                        side: THREE.DoubleSide
+                    })
+                    
+                    child.material = glitchMaterial
+                }
+            })
+            
+            // Fonction d'animation avec effets de mouvement chaotiques décalés
+            const animate = () => {
+                const currentTime = performance.now()
+                const elapsed = currentTime - startTime
+                const progress = Math.min(elapsed / duration, 1)
+                
+                // Mettre à jour chaque mesh individuellement
+                meshes.forEach(mesh => {
+                    const data = meshData.get(mesh)
+                    if (!data) return
+                    
+                    // Mettre à jour les uniformes du shader
+                    if (mesh.material && mesh.material.uniforms) {
+                        mesh.material.uniforms.uTime.value = elapsed * 0.001 * data.glitchSpeed
+                        mesh.material.uniforms.uProgress.value = progress
+                    }
+                    
+                    // Calculer le progrès ajusté pour ce mesh
+                    let adjustedProgress = progress - data.disappearTime
+                    adjustedProgress = Math.max(0, adjustedProgress) / (1.0 - data.disappearTime)
+                    
+                    // Effets de mouvement glitché décalés (Phase 2: 70-100%)
+                    if (adjustedProgress > 0.7) {
+                        const originalPos = originalPositions.get(mesh)
+                        const originalRot = originalRotations.get(mesh)
+                        const originalScale = originalScales.get(mesh)
+                        
+                        if (originalPos && currentTime - data.lastGlitchTime > data.glitchInterval) {
+                            data.lastGlitchTime = currentTime
+                            data.glitchInterval = 20 + Math.random() * 100 // Nouveau délai aléatoire
+                            
+                            // Glitch de position extrême
+                            const intensity = (adjustedProgress - 0.7) / 0.3 // 0 à 1 pour la phase 2
+                            const glitchX = (this._getRandomFromPool() * intensity * glitchIntensity * 0.3)
+                            const glitchY = (this._getRandomFromPool() * intensity * glitchIntensity * 0.3)
+                            const glitchZ = (this._getRandomFromPool() * intensity * glitchIntensity * 0.3)
+                            
+                            mesh.position.set(
+                                originalPos.x + glitchX,
+                                originalPos.y + glitchY,
+                                originalPos.z + glitchZ
+                            )
+                            
+                            // Glitch de rotation chaotique
+                            if (Math.random() > 0.8 - intensity * 0.5) {
+                                mesh.rotation.set(
+                                    originalRot.x + (this._getRandomFromPool() * intensity * Math.PI * 0.3),
+                                    originalRot.y + (this._getRandomFromPool() * intensity * Math.PI * 0.3),
+                                    originalRot.z + (this._getRandomFromPool() * intensity * Math.PI * 0.3)
+                                )
+                            }
+                            
+                            // Glitch d'échelle extrême
+                            if (Math.random() > 0.9 - intensity * 0.3) {
+                                const scaleGlitch = 0.1 + Math.random() * 2.0
+                                mesh.scale.set(
+                                    originalScale.x * scaleGlitch,
+                                    originalScale.y * scaleGlitch,
+                                    originalScale.z * scaleGlitch
+                                )
+                            }
+                            
+                            // Parfois, remettre en position normale pour créer un effet de "flicker"
+                            if (Math.random() > 0.7) {
+                                setTimeout(() => {
+                                    if (mesh.parent) { // Vérifier que le mesh existe encore
+                                        mesh.position.copy(originalPos)
+                                        mesh.rotation.copy(originalRot)
+                                        mesh.scale.copy(originalScale)
+                                    }
+                                }, 50 + Math.random() * 100)
+                            }
+                        }
+                    }
+                    
+                    // Gérer la visibilité chaotique
+                    if (adjustedProgress > 0.9 && Math.random() > 0.8) {
+                        mesh.visible = !mesh.visible
+                        data.isVisible = mesh.visible
+                    }
+                })
+                
+                // Continuer l'animation ou terminer
+                if (progress < 1) {
+                    requestAnimationFrame(animate)
+                } else {
+                    // Animation terminée, supprimer l'objet
+                    this.remove(name).then(() => {
+                        if (onComplete) {
+                            onComplete()
+                        }
+                        resolve(true)
+                    })
+                }
+            }
+            animate()
+        })
     }
 
     removeBoids() {
@@ -1017,6 +1211,7 @@ export default class ObjectManager {
             }.bind(this)
         }
     }
+
 
     /**
      * Arrête le comportement buggy d'un objet

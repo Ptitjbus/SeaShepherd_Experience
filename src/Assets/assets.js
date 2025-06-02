@@ -35,7 +35,7 @@ export default [
     {
         name: 'Dauphins',
         type: 'gltf',
-        path: '/models/glb/Dauphins_v8.glb',
+        path: '/models/glb/Dauphins_v9.glb',
         license: '',
         author: 'Kilian Rizzo',
         url: ''
@@ -43,7 +43,7 @@ export default [
     {
         name: 'Dauphin',
         type: 'gltf',
-        path: '/models/glb/Dauphin-anim_v2.glb',
+        path: '/models/glb/Dauphin-anim_v3.glb',
         license: '',
         author: 'Kilian Rizzo',
         url: ''
@@ -51,7 +51,7 @@ export default [
     {
         name: 'Couloir',
         type: 'gltf',
-        path: '/models/glb/Couloir_v5.glb',
+        path: '/models/glb/Couloir_v8.glb',
         license: '',
         author: 'Kilian Rizzo',
         url: ''
@@ -59,7 +59,7 @@ export default [
     {
         name: 'Aquaturtle',
         type: 'gltf',
-        path: '/models/glb/Tortues_bas_V4.glb',
+        path: '/models/glb/Tortues_bas_V8.glb',
         license: '',
         author: 'Kilian Rizzo',
         url: ''
@@ -67,7 +67,7 @@ export default [
     {
         name: 'AquaturtleHaut',
         type: 'gltf',
-        path: '/models/glb/Tortues_haut_V5.glb',
+        path: '/models/glb/Tortues_haut_V8.glb',
         license: '',
         author: 'Kilian Rizzo',
         url: ''
@@ -83,7 +83,7 @@ export default [
     {
         name: 'Elevator',
         type: 'gltf',
-        path: '/models/glb/Assenceur_v3.glb',
+        path: '/models/glb/Assenceur_v5.glb',
         license: '',
         author: 'Kilian Rizzo',
         url: ''
@@ -91,7 +91,7 @@ export default [
     {
         name: 'BoatScene',
         type: 'gltf',
-        path: '/models/glb/Bateau_V5.glb',
+        path: '/models/glb/Bateau_v7.glb',
         license: '',
         author: 'Kilian Rizzo',
         url: ''
