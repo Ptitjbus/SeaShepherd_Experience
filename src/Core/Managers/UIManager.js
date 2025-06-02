@@ -202,4 +202,43 @@ export class UiManager extends EventEmitter {
             document.addEventListener('keydown', this._currentKeyHandler)
         })
     }
+
+    /**
+     * Affiche une icône SVG avec du texte dans le HUD pour les interactions des panels
+     * @param {string} svgPath - Chemin vers le fichier SVG
+     * @param {string} text - Texte à afficher à côté de l'icône
+     */
+    showPanelHint(svgPath) {
+        // Créer ou récupérer l'élément de hint pour les panels
+        let panelHint = document.getElementById('panel-hint')
+        
+        if (!panelHint) {
+            panelHint = document.createElement('div')
+            panelHint.id = 'panel-hint'
+            panelHint.className = 'panel-hint'
+            panelHint.innerHTML = `
+                <div class="panel-hint-content">
+                    <img class="panel-hint-icon" src="${svgPath}" alt="Hint Icon">
+                </div>
+            `
+            document.body.appendChild(panelHint)
+        }
+        
+        const icon = panelHint.querySelector('.panel-hint-icon')
+        const textElement = panelHint.querySelector('.panel-hint-text')
+        
+        icon.src = svgPath
+        
+        panelHint.classList.add('visible')
+    }
+
+    /**
+     * Cache le hint des panels
+     */
+    hidePanelHint() {
+        const panelHint = document.getElementById('panel-hint')
+        if (panelHint) {
+            panelHint.classList.remove('visible')
+        }
+    }
 }

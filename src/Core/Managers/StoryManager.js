@@ -848,18 +848,18 @@ export default class StoryManager {
                 // Si on change de panel, on met à jour immédiatement
                 if (this.currentLookedPanelIndex !== lookedIndex) {
                     this.currentLookedPanelIndex = lookedIndex
-                    this.app.uiManager.showKeyHint('⏎', 'Voir la vidéo')
+                    this.app.uiManager.showPanelHint('/images/ui/btn_see_more.svg')
                 }
                 // Si on reste sur le même panel, on s'assure que le hint est visible
                 else if (this.currentLookedPanelIndex === lookedIndex) {
-                    this.app.uiManager.showKeyHint('⏎', 'Voir la vidéo')
+                    this.app.uiManager.showPanelHint('/images/ui/btn_see_more.svg')
                 }
             }
         } else {
             // Quand on ne regarde plus de panel, masquer immédiatement
             if (this.currentLookedPanelIndex !== null) {
                 this.currentLookedPanelIndex = null
-                this.app.uiManager.hideKeyHint()
+                this.app.uiManager.hidePanelHint()
             }
         }
 

@@ -245,6 +245,33 @@ body {
     top: 12%;
 }
 
+/* ====== END PANELS ====== */
+
+.panel-hint {
+    position: fixed;
+    left: calc(50% - 160px);
+    top: 45%;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s ease-in-out;
+    pointer-events: none;
+    z-index: 1000;
+}
+
+.panel-hint.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.panel-hint-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.panel-hint img {
+    width: 320px;
+}
 /* ====== FOOTER ====== */
 .footer-container {
     position: fixed;
