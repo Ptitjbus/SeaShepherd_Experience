@@ -84,7 +84,7 @@ export default class PaintingManager extends EventEmitter {
             this.currentNearPainting = nearPainting
             
             if (this.app.uiManager && typeof this.app.uiManager.showKeyHint === 'function') {
-                this.app.uiManager.showKeyHint('Découvrir la vérité')
+                this.app.uiManager.showKeyHint('⏎')
             }
         } else if (!nearPainting && this.currentNearPainting) {
             this.currentNearPainting = null

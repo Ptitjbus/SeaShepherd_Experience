@@ -579,13 +579,15 @@ export default class StoryManager {
             if (!this.panelLabelMeshes) this.panelLabelMeshes = []
             this.panelLabelMeshes.push(labelMesh)
 
+            // Supprimer la création du hintMesh 3D - on va utiliser le HUD à la place
+
             // Créer le titre au-dessus du panel
             const titleCanvas = document.createElement('canvas')
-            titleCanvas.width = 1024 // au lieu de 512
-            titleCanvas.height = 256 // au lieu de 128
+            titleCanvas.width = 1024
+            titleCanvas.height = 256
             const titleCtx = titleCanvas.getContext('2d')
             titleCtx.fillStyle = 'white'
-            titleCtx.font = '94px pf-videotext' // proportionnel à la nouvelle taille
+            titleCtx.font = '94px pf-videotext'
             titleCtx.textAlign = 'center'
             titleCtx.fillText(titles[i], titleCanvas.width / 2, titleCanvas.height / 2 + 20)
 
@@ -600,13 +602,11 @@ export default class StoryManager {
             })
             const titleMesh = new THREE.Mesh(titleGeometry, titleMaterial)
 
-            // Positionner le titre au-dessus du panel
-            titleMesh.position.set(0, 3.25, 0.15) // 2.5 unités au lieu de 4 au-dessus du centre du panel
+            titleMesh.position.set(0, 3.25, 0.15)
             titleMesh.visible = true
 
             panel.add(titleMesh)
 
-            // Stocker les titres si besoin
             if (!this.panelTitleMeshes) this.panelTitleMeshes = []
             this.panelTitleMeshes.push(titleMesh)
 
@@ -901,9 +901,6 @@ export default class StoryManager {
         let closestIndex = null
         let minDist = Infinity
 
-        // Tous les labels restent visibles maintenant
-        // this.panelLabelMeshes.forEach(mesh => (mesh.visible = false)) // Cette ligne est supprimée
-
         this.endPanels.forEach((panel, idx) => {
             const panelPos = new THREE.Vector3()
             panel.mesh.getWorldPosition(panelPos)
@@ -917,8 +914,15 @@ export default class StoryManager {
 
         if (found && closestIndex !== null) {
             this.activePanelIndex = closestIndex
+            // Utiliser le même format que PaintingManager
+            if (this.app.uiManager && typeof this.app.uiManager.showKeyHint === 'function') {
+                this.app.uiManager.showKeyHint('⏎')
+            }
         } else {
             this.activePanelIndex = null
+            if (this.app.uiManager && typeof this.app.uiManager.hideKeyHint === 'function') {
+                this.app.uiManager.hideKeyHint()
+            }
         }
     }
 
