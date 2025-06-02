@@ -461,6 +461,12 @@ export default class StoryManager {
         this.app.doorManager.removeDoorsFromScene()
         this.app.objectManager.removeAllEventTriggers()
 
+        // Initialiser le raycaster pour détecter les panels regardés
+        this.raycaster = new THREE.Raycaster()
+        this.currentLookedPanel = null
+        this.currentLookedPanelIndex = null
+        this.hideHintTimeout = null
+
         const endRoomPosition = new THREE.Vector3(50, 0, -50)
 
         this.app.renderer.toneMapping = THREE.NoToneMapping
@@ -559,29 +565,6 @@ export default class StoryManager {
             if (!this.panelSprites) this.panelSprites = []
             this.panelSprites.push(sprite)
 
-            const labelGeometry = new THREE.PlaneGeometry(3.25, 0.6) // adapte la taille si besoin
-            const labelMaterial = new THREE.MeshBasicMaterial({
-                map: labelTexture,
-                transparent: true,
-                depthTest: false, // optionnel, pour éviter les soucis de z-fighting
-            })
-            const labelMesh = new THREE.Mesh(labelGeometry, labelMaterial)
-
-            // Place le label juste devant le panel, centré
-            labelMesh.position.set(0, 0, 0.15) // 11cm devant le panel
-            // Pas de rotation : il reste dans le repère local du panel
-
-            labelMesh.visible = true // visible par défaut maintenant
-
-            panel.add(labelMesh)
-
-            // Stocker les meshes pour chaque panel
-            if (!this.panelLabelMeshes) this.panelLabelMeshes = []
-            this.panelLabelMeshes.push(labelMesh)
-
-            // Supprimer la création du hintMesh 3D - on va utiliser le HUD à la place
-
-            // Créer le titre au-dessus du panel
             const titleCanvas = document.createElement('canvas')
             titleCanvas.width = 1024
             titleCanvas.height = 256
@@ -675,7 +658,248 @@ export default class StoryManager {
         }, 100)
     }
 
+    async initRoom(roomName) {
+        switch (roomName) {
+            case 'intro':
+                this.activeTasks.push(roomName)
+                break
+            case 'aquarium':
+                this.clearTasks(true)
+                this.activeTasks.push(roomName)
+                this.saveManager.saveProgress(roomName)
+                this.app.doorManager.triggerCloseDoorByIndex(0)
+                break
+            case 'corridor':
+                this.clearTasks()
+                this.activeTasks.push(roomName)
+                this.saveManager.saveProgress(roomName)
+                this.app.soundManager.attachToSpeakers()
+                this.app.soundManager.stopAllMusicSounds(true, false)
+                this.app.doorManager.triggerCloseDoorByIndex(1)
+                await this.sleep(2000)
+                this.app.postProcessing.triggerGlitch()
+                this.app.objectManager.remove('Dauphins')
+                this.app.objectManager.remove('Dauphin')
+                this.app.objectManager.removeBoids()
+                this.app.soundManager.playMusic('corridor_ambiance')
+                this.corridorRoomLoaded = true
+                break
+            case 'aquaturtle':
+                this.clearTasks()
+                this.saveManager.saveProgress(roomName)
+                this.activeTasks.push(roomName)
+                this.app.soundManager.attachToSpeakers()
+                this.app.soundManager.stopAllMusicSounds(true, false)
+                this.app.doorManager.triggerCloseDoorByIndex(2)
+                await this.sleep(2000)
+                this.app.postProcessing.triggerGlitch()
+                this.app.objectManager.remove('Dauphins')
+                this.app.objectManager.remove('Dauphin')
+                this.app.objectManager.removeBoids()
+                this.app.objectManager.remove('Couloir')
+                break
+            case 'boat':
+                this.clearTasks()
+                this.app.physicsManager.controls.speed = 0.5
+                this.app.doorManager.removeDoorsFromScene()
+                this.saveManager.saveProgress(roomName)
+                this.activeTasks.push(roomName)
+                this.app.objectManager.add('BoatScene', new THREE.Vector3(0, 0, 0))
+                this.initSpotsLights()
+                this.turnOffScreens()
+                this.app.environment.setBlackEnvironment()
+                this.app.soundManager.attachToSpeakers()
+                this.app.soundManager.stopAllMusicSounds(true, false)
+                this.app.objectManager.remove('Dauphins')
+                this.app.objectManager.remove('Dauphin')
+                this.app.objectManager.removeBoids()
+                this.app.objectManager.remove('Couloir')
+                this.app.objectManager.remove('Aquaturtle')
+                this.app.objectManager.remove('Elevator')
+                this.app.objectManager.remove('Tortue')
+                this.app.objectManager.remove('AquaturtleHaut')
+                this.app.objectManager.waterUniformData.uColor2.value.setHex(0x020222)
+                this.app.objectManager.removeBoids()
+                this.teleportPlayerTo(new THREE.Vector3(0, 3.5, 47), new THREE.Vector3(0, 0, 0))
+                break
+            case 'end':
+                this.clearTasks()
+                this.saveManager.saveProgress(roomName)
+                this.activeTasks.push(roomName)
+                this.app.soundManager.attachToSpeakers()
+                this.app.soundManager.stopAllMusicSounds(true, false)
+                this.app.postProcessing.triggerGlitch()
+                this.app.objectManager.remove('Dauphins')
+                this.app.objectManager.remove('Dauphin')
+                this.app.objectManager.removeBoids()
+                this.app.objectManager.remove('Couloir')
+                this.app.objectManager.remove('Aquaturtle')
+                this.app.objectManager.remove('Elevator')
+                this.app.objectManager.remove('Tortue')
+                this.app.objectManager.remove('AquaturtleHaut')
+        }
+    }
+
+    // Version de test simplifiée - à mettre temporairement
+    updateEndPanelsCTA() {
+        if (!this.endPanels) return
+
+        const playerPos = this.app.physicsManager.controls.getObject().position
+        
+        // Utiliser la caméra des contrôles de physique
+        const controlsObject = this.app.physicsManager.controls.getObject()
+        
+        // Raycasting pour détecter le panneau regardé
+        const direction = new THREE.Vector3(0, 0, -1) // Direction vers l'avant
+        direction.applyQuaternion(controlsObject.quaternion) // Appliquer la rotation
+        this.raycaster.set(controlsObject.position, direction)
+        
+        // Créer un array avec tous les meshes des panels (sans les sprites)
+        const panelMeshes = this.endPanels.map(panel => panel.mesh)
+        const intersects = this.raycaster.intersectObjects(panelMeshes, false)
+        
+        // Supprimer tous les contours existants
+        this.endPanels.forEach(panel => {
+            if (panel.outlineMesh) {
+                panel.mesh.remove(panel.outlineMesh)
+                
+                // Nettoyer tous les enfants du groupe (les LineSegments)
+                if (panel.outlineMesh.children) {
+                    panel.outlineMesh.children.forEach(child => {
+                        if (child.geometry) child.geometry.dispose()
+                        if (child.material) child.material.dispose()
+                    })
+                }
+                
+                panel.outlineMesh = null
+            }
+        })
+        
+        // Gestion du panneau regardé (contour blanc)
+        let lookedPanel = null
+        if (intersects.length > 0) {
+            const intersectedPanel = this.endPanels.find(panel => panel.mesh === intersects[0].object)
+            if (intersectedPanel) {
+                lookedPanel = intersectedPanel
+                
+                // Créer un contour avec des couches multiples pour l'épaisseur
+                const outlineGeometry = new THREE.EdgesGeometry(intersectedPanel.mesh.geometry)
+                
+                // Créer un groupe pour contenir plusieurs contours
+                const outlineGroup = new THREE.Group()
+                
+                // Créer plusieurs couches de contours pour l'épaisseur
+                for (let i = 0; i < 3; i++) {
+                    const outlineMaterial = new THREE.LineBasicMaterial({
+                        color: 0xffffff,
+                        transparent: true,
+                        opacity: 0.8 - (i * 0.2) // Opacité décroissante pour l'effet
+                    })
+                    
+                    const outlineMesh = new THREE.LineSegments(outlineGeometry, outlineMaterial)
+                    const scale = 1.02 + (i * 0.005) // Échelles légèrement différentes
+                    outlineMesh.scale.setScalar(scale)
+                    outlineMesh.position.set(0, 0, 0.02 + (i * 0.001))
+                    
+                    outlineGroup.add(outlineMesh)
+                }
+                
+                // Ajouter le groupe au panel regardé
+                intersectedPanel.mesh.add(outlineGroup)
+                intersectedPanel.outlineMesh = outlineGroup
+            }
+        }
+        
+        this.currentLookedPanel = lookedPanel
+
+        // Gestion de l'affichage du CTA quand on regarde un panel
+        if (lookedPanel) {
+            // Annuler le timeout de masquage si on regarde un panel
+            if (this.hideHintTimeout) {
+                clearTimeout(this.hideHintTimeout)
+                this.hideHintTimeout = null
+            }
+            
+            // Trouver l'index du panel regardé
+            const lookedIndex = this.endPanels.findIndex(panel => panel === lookedPanel)
+            if (lookedIndex !== -1) {
+                // Si on change de panel, on met à jour immédiatement
+                if (this.currentLookedPanelIndex !== lookedIndex) {
+                    this.currentLookedPanelIndex = lookedIndex
+                    this.app.uiManager.showKeyHint('⏎', 'Voir la vidéo')
+                }
+                // Si on reste sur le même panel, on s'assure que le hint est visible
+                else if (this.currentLookedPanelIndex === lookedIndex) {
+                    this.app.uiManager.showKeyHint('⏎', 'Voir la vidéo')
+                }
+            }
+        } else {
+            // Quand on ne regarde plus de panel, masquer immédiatement
+            if (this.currentLookedPanelIndex !== null) {
+                this.currentLookedPanelIndex = null
+                this.app.uiManager.hideKeyHint()
+            }
+        }
+
+        // Gestion de la proximité (hint "Appuyez sur Entrée" - gardé pour la compatibilité)
+        let found = false
+        let closestIndex = null
+        let minDist = Infinity
+
+        this.endPanels.forEach((panel, idx) => {
+            const panelPos = new THREE.Vector3()
+            panel.mesh.getWorldPosition(panelPos)
+            const dist = panelPos.distanceTo(playerPos)
+            if (dist < 4.5 && dist < minDist) {
+                found = true
+                closestIndex = idx
+                minDist = dist
+            }
+        })
+
+        if (found && closestIndex !== null) {
+            this.activePanelIndex = closestIndex
+        } else {
+            this.activePanelIndex = null
+        }
+    }
+
+    handleEndPanelEnter = e => {
+        if (e.key === 'Enter' && this.currentLookedPanelIndex !== null) {
+            const url = this.endPanels[this.currentLookedPanelIndex].url
+            window.open(url, '_blank')
+        }
+    }
+
     destroy() {
+        // Nettoyer les contours
+        if (this.endPanels) {
+            this.endPanels.forEach(panel => {
+                if (panel.outlineMesh) {
+                    panel.mesh.remove(panel.outlineMesh)
+                    // Nettoyer tous les enfants du groupe
+                    if (panel.outlineMesh.children) {
+                        panel.outlineMesh.children.forEach(child => {
+                            if (child.geometry) child.geometry.dispose()
+                            if (child.material) child.material.dispose()
+                        })
+                    }
+                    panel.outlineMesh = null
+                }
+            })
+        }
+        
+        // Nettoyer les références des sprites et labels
+        this.panelSprites = null
+        this.panelLabelMeshes = null
+        this.panelTitleMeshes = null
+        this.currentLookedPanelIndex = null
+        
+        if (this.hideHintTimeout) {
+            clearTimeout(this.hideHintTimeout)
+            this.hideHintTimeout = null
+        }
+        
         window.removeEventListener('keydown', this.handleEndPanelEnter)
     }
 
@@ -808,128 +1032,6 @@ export default class StoryManager {
                     spot.visible = false
                 })
             },
-        }
-    }
-
-    async initRoom(roomName) {
-        switch (roomName) {
-            case 'intro':
-                this.activeTasks.push(roomName)
-                break
-            case 'aquarium':
-                this.clearTasks(true)
-                this.activeTasks.push(roomName)
-                this.saveManager.saveProgress(roomName)
-                this.app.doorManager.triggerCloseDoorByIndex(0)
-                break
-            case 'corridor':
-                this.clearTasks()
-                this.activeTasks.push(roomName)
-                this.saveManager.saveProgress(roomName)
-                this.app.soundManager.attachToSpeakers()
-                this.app.soundManager.stopAllMusicSounds(true, false)
-                this.app.doorManager.triggerCloseDoorByIndex(1)
-                await this.sleep(2000)
-                this.app.postProcessing.triggerGlitch()
-                this.app.objectManager.remove('Dauphins')
-                this.app.objectManager.remove('Dauphin')
-                this.app.objectManager.removeBoids()
-                this.app.soundManager.playMusic('corridor_ambiance')
-                this.corridorRoomLoaded = true
-                break
-            case 'aquaturtle':
-                this.clearTasks()
-                this.saveManager.saveProgress(roomName)
-                this.activeTasks.push(roomName)
-                this.app.soundManager.attachToSpeakers()
-                this.app.soundManager.stopAllMusicSounds(true, false)
-                this.app.doorManager.triggerCloseDoorByIndex(2)
-                await this.sleep(2000)
-                this.app.postProcessing.triggerGlitch()
-                this.app.objectManager.remove('Dauphins')
-                this.app.objectManager.remove('Dauphin')
-                this.app.objectManager.removeBoids()
-                this.app.objectManager.remove('Couloir')
-                break
-            case 'boat':
-                this.clearTasks()
-                this.app.physicsManager.controls.speed = 0.5
-                this.app.doorManager.removeDoorsFromScene()
-                this.saveManager.saveProgress(roomName)
-                this.activeTasks.push(roomName)
-                this.app.objectManager.add('BoatScene', new THREE.Vector3(0, 0, 0))
-                this.initSpotsLights()
-                this.turnOffScreens()
-                this.app.environment.setBlackEnvironment()
-                this.app.soundManager.attachToSpeakers()
-                this.app.soundManager.stopAllMusicSounds(true, false)
-                this.app.objectManager.remove('Dauphins')
-                this.app.objectManager.remove('Dauphin')
-                this.app.objectManager.removeBoids()
-                this.app.objectManager.remove('Couloir')
-                this.app.objectManager.remove('Aquaturtle')
-                this.app.objectManager.remove('Elevator')
-                this.app.objectManager.remove('Tortue')
-                this.app.objectManager.remove('AquaturtleHaut')
-                this.app.objectManager.waterUniformData.uColor2.value.setHex(0x020222)
-                this.app.objectManager.removeBoids()
-                this.teleportPlayerTo(new THREE.Vector3(0, 3.5, 47), new THREE.Vector3(0, 0, 0))
-                break
-            case 'end':
-                this.clearTasks()
-                this.saveManager.saveProgress(roomName)
-                this.activeTasks.push(roomName)
-                this.app.soundManager.attachToSpeakers()
-                this.app.soundManager.stopAllMusicSounds(true, false)
-                this.app.postProcessing.triggerGlitch()
-                this.app.objectManager.remove('Dauphins')
-                this.app.objectManager.remove('Dauphin')
-                this.app.objectManager.removeBoids()
-                this.app.objectManager.remove('Couloir')
-                this.app.objectManager.remove('Aquaturtle')
-                this.app.objectManager.remove('Elevator')
-                this.app.objectManager.remove('Tortue')
-                this.app.objectManager.remove('AquaturtleHaut')
-        }
-    }
-
-    updateEndPanelsCTA() {
-        if (!this.endPanels) return
-
-        const playerPos = this.app.physicsManager.controls.getObject().position
-        let found = false
-        let closestIndex = null
-        let minDist = Infinity
-
-        this.endPanels.forEach((panel, idx) => {
-            const panelPos = new THREE.Vector3()
-            panel.mesh.getWorldPosition(panelPos)
-            const dist = panelPos.distanceTo(playerPos)
-            if (dist < 4.5 && dist < minDist) {
-                found = true
-                closestIndex = idx
-                minDist = dist
-            }
-        })
-
-        if (found && closestIndex !== null) {
-            this.activePanelIndex = closestIndex
-            // Utiliser le même format que PaintingManager
-            if (this.app.uiManager && typeof this.app.uiManager.showKeyHint === 'function') {
-                this.app.uiManager.showKeyHint('⏎')
-            }
-        } else {
-            this.activePanelIndex = null
-            if (this.app.uiManager && typeof this.app.uiManager.hideKeyHint === 'function') {
-                this.app.uiManager.hideKeyHint()
-            }
-        }
-    }
-
-    handleEndPanelEnter = e => {
-        if (e.key === 'Enter' && this.activePanelIndex !== null) {
-            const url = this.endPanels[this.activePanelIndex].url
-            window.open(url, '_blank')
         }
     }
 

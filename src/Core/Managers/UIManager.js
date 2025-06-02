@@ -29,9 +29,10 @@ export class UiManager extends EventEmitter {
         document.body.appendChild(this.keyHintContainer)
     }
 
-    showKeyHint(key) {
-        if(this.currentKeyHint){
-            return;
+    showKeyHint(key, labelText) {
+        // Permettre de remplacer un hint existant avec la même clé
+        if(this.currentKeyHint && this.currentKeyHint.key === key && this.currentKeyHint.labelText === labelText){
+            return; // Même hint, pas besoin de le réafficher
         }
 
         this.currentKeyHint = document.createElement('div')
@@ -40,11 +41,14 @@ export class UiManager extends EventEmitter {
         this.currentKeyHint.style.top = '50%'
 
         this.keyHintContainer.innerHTML = `
-        <div class="btn-base">${key}</div>
+        <div class="btn-base">
+            <span class="key-letter">${key}</span>
+            <span class="label">${labelText}</span>
+        </div>
         `
 
         this.keyHintContainer.classList.add('show-tutorial')
-        this.currentKeyHint = { key }
+        this.currentKeyHint = { key, labelText }
     }
 
     hideKeyHint() {
