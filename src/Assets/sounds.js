@@ -454,7 +454,7 @@ export default [
     {
         name: '8.6.2_SEASHEPHERD',
         type: 'voice',
-        path: '/audio/voices/8.6.2_SEASHEPHERD.mp3',
+        path: '/audio/voices/8.6.2_SEASHEPHERD_FC.mp3',
         options: {
             loop: false,
             volume: 4.0,
@@ -472,19 +472,6 @@ export default [
             loop: false,
             volume: 2.0,
             vttSrc: 'audio/subtitles/8.6_AGONIE.vtt'
-        },
-        license: '',
-        author: '',
-        url: ''
-    },
-    {   
-        name: '8.6.2_SEASHEPHERD',
-        type: 'voice',
-        path: '/audio/voices/8.6.2_SEASHEPHERD_FC.mp3',
-        options: {
-            loop: false,
-            volume: 2.0,
-            vttSrc: 'audio/subtitles/8.6.2_SEASHEPHERD.vtt'
         },
         license: '',
         author: '',

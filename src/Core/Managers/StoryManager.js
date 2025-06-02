@@ -478,7 +478,7 @@ export default class StoryManager {
         })
 
         this.teleportPlayerTo(endRoomPosition)
-        await this.app.soundManager.playVoiceLine('9.4_OUTRO_FC')
+        // await this.app.soundManager.playVoiceLine('9.4_OUTRO')
 
         await this.sleep(500)
 
@@ -488,9 +488,9 @@ export default class StoryManager {
         this.app.scene.add(panelsContainer)
 
         const videos = [
-            { id: 'fishing-video', src: '/videos/720p/PUBDEMERDE.mp4' },
-            { id: 'dolphins-video', src: '/videos/720p/PUBDEMERDE.mp4' },
-            { id: 'turtle-video', src: '/videos/720p/PUBDEMERDE.mp4' },
+            { id: 'fishing-video', src: '/videos/1080p/BOUCLE_CHALUT.mp4' },
+            { id: 'dolphins-video', src: '/videos/1080p/BOUCLE_DAUPHIN.mp4' },
+            { id: 'turtle-video', src: '/videos/1080p/BOUCLE_TORTUE.mp4' },
         ]
 
         const radius = 8
@@ -501,8 +501,10 @@ export default class StoryManager {
         let panel1, panel2, panel3
 
         const loader = new THREE.TextureLoader()
-        const labelTexture = loader.load('images/ui/test_enter.png') // Ton image "Appuyez sur Entrée"
+        const labelTexture = loader.load('images/ui/btn_see_more.svg') // Ton image "Appuyez sur Entrée"
 
+        const titles = ['OceanKillers', 'DolphinByCatch', 'Braconnage à Mayotte']
+        
         for (let i = 0; i < 3; i++) {
             const angle = -arcAngle / 2 + (i * arcAngle) / 2
 
@@ -544,10 +546,10 @@ export default class StoryManager {
                 transparent: true,
             })
             const sprite = new THREE.Sprite(spriteMaterial)
-            sprite.scale.set(2, 0.6, 1) // adapte la taille à ton besoin
+            sprite.scale.set(3.25, 0.6, 1) // adapte la taille à ton besoin
 
             // Place le sprite juste devant le panel
-            sprite.position.set(0, 0, -0.05) // 5cm derrière le panel
+            sprite.position.set(0, 0, 0.05) // 5cm derrière le panel
             panel.add(sprite)
 
             // Cache le sprite au début
@@ -557,7 +559,7 @@ export default class StoryManager {
             if (!this.panelSprites) this.panelSprites = []
             this.panelSprites.push(sprite)
 
-            const labelGeometry = new THREE.PlaneGeometry(2, 0.6) // adapte la taille si besoin
+            const labelGeometry = new THREE.PlaneGeometry(3.25, 0.6) // adapte la taille si besoin
             const labelMaterial = new THREE.MeshBasicMaterial({
                 map: labelTexture,
                 transparent: true,
@@ -567,15 +569,46 @@ export default class StoryManager {
 
             // Place le label juste devant le panel, centré
             labelMesh.position.set(0, 0, 0.15) // 11cm devant le panel
-            // Pas de rotation : il reste dans le repère local du panel
+            // Pas de rotation : il reste dans le repère local du panel
 
-            labelMesh.visible = false // caché par défaut
+            labelMesh.visible = true // visible par défaut maintenant
 
             panel.add(labelMesh)
 
-            // Stocke le mesh pour chaque panel
+            // Stocker les meshes pour chaque panel
             if (!this.panelLabelMeshes) this.panelLabelMeshes = []
             this.panelLabelMeshes.push(labelMesh)
+
+            // Créer le titre au-dessus du panel
+            const titleCanvas = document.createElement('canvas')
+            titleCanvas.width = 1024 // au lieu de 512
+            titleCanvas.height = 256 // au lieu de 128
+            const titleCtx = titleCanvas.getContext('2d')
+            titleCtx.fillStyle = 'white'
+            titleCtx.font = '94px pf-videotext' // proportionnel à la nouvelle taille
+            titleCtx.textAlign = 'center'
+            titleCtx.fillText(titles[i], titleCanvas.width / 2, titleCanvas.height / 2 + 20)
+
+            const titleTexture = new THREE.CanvasTexture(titleCanvas)
+            titleTexture.minFilter = THREE.LinearFilter
+
+            const titleGeometry = new THREE.PlaneGeometry(4, 1)
+            const titleMaterial = new THREE.MeshBasicMaterial({
+                map: titleTexture,
+                transparent: true,
+                depthTest: false,
+            })
+            const titleMesh = new THREE.Mesh(titleGeometry, titleMaterial)
+
+            // Positionner le titre au-dessus du panel
+            titleMesh.position.set(0, 3.25, 0.15) // 2.5 unités au lieu de 4 au-dessus du centre du panel
+            titleMesh.visible = true
+
+            panel.add(titleMesh)
+
+            // Stocker les titres si besoin
+            if (!this.panelTitleMeshes) this.panelTitleMeshes = []
+            this.panelTitleMeshes.push(titleMesh)
 
             if (i === 0) panel1 = panel
             if (i === 1) panel2 = panel
@@ -583,9 +616,9 @@ export default class StoryManager {
         }
 
         this.endPanels = [
-            { mesh: panel1, url: 'https://google.com' },
-            { mesh: panel2, url: 'https://x.com' },
-            { mesh: panel3, url: 'https://instagram.com' },
+            { mesh: panel1, url: 'https://www.youtube.com/watch?v=U5mrc8sFzVc' }, //cahlut
+            { mesh: panel2, url: 'https://www.youtube.com/watch?v=9H9MWUN_T3Q' }, //dauphin
+            { mesh: panel3, url: 'https://www.youtube.com/watch?v=EgpCkloASaQ' }, //tortue
         ]
         this.activePanelIndex = null
 
@@ -868,8 +901,8 @@ export default class StoryManager {
         let closestIndex = null
         let minDist = Infinity
 
-        // Cache tous les labels au début
-        this.panelLabelMeshes.forEach(mesh => (mesh.visible = false))
+        // Tous les labels restent visibles maintenant
+        // this.panelLabelMeshes.forEach(mesh => (mesh.visible = false)) // Cette ligne est supprimée
 
         this.endPanels.forEach((panel, idx) => {
             const panelPos = new THREE.Vector3()
@@ -883,7 +916,6 @@ export default class StoryManager {
         })
 
         if (found && closestIndex !== null) {
-            this.panelLabelMeshes[closestIndex].visible = true
             this.activePanelIndex = closestIndex
         } else {
             this.activePanelIndex = null
