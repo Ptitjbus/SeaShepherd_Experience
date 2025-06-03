@@ -16,6 +16,7 @@ export default class StoryManager {
         this.experienceEnded = false
 
         this.corridorRoomLoaded = false
+        this.endLoaded = false
 
         this.init()
     }
@@ -120,6 +121,10 @@ export default class StoryManager {
                 break
             case 'end':
                 this.initEnd()
+                this.teleportPlayerTo(new THREE.Vector3(0, 0, 2))
+                if (this.endLoaded = true) {
+                    this.app.soundManager.playMusic('end')
+                }
                 break
             default:
                 this.app.objectManager.add('Dauphins', new THREE.Vector3(0, 0, 0))
@@ -607,8 +612,6 @@ export default class StoryManager {
         this.app.soundManager.createSpeaker(new THREE.Vector3(-4, 4, -4), 'MUSIC_3')
         this.app.soundManager.createSpeaker(new THREE.Vector3(-4, 4, 4), 'MUSIC_4')
 
-        this.app.soundManager.playMusic('end')
-
         this.saveManager.saveProgress('end')
         this.activeTasks.push('end')
         this.app.doorManager.removeDoorsFromScene()
@@ -669,7 +672,6 @@ export default class StoryManager {
         })
 
         this.app.objectManager.removeBoids()
-        this.teleportPlayerTo( new THREE.Vector3(0, 0, 0))
         await this.sleep(500)
 
         // NOUVEAU: Attendre que la police soit chargée avant de créer les panels
@@ -692,8 +694,6 @@ export default class StoryManager {
         const panelHeight = 5
 
         let panel1, panel2, panel3
-
-        const loader = new THREE.TextureLoader()
 
         const titles = ['OceanKillers', 'DolphinByCatch', 'Braconnage à Mayotte']
         
@@ -802,6 +802,8 @@ export default class StoryManager {
 
         await this.sleep(1000)
         if (!this.checkActiveTask('end')) return
+
+        this.endLoaded = true
     }
 
     async sleep(milliseconds) {
