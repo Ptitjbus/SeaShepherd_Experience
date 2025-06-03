@@ -199,7 +199,6 @@ export default class StoryManager {
         await this.initRoom('aquarium')
 
         this.app.mediaManager.showRoomTitle('Aquarium des dauphins')
-
         this.app.soundManager.playMusic('aquarium')
 
         await this.sleep(2000)
@@ -227,6 +226,12 @@ export default class StoryManager {
         this.app.objectManager.add('Couloir', new THREE.Vector3(0, 0, 0))
 
         await this.app.soundManager.playVoiceLine('5.4_FINDAUPHIN')
+
+        // NOUVEAU: Détruire le système de tableaux après la salle des dauphins
+        if (this.app.paintingManager) {
+            this.app.paintingManager.destroy()
+            this.app.paintingManager = null
+        }
 
         this.app.doorManager.triggerOpenDoorByIndex(1)
         this.activeTasks = this.activeTasks.filter(task => task !== 'aquarium')
