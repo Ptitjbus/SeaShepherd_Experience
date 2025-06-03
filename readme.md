@@ -142,8 +142,8 @@ static/                   # Assets statiques
 
 - **ZQSD** ou **WASD** : Se déplacer
 - **Souris** : Regarder autour
-- **Shift** : Aller plus vite
-- **Entrée** : Interagir / Valider les choix
+- **Entrée** : Interagir
+- **U** / **I** : Choisir la réponse
 - **Échap** : Quitter le mode pointer lock
 
 ### Personnalisation
