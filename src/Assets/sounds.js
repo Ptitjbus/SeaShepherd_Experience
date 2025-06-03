@@ -845,5 +845,18 @@ export default [
         author: '',
         url: ''
     },
+    {
+        name: 'end',
+        type: 'music',
+        path: '/audio/musics/end.mp3',
+        options: {
+            loop: true,
+            volume: 1
+        },
+        license: '',
+        author: '',
+        url: ''
+    }
+
         
 ] 

@@ -566,7 +566,7 @@ export default class StoryManager {
     async initPreEnd(){
         this.app.soundManager.removeAllSpeakers()
         this.app.soundManager.createSpeaker(new THREE.Vector3(4, 4, -4), 'SEASHEPHERD_1')
-        this.app.soundManager.createSpeaker(new THREE.Vector3(4, 4, 4), 'SEASHEPHERD_4')
+        this.app.soundManager.createSpeaker(new THREE.Vector3(4, 4, 4), 'SEASHEPHERD_2')
         this.app.soundManager.createSpeaker(new THREE.Vector3(-4, 4, -4), 'SEASHEPHERD_3')
         this.app.soundManager.createSpeaker(new THREE.Vector3(-4, 4, 4), 'SEASHEPHERD_4')
         this.app.physicsManager.freezePlayer()
@@ -600,6 +600,15 @@ export default class StoryManager {
     async initEnd() {
         this.clearTasks()
 
+        this.app.soundManager.removeAllSpeakers()
+
+        this.app.soundManager.createSpeaker(new THREE.Vector3(4, 4, -4), 'MUSIC_1')
+        this.app.soundManager.createSpeaker(new THREE.Vector3(4, 4, 4), 'MUSIC_2')
+        this.app.soundManager.createSpeaker(new THREE.Vector3(-4, 4, -4), 'MUSIC_3')
+        this.app.soundManager.createSpeaker(new THREE.Vector3(-4, 4, 4), 'MUSIC_4')
+
+        this.app.soundManager.playMusic('end')
+
         this.saveManager.saveProgress('end')
         this.activeTasks.push('end')
         this.app.doorManager.removeDoorsFromScene()
@@ -631,7 +640,7 @@ export default class StoryManager {
         this.currentLookedPanelIndex = null
         this.hideHintTimeout = null
 
-        const endRoomPosition = new THREE.Vector3(50, 0, -50)
+        const endRoomPosition = new THREE.Vector3(0, 0, 0)
 
         // Ajouter le fog pour masquer la délimitation océan/skybox
         this.app.scene.fog = new THREE.Fog(0x00314B, 8, 50) // Fog plus proche : commence à 8 unités, complet à 50
@@ -659,7 +668,8 @@ export default class StoryManager {
             }
         })
 
-        this.teleportPlayerTo( new THREE.Vector3(50, 0, -48))
+        this.app.objectManager.removeBoids()
+        this.teleportPlayerTo( new THREE.Vector3(0, 0, 0))
         await this.sleep(500)
 
         // NOUVEAU: Attendre que la police soit chargée avant de créer les panels
