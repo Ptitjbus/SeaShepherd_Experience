@@ -140,7 +140,7 @@ static/                   # Assets statiques
 
 ## 🎮 Contrôles
 
-- **ZQSD** ou **WASD** : Se déplacer
+- **ZQSD** : Se déplacer
 - **Souris** : Regarder autour
 - **Entrée** : Interagir
 - **U** / **I** : Choisir la réponse
