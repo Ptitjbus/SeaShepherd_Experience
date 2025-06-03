@@ -16,24 +16,8 @@ export default class EventsManager extends EventEmitter {
             this.dialogContainer.id = 'dialog-container'
             document.body.appendChild(this.dialogContainer)
         }
-
-        // Listener global pour la touche Entrée
-        document.addEventListener('keydown', this.handleKeyDown.bind(this))
     }
 
-    /**
-     * Gère les événements clavier pour fermer la popin avec la touche Entrée
-     * @param {KeyboardEvent} event - L'événement clavier
-     */
-    handleKeyDown(event) {
-        // Si la touche Entrée est pressée et qu'une dialogue est active
-        if (event.key === 'Enter' && this.activeDialogs.length > 0) {
-            // Fermer la dernière popin affichée (la plus récente)
-            const lastDialog = this.activeDialogs[this.activeDialogs.length - 1]
-            this.closeDialog(lastDialog.id)
-            event.preventDefault()
-        }
-    }
 
     /**
      * Ferme une popin spécifique par son ID

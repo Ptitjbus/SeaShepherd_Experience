@@ -144,6 +144,7 @@ class PointerLockControlsCannon extends THREE.EventDispatcher {
   }
 
   onKeyDown = (event) => {
+    event.preventDefault()
     switch (event.code) {
       case 'KeyW':
       case 'ArrowUp':

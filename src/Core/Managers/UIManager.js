@@ -97,6 +97,7 @@ export class UiManager extends EventEmitter {
         const pressedKeys = new Set();
 
         document.addEventListener('keydown', (event) => {
+            event.preventDefault()
             if (this.passedKeysTutorial) return
             const keyPressed = event.key.toLowerCase();
             containerKeys.forEach(key => {
@@ -168,6 +169,7 @@ export class UiManager extends EventEmitter {
             button2.addEventListener('click', () => this.handleChoice(2, resolve))
         
             const keyHandler = (event) => {
+                event.preventDefault()
                 if (event.code === 'KeyU') {
                     if (options.disabledIndex === 0) {
                         button1.classList.add('shake')

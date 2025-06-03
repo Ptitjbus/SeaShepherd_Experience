@@ -1,21 +1,41 @@
-import { Vector3, Raycaster } from 'three'
-import EventEmitter from '../../Utils/EventEmitter'
+import * as THREE from 'three'
+import { BugShader } from '../../Shaders/BugShader.js'
+import App from '../../App.js'
+import { disposeMaterial } from '../../Utils/Memory.js'
 
-export default class PaintingManager extends EventEmitter {
-    constructor(app) {
-        super()
-        this.app = app
+export default class PaintingManager {
+    constructor() {
+        this.app = new App()
         this.paintings = []
         this.currentNearPainting = null
-        this.interactionDistance = 3
-        this.raycaster = new Raycaster()
+        this.interactionDistance = 4
         
-        // Bind de la méthode pour pouvoir la supprimer plus tard
         this.handleKeyPress = this.handleKeyPress.bind(this)
         document.addEventListener('keydown', this.handleKeyPress)
+
+        this.transitionMaterial = new THREE.ShaderMaterial({
+            uniforms: {
+                uTime: { value: 0 },
+                uProgress: { value: 0.5 }, 
+                uTexture: { value: null },
+                uGlitchIntensity: { value: 3.0 },
+                uResolution: { value: new THREE.Vector2(1024, 1024) },
+                uRandom: { value: Math.random() * 10 },
+                uEnableFade: { value: 0.0 },
+                uDisappearTime: { value: 0.3 },
+                uChaosLevel: { value: 2.0 }
+            },
+            vertexShader: BugShader.vertexShader,
+            fragmentShader: BugShader.fragmentShader,
+            transparent: true,
+            side: THREE.DoubleSide
+        })
+        
+        this.transitionTimeouts = new Map()
     }
 
     handleKeyPress(event) {
+        event.preventDefault()
         if (event.code === 'Enter' && this.currentNearPainting) {
             this.changePaintingTexture(this.currentNearPainting)
         }
@@ -55,28 +75,71 @@ export default class PaintingManager extends EventEmitter {
             return
         }
         
-        this.app.postProcessing.triggerBigGlitch()
-        painting.currentTextureIndex = (painting.currentTextureIndex + 1) % painting.textures.length
+        // Annuler toute transition en cours pour ce tableau
+        if (this.transitionTimeouts.has(painting.id)) {
+            clearTimeout(this.transitionTimeouts.get(painting.id))
+            this.transitionTimeouts.delete(painting.id)
+        }
         
-        const newTexture = painting.textures[painting.currentTextureIndex]
+        const nextTextureIndex = (painting.currentTextureIndex + 1) % painting.textures.length
+        const newTexture = painting.textures[nextTextureIndex]
+        
         if (newTexture) {
-            painting.mesh.material.map = newTexture
+            const originalMaterial = painting.mesh.material
+            
+            this.transitionMaterial.uniforms.uTexture.value = painting.mesh.material.map
+            painting.mesh.material = this.transitionMaterial
             painting.mesh.material.needsUpdate = true
-            this.app.postProcessing.triggerBigGlitch()
+            
+            const startTime = Date.now()
+            const transitionDuration = 300 
+            
+            const animateTransition = () => {
+                const elapsed = Date.now() - startTime
+                const progress = Math.min(elapsed / transitionDuration, 1)
+                
+                if (this.transitionMaterial.uniforms) {
+                    this.transitionMaterial.uniforms.uTime.value = elapsed * 0.001
+                    const intensity = Math.sin(progress * Math.PI) * 3.0
+                    this.transitionMaterial.uniforms.uGlitchIntensity.value = intensity
+                }
+                
+                if (progress < 1) {
+                    requestAnimationFrame(animateTransition)
+                }
+            }
+            
+            this.app.postProcessing.triggerGlitch()
+            animateTransition()
+            
+            const timeoutId = setTimeout(() => {
+                painting.currentTextureIndex = nextTextureIndex
+                const finalMaterial = originalMaterial.clone()
+                finalMaterial.map = newTexture
+                finalMaterial.needsUpdate = true
+                
+                painting.mesh.material = finalMaterial
+                painting.mesh.material.needsUpdate = true
+                
+                disposeMaterial(this.transitionMaterial)
+                
+                this.transitionTimeouts.delete(painting.id)
+                
+            }, transitionDuration)
+            
+            this.transitionTimeouts.set(painting.id, timeoutId)
         }
     }
 
     update(playerPosition) {
         let nearPainting = null
-        let closestDistance = this.interactionDistance
 
         // Vérifier la distance avec chaque tableau
         this.paintings.forEach(painting => {
             const distance = playerPosition.distanceTo(painting.mesh.position)
             
-            if (distance < closestDistance) {
+            if (distance < this.interactionDistance) {
                 nearPainting = painting
-                closestDistance = distance
             }
         })
 
@@ -96,6 +159,12 @@ export default class PaintingManager extends EventEmitter {
     }
 
     destroy() {
+        // Annuler tous les timeouts en cours
+        this.transitionTimeouts.forEach(timeoutId => {
+            clearTimeout(timeoutId)
+        })
+        this.transitionTimeouts.clear()
+        
         this.paintings.forEach(painting => {
             if (painting.originalMaterial) {
                 painting.originalMaterial.dispose()

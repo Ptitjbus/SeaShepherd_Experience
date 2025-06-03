@@ -85,7 +85,7 @@ export default class StoryManager {
         setTimeout(() => {
             this.app.uiManager.showTutorial()
         }, 3000)
-        await this.app.soundManager.playVoiceLine('1_INTRO')
+        // await this.app.soundManager.playVoiceLine('1_INTRO')
 
         if (!this.checkActiveTask('intro')) return
         await this.app.uiManager
@@ -718,8 +718,6 @@ export default class StoryManager {
         ]
         this.activePanelIndex = null
 
-        window.addEventListener('keydown', this.handleEndPanelEnter)
-
         // Créer les boutons 3D dans la scène AVANT showEndChoices
         this.createEnd3DButtons(endRoomPosition)
 
@@ -1158,7 +1156,6 @@ export default class StoryManager {
             this.hideHintTimeout = null
         }
         
-        window.removeEventListener('keydown', this.handleEndPanelEnter)
     }
 
     teleportPlayerTo(position, rotation = new THREE.Vector3(0, 0, 0)) {
@@ -1505,49 +1502,49 @@ export default class StoryManager {
     buttonMesh.add(textMesh)
 }
 
-addKeyHintToButton(buttonMesh, keyLetter, xOffset = -0.6) {
-    // Créer un canvas pour la keyhint
-    const canvas = document.createElement('canvas')
-    canvas.width = 256
-    canvas.height = 256
-    const ctx = canvas.getContext('2d')
-    
-    // Dessiner le carré avec bordure
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.1)'
-    ctx.fillRect(78, 78, 100, 100)
-    
-    ctx.strokeStyle = 'white'
-    ctx.lineWidth = 4
-    ctx.strokeRect(78, 78, 100, 100)
-    
-    // Dessiner la lettre
-    ctx.fillStyle = 'white'
-    ctx.font = 'bold 60px Arial'
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'middle'
-    ctx.fillText(keyLetter, 128, 128)
-    
-    // Créer la texture à partir du canvas
-    const keyTexture = new THREE.CanvasTexture(canvas)
-    keyTexture.minFilter = THREE.LinearFilter
-    
-    // Créer le mesh de la keyhint - AUGMENTER LA TAILLE
-    const keyGeometry = new THREE.PlaneGeometry(0.8, 0.8) // Augmenté de 0.6 à 0.8
-    const keyMaterial = new THREE.MeshBasicMaterial({
-        map: keyTexture,
-        transparent: true,
-        depthTest: false
-    })
-    
-    const keyMesh = new THREE.Mesh(keyGeometry, keyMaterial)
-    
-    // Positionner la keyhint plus à gauche
-    keyMesh.position.set(xOffset, 0, 0.02)
+    addKeyHintToButton(buttonMesh, keyLetter, xOffset = -0.6) {
+        // Créer un canvas pour la keyhint
+        const canvas = document.createElement('canvas')
+        canvas.width = 256
+        canvas.height = 256
+        const ctx = canvas.getContext('2d')
+        
+        // Dessiner le carré avec bordure
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.1)'
+        ctx.fillRect(78, 78, 100, 100)
+        
+        ctx.strokeStyle = 'white'
+        ctx.lineWidth = 4
+        ctx.strokeRect(78, 78, 100, 100)
+        
+        // Dessiner la lettre
+        ctx.fillStyle = 'white'
+        ctx.font = 'bold 60px Arial'
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+        ctx.fillText(keyLetter, 128, 128)
+        
+        // Créer la texture à partir du canvas
+        const keyTexture = new THREE.CanvasTexture(canvas)
+        keyTexture.minFilter = THREE.LinearFilter
+        
+        // Créer le mesh de la keyhint - AUGMENTER LA TAILLE
+        const keyGeometry = new THREE.PlaneGeometry(0.8, 0.8) // Augmenté de 0.6 à 0.8
+        const keyMaterial = new THREE.MeshBasicMaterial({
+            map: keyTexture,
+            transparent: true,
+            depthTest: false
+        })
+        
+        const keyMesh = new THREE.Mesh(keyGeometry, keyMaterial)
+        
+        // Positionner la keyhint plus à gauche
+        keyMesh.position.set(xOffset, 0, 0.02)
 
-    buttonMesh.add(keyMesh)
-}
+        buttonMesh.add(keyMesh)
+    }
 
-addPhysicsToButtons() {
+    addPhysicsToButtons() {
         this.endButtons.forEach(button => {
             const buttonWorldPosition = new THREE.Vector3()
             button.mesh.getWorldPosition(buttonWorldPosition)

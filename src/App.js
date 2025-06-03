@@ -138,7 +138,7 @@ export default class App extends EventEmitter {
         this.isSceneReady = true
         this.assetManager.showMainScreen()
 
-        this.paintingManager = new PaintingManager(this)
+        this.paintingManager = new PaintingManager()
         this.setupPaintings()
     }
 
@@ -241,7 +241,7 @@ export default class App extends EventEmitter {
             document.addEventListener('keydown', async e => {
                 e.preventDefault()
                 if (e.key === 'Enter') {
-                    if (this.startButton.experienceStarted) {
+                    if (this.storyManager.experienceStarted) {
                         this.startButton.classList.add('choosed')
                     }else{
                         this.launchExperience()
@@ -389,8 +389,8 @@ export default class App extends EventEmitter {
         })
 
         document.addEventListener('keydown', (e) => {
+            e.preventDefault()
             if (e.key === 'Escape') {
-                e.preventDefault()
                 const optionsOverlay = document.getElementById('options-overlay')
                 
                 if (!optionsOverlay.classList.contains('hidden')) {
