@@ -15,16 +15,24 @@ export default class Ocean {
                 }
             ),
             sunDirection: new THREE.Vector3(1, 1, 1).normalize(),
-            sunColor: 0xffffff,
-            waterColor: 0x001e0f,
-            distortionScale: 3.7,
+            sunColor: 0x0A94C1,
+            waterColor: 0x0A94C1,
+            distortionScale: 0.5,
             fog: scene.fog !== undefined,
         })
 
         this.water.rotation.x = -Math.PI / 2
         this.water.position.y = -1
-        this.water.material.uniforms.size.value = 5
+        this.water.material.uniforms.size.value = 3.0
         scene.add(this.water)
+    }
+
+    hide() {
+        this.water.visible = false
+    }
+
+    show() {
+        this.water.visible = true
     }
 
     setColor(hexColor) {
@@ -33,6 +41,6 @@ export default class Ocean {
     }
 
     update(delta) {
-        this.water.material.uniforms['time'].value += delta
+        this.water.material.uniforms['time'].value += delta * 0.5
     }
 }

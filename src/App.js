@@ -144,7 +144,8 @@ export default class App extends EventEmitter {
 
     initScene() {
         this.environment = new CustomEnvironment()
-        // this.ocean = new Ocean(this.scene, this.renderer.instance)
+        this.ocean = new Ocean(this.scene, this.renderer.instance)
+        this.ocean.hide()
         this.objectManager = new ObjectManager()
 
         this.objectManager.addBoids(15, 10, new Vector3(26, 4, 31))
@@ -470,6 +471,7 @@ export default class App extends EventEmitter {
         if (this.soundManager) this.soundManager.updateListener()
         if (this.physicsManager) this.physicsManager.update(time.delta)
         if (this.doorManager) this.doorManager.update()
+        if (this.ocean) this.ocean.update(time.delta)
         
         // Mettre à jour le système de tableaux
         if (this.paintingManager && this.physicsManager && this.physicsManager.controls) {
