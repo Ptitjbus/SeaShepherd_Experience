@@ -870,8 +870,10 @@ body {
 
 /* ====== MEDIA QUERIES ====== */
 
-/* Tablettes (768px à 1024px) */
-@media (max-width: 1024px) and (min-width: 769px) {
+/* Détection combinée pour les vrais appareils mobiles et tablettes */
+
+/* Tablettes (avec détection tactile et orientation) */
+@media (max-width: 1024px) and (min-width: 769px) and (pointer: coarse) and (hover: none) {
     .header-container {
         top: 25%;
     }
@@ -930,8 +932,8 @@ body {
     }
 }
 
-/* Téléphones et petites tablettes (max 768px) */
-@media (max-width: 768px) {
+/* Téléphones et petites tablettes avec détection tactile */
+@media (max-width: 768px) and (pointer: coarse) {
     .mobile-container {
         display: block;
     }
@@ -941,8 +943,8 @@ body {
     }
 }
 
-/* Petits téléphones (max 480px) */
-@media (max-width: 480px) {
+/* Petits téléphones avec détection tactile */
+@media (max-width: 480px) and (pointer: coarse) {
     .mobile-container {
         display: block;
     }
@@ -952,8 +954,19 @@ body {
     }
 }
 
-/* Mode landscape pour téléphones */
-@media (max-height: 600px) and (orientation: landscape) {
+/* Mode landscape pour téléphones avec détection tactile */
+@media (max-height: 600px) and (orientation: landscape) and (pointer: coarse) and (hover: none) {
+    .mobile-container {
+        display: block;
+    }
+    
+    .desktop-content {
+        display: none !important;
+    }
+}
+
+/* Fallback pour les appareils tactiles sans restriction de taille */
+@media (pointer: coarse) and (hover: none) and (max-width: 1024px) {
     .mobile-container {
         display: block;
     }
