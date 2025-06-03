@@ -16,7 +16,6 @@ export default class StoryManager {
         this.experienceEnded = false
 
         this.corridorRoomLoaded = false
-        this.endLoaded = false
 
         this.init()
     }
@@ -122,9 +121,6 @@ export default class StoryManager {
             case 'end':
                 this.initEnd()
                 this.teleportPlayerTo(new THREE.Vector3(0, 0, 2))
-                if (this.endLoaded = true) {
-                    this.app.soundManager.playMusic('end')
-                }
                 break
             default:
                 this.app.objectManager.add('Dauphins', new THREE.Vector3(0, 0, 0))
@@ -190,7 +186,7 @@ export default class StoryManager {
 
         if (!this.checkActiveTask('intro')) return
         this.app.postProcessing.triggerGlitch()
-        this.app.eventsManager.displayAlert('Nous vous montrerons ce que ce musée ne veut pas vous dévoiler.')
+        this.app.eventsManager.displayAlert('Nous vous montrerons ce que ce musée ne veut pas vous dévoiler.', 500)
 
         if (!this.checkActiveTask('intro')) return
         await this.app.soundManager.playVoiceLine('4_CONNEXION')
@@ -804,7 +800,7 @@ export default class StoryManager {
         await this.sleep(1000)
         if (!this.checkActiveTask('end')) return
 
-        this.endLoaded = true
+        this.app.soundManager.playMusic('end')
     }
 
     async sleep(milliseconds) {

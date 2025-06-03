@@ -46,7 +46,7 @@ export default class EventsManager extends EventEmitter {
      * @param {string} title - Titre optionnel
      * @returns {string} - L'ID de la dialog créée
      */
-    displayAlert(message = null, type = 'information', title = null) {
+    displayAlert(message = null, time = 2000, type = 'information', title = null) {
         const displayMessage = message || 'Information'
 
         // Check if template exists, if not create dialog manually
@@ -104,7 +104,7 @@ export default class EventsManager extends EventEmitter {
         // Attendre la fin de l'animation avant de fermer
         setTimeout(() => {
             this.closeDialog(dialogId)
-        }, 2000)
+        }, time)
         
         return dialogId
     }
