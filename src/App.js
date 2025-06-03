@@ -473,9 +473,8 @@ export default class App extends EventEmitter {
         if (this.doorManager) this.doorManager.update()
         if (this.ocean) this.ocean.update(time.delta)
         
-        // Mettre à jour le système de tableaux
+        // MODIFIÉ: Vérifier que paintingManager existe toujours
         if (this.paintingManager && this.physicsManager && this.physicsManager.controls) {
-            // Utiliser la position du contrôleur de physique, pas de la caméra
             this.paintingManager.update(this.physicsManager.controls.getObject().position)
         }
 

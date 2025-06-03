@@ -199,7 +199,6 @@ export default class StoryManager {
         await this.initRoom('aquarium')
 
         this.app.mediaManager.showRoomTitle('Aquarium des dauphins')
-
         this.app.soundManager.playMusic('aquarium')
 
         await this.sleep(2000)
@@ -227,6 +226,12 @@ export default class StoryManager {
         this.app.objectManager.add('Couloir', new THREE.Vector3(0, 0, 0))
 
         await this.app.soundManager.playVoiceLine('5.4_FINDAUPHIN')
+
+        // NOUVEAU: Détruire le système de tableaux après la salle des dauphins
+        if (this.app.paintingManager) {
+            this.app.paintingManager.destroy()
+            this.app.paintingManager = null
+        }
 
         this.app.doorManager.triggerOpenDoorByIndex(1)
         this.activeTasks = this.activeTasks.filter(task => task !== 'aquarium')
@@ -655,9 +660,11 @@ export default class StoryManager {
         })
 
         this.teleportPlayerTo( new THREE.Vector3(50, 0, -48))
-
         await this.sleep(500)
 
+        // NOUVEAU: Attendre que la police soit chargée avant de créer les panels
+        await this.waitForFont('pf-videotext')
+        
         const panelsContainer = new THREE.Object3D()
         panelsContainer.name = 'endPanelsContainer'
         panelsContainer.position.copy(endRoomPosition)
@@ -1483,5 +1490,23 @@ export default class StoryManager {
             this.app.physicsManager.world.addBody(buttonBody)
             button.mesh.userData.physicsBody = buttonBody
         })
+    }
+
+    // NOUVEAU: Méthode pour attendre le chargement de la police
+    async waitForFont(fontFamily, timeout = 5000) {
+        if (!document.fonts) {
+            // Fallback pour les navigateurs qui ne supportent pas l'API Font Loading
+            await this.sleep(1000)
+            return
+        }
+        
+        try {
+            await document.fonts.load(`94px "${fontFamily}"`)
+            console.log(`Police ${fontFamily} chargée avec succès`)
+        } catch (error) {
+            console.warn(`Impossible de charger la police ${fontFamily}:`, error)
+            // Attendre un peu au cas où la police se charge quand même
+            await this.sleep(1000)
+        }
     }
 }
