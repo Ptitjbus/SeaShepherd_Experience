@@ -70,7 +70,7 @@ export default class MediaManager {
         })
     }
 
-    async playMedia(id, volume = 5) {
+    async playMedia(id, volume = 10) {
         if (!this.mediaElements.has(id)) {
             console.error(`MediaManager: Media with id ${id} not found`)
             return false
@@ -225,7 +225,7 @@ export default class MediaManager {
     }
 
     // Add a convenience method to play media and trigger glitch simultaneously
-    async playMediaWithGlitch(id, volume = 5) {
+    async playMediaWithGlitch(id, volume = 10) {
         await this.playMedia(id, volume)
     }
 

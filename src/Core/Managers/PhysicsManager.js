@@ -93,6 +93,26 @@ export default class PhysicsManager {
         })
     }
 
+    freezePlayer() {
+        this.app.physicsManager.controls.moveForward = false
+        this.app.physicsManager.controls.moveBackward = false
+        this.app.physicsManager.controls.moveLeft = false
+        this.app.physicsManager.controls.moveRight = false
+        this.app.physicsManager.controls.moveUp = false
+        this.app.physicsManager.controls.moveDown = false
+        this.app.physicsManager.controls.velocityFactor = 0
+    }
+
+    unfreezePlayer() {
+        this.app.physicsManager.controls.moveForward = true
+        this.app.physicsManager.controls.moveBackward = true
+        this.app.physicsManager.controls.moveLeft = true
+        this.app.physicsManager.controls.moveRight = true
+        this.app.physicsManager.controls.moveUp = true
+        this.app.physicsManager.controls.moveDown = true
+        this.app.physicsManager.controls.velocityFactor = 1
+    }
+
     addBody(body) {
         this.world.addBody(body)
         this.bodies.push(body)

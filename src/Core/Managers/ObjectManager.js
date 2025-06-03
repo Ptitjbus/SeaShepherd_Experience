@@ -767,7 +767,7 @@ export default class ObjectManager {
         }
 
         return { turnOn, turnOff }
-    }
+    }    
 
     /**
      * Supprime un objet de la scène et libère la mémoire associée
@@ -1253,5 +1253,471 @@ export default class ObjectManager {
             object.mixer.uncacheClip(clip)
         })
         this.objects.clear()
+    }
+
+    /**
+     * Crée une sphère qui se redimensionne en fonction du niveau audio
+     * @param {Vector3} position - Position de la sphère
+     * @param {Object} options - Options de configuration
+     * @param {Number} options.baseRadius - Rayon de base de la sphère (défaut: 0.5)
+     * @param {Number} options.maxRadius - Rayon maximum de la sphère (défaut: 2.0)
+     * @param {Number} options.sensitivity - Sensibilité au niveau audio (défaut: 3.0)
+     * @param {Number} options.smoothing - Lissage des transitions (défaut: 0.7)
+     * @param {Number} options.color - Couleur de la sphère (défaut: 0x00ff88)
+     * @param {String} options.audioSource - Source audio à analyser (défaut: 'master')
+     * @param {Boolean} options.wireframe - Affichage en wireframe (défaut: false)
+     * @param {Boolean} options.glowing - Effet lumineux (défaut: true)
+     * @returns {Object} Objet contenant la sphère et les méthodes de contrôle
+     */
+    createNarratorDot(position, options = {}) {
+        const {
+            baseRadius = 0.5,
+            maxRadius = 2.0,
+            sensitivity = 3.0,        // Augmenté de 2.0 à 3.0
+            smoothing = 0.7,          // Augmenté à 0.7 pour une réponse très directe
+            color = 0x00ff88,
+            audioSource = 'master',
+            wireframe = false,
+            glowing = true
+        } = options
+
+        // Créer la géométrie et le matériau de la sphère
+        const geometry = new THREE.SphereGeometry(baseRadius, 32, 32)
+        
+        let material
+        if (glowing) {
+            // Matériau avec effet lumineux
+            material = new THREE.MeshBasicMaterial({
+                color: color,
+                wireframe: wireframe,
+                transparent: true,
+                opacity: 0.8
+            })
+        } else {
+            // Matériau standard
+            material = new THREE.MeshPhongMaterial({
+                color: color,
+                wireframe: wireframe,
+                shininess: 100
+            })
+        }
+
+        const sphere = new THREE.Mesh(geometry, material)
+        sphere.position.set(position.x, position.y, position.z)
+
+        // Ajouter un effet de glow si activé
+        if (glowing) {
+            const glowGeometry = new THREE.SphereGeometry(baseRadius * 1.2, 16, 16)
+            const glowMaterial = new THREE.MeshBasicMaterial({
+                color: color,
+                transparent: true,
+                opacity: 0.3,
+                side: THREE.BackSide
+            })
+            const glowMesh = new THREE.Mesh(glowGeometry, glowMaterial)
+            sphere.add(glowMesh)
+            sphere.glowMesh = glowMesh
+        }
+
+        // Configuration de l'analyseur audio
+        let audioAnalyser = null
+        let audioData = null
+        let audioContext = null
+        let gainNode = null
+
+        // Essayer de se connecter au contexte audio de Howler/SoundManager
+        const setupAudioAnalyzer = () => {
+            try {
+                // Essayer d'accéder au contexte audio de Howler
+                if (typeof Howler !== 'undefined' && Howler.ctx) {
+                    audioContext = Howler.ctx
+                } else if (this.app.soundManager && this.app.soundManager.audioContext) {
+                    audioContext = this.app.soundManager.audioContext
+                } else {
+                    // Fallback: créer un nouveau contexte
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)()
+                }
+
+                audioAnalyser = audioContext.createAnalyser()
+                audioAnalyser.fftSize = 1024                   // Augmenté pour plus de précision
+                audioAnalyser.smoothingTimeConstant = 0.0      // Supprimé complètement le lissage interne
+                audioData = new Uint8Array(audioAnalyser.frequencyBinCount)
+
+                // Se connecter au nœud de destination principal
+                if (audioContext.destination) {
+                    // Créer un gain node pour capturer l'audio sans l'affecter
+                    gainNode = audioContext.createGain()
+                    gainNode.gain.value = 1.0
+                    
+                    // Connecter au destination pour capturer l'audio
+                    try {
+                        // Pour Howler, essayer de se connecter au masterGain s'il existe
+                        if (typeof Howler !== 'undefined' && Howler._audioNode) {
+                            Howler._audioNode.connect(gainNode)
+                        } else {
+                            // Fallback: essayer de se connecter au destination
+                            gainNode.connect(audioContext.destination)
+                        }
+                        gainNode.connect(audioAnalyser)
+                    } catch (error) {
+                        console.warn('Impossible de connecter l\'analyseur au flux audio:', error)
+                        // Méthode alternative : analyser le microphone
+                        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                            navigator.mediaDevices.getUserMedia({ audio: true })
+                                .then(stream => {
+                                    const source = audioContext.createMediaStreamSource(stream)
+                                    source.connect(audioAnalyser)
+                                })
+                                .catch(err => console.warn('Impossible d\'accéder au microphone:', err))
+                        }
+                    }
+                }
+            } catch (error) {
+                console.warn('Impossible de créer l\'analyseur audio:', error)
+            }
+        }
+
+        // Méthode alternative utilisant les données du SoundManager
+        const getAudioLevelFromSoundManager = () => {
+            if (this.app.soundManager && this.app.soundManager.getCurrentVolume) {
+                return this.app.soundManager.getCurrentVolume()
+            }
+            return 0
+        }
+
+        // Variables pour le redimensionnement - SIMPLIFIÉES
+        let currentScale = 1.0
+        let lastUpdateTime = 0
+        const updateInterval = 5  // Encore plus rapide : ~200fps
+        let lastAmplitudeLevel = 0     // Renommé pour correspondre à l'amplitude
+
+        // Données pour l'objet narrator dot
+        const narratorDotData = {
+            sphere,
+            geometry,
+            material,
+            audioAnalyser,
+            audioData,
+            audioContext,
+            gainNode,
+            baseRadius,
+            maxRadius,
+            sensitivity,
+            smoothing,
+            currentScale,
+            lastUpdateTime,
+            updateInterval,
+            isActive: false,
+            lastAmplitudeLevel,
+            originalPosition: position.clone ? position.clone() : new THREE.Vector3(position.x, position.y, position.z)
+        }
+
+        // Méthode pour analyser le niveau audio - ANALYSE D'AMPLITUDE VOCALE FÉMININE
+        const analyzeAudio = () => {
+            let amplitudeLevel = 0
+
+            // Méthode 1: Analyse d'amplitude spécifique aux voix féminines
+            if (audioAnalyser && audioData) {
+                try {
+                    // Obtenir les données de fréquence ET temporelles
+                    audioAnalyser.getByteFrequencyData(audioData)
+                    
+                    // Données temporelles pour l'analyse d'amplitude instantanée
+                    const timeData = new Uint8Array(audioAnalyser.fftSize)
+                    audioAnalyser.getByteTimeDomainData(timeData)
+                    
+                    // === ANALYSE TEMPORELLE (AMPLITUDE INSTANTANÉE) ===
+                    let rmsAmplitude = 0
+                    let peakAmplitude = 0
+                    let sum = 0
+                    
+                    // Calculer l'amplitude RMS (Root Mean Square) - meilleure pour l'amplitude vocale
+                    for (let i = 0; i < timeData.length; i++) {
+                        const sample = (timeData[i] - 128) / 128.0 // Normaliser entre -1 et 1
+                        const squaredSample = sample * sample
+                        sum += squaredSample
+                        
+                        // Capturer le pic d'amplitude
+                        const absoluteSample = Math.abs(sample)
+                        if (absoluteSample > peakAmplitude) {
+                            peakAmplitude = absoluteSample
+                        }
+                    }
+                    
+                    rmsAmplitude = Math.sqrt(sum / timeData.length)
+                    
+                    // === ANALYSE FRÉQUENTIELLE (VOIX FÉMININE) ===
+                    const nyquistFreq = audioContext.sampleRate / 2
+                    const binWidth = nyquistFreq / audioData.length
+                    
+                    let voiceAmplitude = 0
+                    let voiceSum = 0
+                    let voiceCount = 0
+                    
+                    // Fréquences vocales féminines optimisées :
+                    // - Fondamentale : 165-265 Hz
+                    // - Harmoniques importantes : 500-2000 Hz  
+                    // - Formants : 2000-4000 Hz
+                    
+                    for (let i = 0; i < audioData.length; i++) {
+                        const frequency = i * binWidth
+                        const amplitude = audioData[i] / 255.0
+                        
+                        let weight = 0
+                        
+                        // Fréquence fondamentale féminine (165-265 Hz) - poids élevé
+                        if (frequency >= 165 && frequency <= 265) {
+                            weight = 3.0
+                        }
+                        // Harmoniques vocales (300-800 Hz) - poids moyen-élevé
+                        else if (frequency >= 300 && frequency <= 800) {
+                            weight = 2.5
+                        }
+                        // Formants vocaux (800-2500 Hz) - poids moyen
+                        else if (frequency >= 800 && frequency <= 2500) {
+                            weight = 2.0
+                        }
+                        // Clarté vocale (2500-4000 Hz) - poids faible-moyen
+                        else if (frequency >= 2500 && frequency <= 4000) {
+                            weight = 1.5
+                        }
+                        
+                        if (weight > 0) {
+                            voiceSum += amplitude * weight
+                            voiceCount += weight
+                        }
+                    }
+                    
+                    voiceAmplitude = voiceCount > 0 ? voiceSum / voiceCount : 0
+                    
+                    // === COMBINAISON DES ANALYSES ===
+                    // Amplitude temporelle (70%) + analyse vocale fréquentielle (30%)
+                    const temporalComponent = (rmsAmplitude * 0.6) + (peakAmplitude * 0.4)
+                    const frequencyComponent = voiceAmplitude
+                    
+                    amplitudeLevel = (temporalComponent * 0.7) + (frequencyComponent * 0.3)
+                    
+                    // Courbe de réponse spécifique à l'amplitude vocale
+                    amplitudeLevel = Math.pow(amplitudeLevel, 0.3) // Courbe très agressive pour capturer les nuances
+                    
+                } catch (error) {
+                    amplitudeLevel = 0
+                    console.warn('Erreur analyse amplitude:', error)
+                }
+            }
+
+            // Méthode 2: Fallback avec SoundManager (adapté pour l'amplitude)
+            if (amplitudeLevel === 0) {
+                const volumeLevel = getAudioLevelFromSoundManager()
+                // Convertir le volume en estimation d'amplitude
+                amplitudeLevel = Math.sqrt(volumeLevel) // Relation quadratique volume/amplitude
+            }
+
+            // Méthode 3: Simulation d'amplitude vocale féminine réaliste
+            if (amplitudeLevel === 0 && this.app.soundManager) {
+                const isPlayingAudio = this.app.soundManager.isAnyAudioPlaying && this.app.soundManager.isAnyAudioPlaying()
+                if (isPlayingAudio) {
+                    const time = performance.now() * 0.001
+                    
+                    // Simulation d'amplitude vocale féminine plus réaliste
+                    
+                    // Enveloppe de phrase (respiration, pauses)
+                    const phraseEnvelope = (Math.sin(time * 0.8) + 1) * 0.5
+                    
+                    // Modulation de mots (prosodie féminine)
+                    const wordModulation = Math.sin(time * 2.5) * 0.3
+                    
+                    // Variations syllabiques rapides
+                    const syllableVariation = Math.sin(time * 8) * 0.25
+                    
+                    // Micro-variations d'amplitude (vibrato naturel)
+                    const microVariation = Math.sin(time * 25) * 0.1
+                    
+                    // Composante aléatoire pour naturalité
+                    const randomComponent = (this._getRandomFromPool()) * 0.08
+                    
+                    // Amplitude de base pour voix féminine
+                    const baseAmplitude = 0.35
+                    
+                    amplitudeLevel = baseAmplitude * phraseEnvelope + 
+                                   wordModulation + 
+                                   syllableVariation + 
+                                   microVariation + 
+                                   randomComponent
+                    
+                    amplitudeLevel = Math.max(0, Math.min(1, amplitudeLevel))
+                }
+            }
+
+            return amplitudeLevel
+        }
+
+        // Méthode de mise à jour de la sphère - RÉPONSE À L'AMPLITUDE
+        const updateSphere = (time) => {
+            if (!narratorDotData.isActive) return
+
+            const now = performance.now()
+            if (now - narratorDotData.lastUpdateTime < narratorDotData.updateInterval) return
+            
+            narratorDotData.lastUpdateTime = now
+
+            // Analyser l'amplitude audio
+            const amplitudeLevel = analyzeAudio()
+            
+            // Calcul DIRECT de l'échelle basé sur l'amplitude vocale
+            const scaleFactor = 1.0 + (amplitudeLevel * sensitivity)
+            const finalScale = Math.min(scaleFactor, maxRadius / baseRadius)
+            
+            // Application DIRECTE avec lissage minimal pour éviter les saccades
+            const diff = finalScale - narratorDotData.currentScale
+            narratorDotData.currentScale += diff * smoothing
+
+            // Appliquer l'échelle à la sphère
+            sphere.scale.setScalar(narratorDotData.currentScale)
+            
+            // Appliquer l'échelle au glow si présent
+            if (sphere.glowMesh) {
+                sphere.glowMesh.scale.setScalar(narratorDotData.currentScale * 1.1)
+            }
+
+            // Ajuster l'opacité basée sur l'amplitude
+            if (glowing && material.transparent) {
+                const directOpacity = 0.5 + (amplitudeLevel * 0.5) // Réponse directe à l'amplitude
+                material.opacity = Math.min(directOpacity, 1.0)
+                
+                if (sphere.glowMesh) {
+                    sphere.glowMesh.material.opacity = Math.min(directOpacity * 0.7, 0.7)
+                }
+            }
+            
+            // Sauvegarder pour référence
+            narratorDotData.lastAmplitudeLevel = amplitudeLevel
+        }
+
+        // Ajouter la sphère à la scène
+        this.app.scene.add(sphere)
+
+        // Stocker les données pour la mise à jour
+        if (!this.narratorDots) {
+            this.narratorDots = []
+        }
+        this.narratorDots.push(narratorDotData)
+
+        // Modifier la fonction update pour inclure les narrator dots si ce n'est pas déjà fait
+        if (!this._updateWithNarratorDots) {
+            this._updateWithNarratorDots = true
+            const originalUpdate = this.update.bind(this)
+            this.update = function(time) {
+                originalUpdate(time)
+                
+                // Mise à jour des narrator dots
+                if (this.narratorDots) {
+                    this.narratorDots.forEach(dotData => {
+                        updateSphere(time)
+                    })
+                }
+            }.bind(this)
+        }
+
+        // Méthodes publiques
+        return {
+            sphere,
+            
+            /**
+             * Active la réactivité audio
+             */
+            start: () => {
+                narratorDotData.isActive = true
+                setupAudioAnalyzer()
+                if (audioContext && audioContext.state === 'suspended') {
+                    audioContext.resume()
+                }
+            },
+            
+            /**
+             * Désactive la réactivité audio
+             */
+            stop: () => {
+                narratorDotData.isActive = false
+            },
+            
+            /**
+             * Définit la position de la sphère
+             * @param {Vector3} newPosition 
+             */
+            setPosition: (newPosition) => {
+                sphere.position.set(newPosition.x, newPosition.y, newPosition.z)
+                narratorDotData.originalPosition = newPosition.clone ? newPosition.clone() : new THREE.Vector3(newPosition.x, newPosition.y, newPosition.z)
+            },
+            
+            /**
+             * Définit la sensibilité audio
+             * @param {Number} newSensitivity 
+             */
+            setSensitivity: (newSensitivity) => {
+                narratorDotData.sensitivity = newSensitivity
+            },
+            
+            /**
+             * Définit la couleur de la sphère
+             * @param {Number} newColor 
+             */
+            setColor: (newColor) => {
+                material.color.setHex(newColor)
+                if (sphere.glowMesh) {
+                    sphere.glowMesh.material.color.setHex(newColor)
+                }
+            },
+            
+            /**
+             * Supprime la sphère de la scène
+             */
+            dispose: () => {
+                narratorDotData.isActive = false
+                
+                // Nettoyer l'audio
+                if (gainNode) {
+                    try {
+                        gainNode.disconnect()
+                    } catch (e) {}
+                }
+                if (audioAnalyser) {
+                    try {
+                        audioAnalyser.disconnect()
+                    } catch (e) {}
+                }
+                
+                // Supprimer de la scène
+                this.app.scene.remove(sphere)
+                
+                // Libérer la mémoire
+                geometry.dispose()
+                material.dispose()
+                if (sphere.glowMesh) {
+                    sphere.glowMesh.geometry.dispose()
+                    sphere.glowMesh.material.dispose()
+                }
+                
+                // Supprimer de la liste
+                const index = this.narratorDots.indexOf(narratorDotData)
+                if (index > -1) {
+                    this.narratorDots.splice(index, 1)
+                }
+            },
+            
+            /**
+             * Récupère le niveau audio actuel (0-1)
+             */
+            getAudioLevel: () => {
+                return analyzeAudio()
+            },
+            
+            /**
+             * Récupère l'échelle actuelle de la sphère
+             */
+            getCurrentScale: () => {
+                return narratorDotData.currentScale
+            }
+        }
     }
 }

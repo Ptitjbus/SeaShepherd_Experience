@@ -1288,6 +1288,18 @@ export default class Debug extends EventEmitter {
         this.speakersHelpers.push({ sphere, arrow })
     }
 
+    removeSpeakerHelper(object) {
+        this.speakersHelpers.forEach(({ sphere, arrow }) => {
+            if (sphere.parent === object.scene) {
+                object.scene.remove(sphere)
+                object.scene.remove(arrow)
+            }
+        })
+        this.speakersHelpers = this.speakersHelpers.filter(({ sphere, arrow }) => {
+            return sphere.parent !== object.scene && arrow.parent !== object.scene
+        })
+    }
+
     toogleSpeakersHelpers() {
         this.speakersHelpers.forEach(({ sphere, arrow }) => {
             sphere.visible = !sphere.visible

@@ -3,6 +3,7 @@ import App from '../../App'
 import * as THREE from 'three'
 import soundAssets from '../../Assets/sounds.js'
 import EventEmitter from '../../Utils/EventEmitter.js'
+import { disposeHierarchy } from '../../Utils/Memory.js'
 
 export default class SoundManager extends EventEmitter {
     constructor() {
@@ -152,6 +153,14 @@ export default class SoundManager extends EventEmitter {
                 speaker.object.parent === object3D.scene
             return !isChild
         })
+    }
+
+    removeAllSpeakers() {
+        this.speakers.forEach(speaker => {
+            disposeHierarchy(speaker.object.scene)
+            this.app.debug.removeSpeakerHelper(speaker.object)
+        })
+        this.speakers = []
     }
 
     updateListener() {
@@ -758,6 +767,67 @@ export default class SoundManager extends EventEmitter {
      */
     getMasterSfxVolume() {
         return this.masterSfxVolume
+    }
+
+    /**
+     * Vérifie si des sons sont actuellement en cours de lecture
+     * @returns {boolean} True si au moins un son est en cours de lecture
+     */
+    isAnyAudioPlaying() {
+        // Vérifier les sons custom
+        for (const [name, soundData] of Object.entries(this.customSounds)) {
+            if (soundData.howl && soundData.howl.playing()) {
+                return true
+            }
+        }
+
+        // Vérifier les musiques
+        for (const [name, soundData] of Object.entries(this.musics)) {
+            if (soundData.howl && soundData.howl.playing()) {
+                return true
+            }
+        }
+
+        // Vérifier les sons préchargés qui pourraient être en cours de lecture
+        for (const [name, soundData] of Object.entries(this.sounds)) {
+            if (soundData.howl && soundData.howl.playing()) {
+                return true
+            }
+        }
+
+        return false
+    }
+
+    /**
+     * Récupère le niveau audio actuel (approximatif) basé sur les sons en cours
+     * @returns {number} Niveau audio entre 0 et 1
+     */
+    getCurrentVolume() {
+        let maxVolume = 0
+        let playingSounds = 0
+
+        // Vérifier les sons custom
+        for (const [name, soundData] of Object.entries(this.customSounds)) {
+            if (soundData.howl && soundData.howl.playing()) {
+                playingSounds++
+                maxVolume = Math.max(maxVolume, soundData.howl.volume())
+            }
+        }
+
+        // Vérifier les musiques
+        for (const [name, soundData] of Object.entries(this.musics)) {
+            if (soundData.howl && soundData.howl.playing()) {
+                playingSounds++
+                maxVolume = Math.max(maxVolume, soundData.howl.volume())
+            }
+        }
+
+        // Si des sons jouent, retourner une valeur basée sur le volume maximum et le nombre de sons
+        if (playingSounds > 0) {
+            return Math.min(maxVolume * (1 + Math.log(playingSounds) * 0.3), 1.0)
+        }
+
+        return 0
     }
 
     destroy() {

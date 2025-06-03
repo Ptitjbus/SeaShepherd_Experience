@@ -360,8 +360,6 @@ export default class StoryManager {
 
         glitchController.stop()
 
-        // ---
-
         this.initBoat()
         this.initBoatRoom()
     }
@@ -501,7 +499,37 @@ export default class StoryManager {
     }
 
     async initPreEnd(){
+        this.app.soundManager.removeAllSpeakers()
+        this.app.soundManager.createSpeaker(new THREE.Vector3(4, 4, -4), 'SEASHEPHERD_1')
+        this.app.soundManager.createSpeaker(new THREE.Vector3(4, 4, 4), 'SEASHEPHERD_4')
+        this.app.soundManager.createSpeaker(new THREE.Vector3(-4, 4, -4), 'SEASHEPHERD_3')
+        this.app.soundManager.createSpeaker(new THREE.Vector3(-4, 4, 4), 'SEASHEPHERD_4')
+        this.app.physicsManager.freezePlayer()
+        this.teleportPlayerTo( new THREE.Vector3(0, 0, 0))
         await this.sleep(5000)
+        const narratorDot = this.app.objectManager.createNarratorDot(
+            new THREE.Vector3(0, 3, -10),
+            {
+                baseRadius: 0.2,
+                maxRadius: 0.4,
+                sensitivity: 1.0,
+                smoothing: 0.2,
+                color: 0xffffff,
+                glowing: true
+            }
+        )
+        narratorDot.start()
+        this.app.postProcessing.triggerGlitch()
+        await this.app.soundManager.playVoiceLine('9.1_SEASHEPHERD')
+        await this.sleep(1000)
+        await this.app.soundManager.playVoiceLine('9.2_SEASHEPHERD')
+        await this.app.mediaManager.playMedia('seashepherd_hope', 100)
+        await this.app.soundManager.playVoiceLine('9.4_OUTRO')
+
+        this.app.postProcessing.triggerBigGlitch()
+        this.app.postProcessing.triggerBigGlitch()
+
+        this.initEnd()
     }
 
     async initEnd() {
@@ -530,17 +558,7 @@ export default class StoryManager {
         }
 
         // Désactiver les déplacements du joueur, garder seulement la rotation
-        if (this.app.physicsManager && this.app.physicsManager.controls) {
-            this.app.physicsManager.controls.moveForward = false
-            this.app.physicsManager.controls.moveBackward = false
-            this.app.physicsManager.controls.moveLeft = false
-            this.app.physicsManager.controls.moveRight = false
-            this.app.physicsManager.controls.moveUp = false
-            this.app.physicsManager.controls.moveDown = false
-            
-            // Empêcher tout mouvement futur en désactivant la vélocité
-            this.app.physicsManager.controls.velocityFactor = 0
-        }
+        this.app.physicsManager.freezePlayer()
 
         // Initialiser le raycaster pour détecter les panels regardés
         this.raycaster = new THREE.Raycaster()
