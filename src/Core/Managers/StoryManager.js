@@ -677,7 +677,6 @@ export default class StoryManager {
         let panel1, panel2, panel3
 
         const loader = new THREE.TextureLoader()
-        const labelTexture = loader.load('images/ui/btn_see_more.svg') // Ton image "Appuyez sur Entrée"
 
         const titles = ['OceanKillers', 'DolphinByCatch', 'Braconnage à Mayotte']
         
@@ -740,21 +739,6 @@ export default class StoryManager {
             panel.userData.physicsBody = panelBody
 
             video.play().catch(e => console.error('Erreur lors de la lecture vidéo:', e))
-
-            const spriteMaterial = new THREE.SpriteMaterial({
-                map: labelTexture,
-                transparent: true,
-            })
-            const sprite = new THREE.Sprite(spriteMaterial)
-            sprite.scale.set(3.25, 0.6, 1)
-
-            sprite.position.set(0, 0, 0.05)
-            panel.add(sprite)
-
-            sprite.visible = false
-
-            if (!this.panelSprites) this.panelSprites = []
-            this.panelSprites.push(sprite)
 
             const titleCanvas = document.createElement('canvas')
             titleCanvas.width = 1024
@@ -1034,11 +1018,6 @@ export default class StoryManager {
                 // Si on change de panel, on met à jour immédiatement
                 if (this.currentLookedPanelIndex !== lookedIndex) {
                     this.currentLookedPanelIndex = lookedIndex
-                    this.app.uiManager.showPanelHint('/images/ui/btn_see_more.svg')
-                }
-                // Si on reste sur le même panel, on s'assurer que le hint est visible
-                else if (this.currentLookedPanelIndex === lookedIndex) {
-                    this.app.uiManager.showPanelHint('/images/ui/btn_see_more.svg')
                 }
             }
         } else {
@@ -1176,7 +1155,6 @@ export default class StoryManager {
         }
         
         // Nettoyer les références des sprites et labels
-        this.panelSprites = null
         this.panelLabelMeshes = null
         this.panelTitleMeshes = null
         this.currentLookedPanelIndex = null
