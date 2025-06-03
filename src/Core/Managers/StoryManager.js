@@ -328,7 +328,7 @@ export default class StoryManager {
         const glitchController = this.app.postProcessing.startRandomGlitches(1)
         setTimeout(async () => {
             await this.app.soundManager.playVoiceLine('7.3_VIDEO')
-        }, 4000)
+        }, 5000)
         await this.app.mediaManager.playMediaWithGlitch('turtle_1')
         
         if (!this.checkActiveTask('aquaturtle')) return

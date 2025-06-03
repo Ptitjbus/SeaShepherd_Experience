@@ -606,11 +606,11 @@ export default class App extends EventEmitter {
                 glitchType: 'big',
                 loop: false,
                 muted: false,
-                duration: 6000, // en ms
+                duration: 7000, // en ms
             },
             turtle_2: {
                 type: 'video',
-                src: '/videos/2_TORTUE_2.mp4',
+                src: '/videos/3_TORTUE_2.mp4',
                 glitchType: 'big',
                 loop: false,
                 muted: false,
@@ -618,11 +618,11 @@ export default class App extends EventEmitter {
             },
             turtle_3: {
                 type: 'video',
-                src: '/videos/3_TORTUE_2.mp4',
+                src: '/videos/4_TORTUE_3.mp4',
                 glitchType: 'big',
                 loop: false,
                 muted: false,
-                duration: 73000, // en ms
+                duration: 40000, // en ms
             },
             boat_1: {
                 type: 'video',
@@ -638,15 +638,15 @@ export default class App extends EventEmitter {
                 glitchType: 'big',
                 loop: false,
                 muted: false,
-                duration: 43000, // en ms
+                duration: 44000, // en ms
             },
             boat_bg: {
                 type: 'video',
                 src: '/videos/boat_bg.mp4',
                 glitchType: 'small',
-                loop: false,
+                loop: true,
                 muted: false,
-                duration: 12000, // en ms
+                duration: 10000, // en ms
             },
             pub: {
                 type: 'video',
@@ -654,7 +654,7 @@ export default class App extends EventEmitter {
                 glitchType: 'small',
                 loop: false,
                 muted: true,
-                duration: 44000, // en ms
+                duration: 39000, // en ms
             },
             connexion: {
                 type: 'video',
@@ -670,7 +670,7 @@ export default class App extends EventEmitter {
                 glitchType: 'big',
                 loop: false,
                 muted: false,
-                duration: 30000, // en ms
+                duration: 29000, // en ms
             },
         })
     }
