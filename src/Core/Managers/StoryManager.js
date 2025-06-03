@@ -785,7 +785,6 @@ export default class StoryManager {
 
         await this.sleep(1000)
         if (!this.checkActiveTask('end')) return
-        await this.app.soundManager.playVoiceLine('6_FINAL_EXHIBIT')
     }
 
     async sleep(milliseconds) {

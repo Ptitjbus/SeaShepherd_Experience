@@ -1,5 +1,17 @@
 @import url('https://use.typekit.net/sai4atz.css');
 
+/* ====== CUSTOM CURSOR ====== */
+html, body {
+    cursor: url('../static/images/ui/pointer.svg') 16 16, auto !important;
+}
+
+/* Specific cursor states for interactive elements */
+button, a, .btn-base, .start-button, .end-btn, .footer-btn-left, 
+.footer-btn-right, .switch-container, .volume-slider, 
+input[type="range"], [role="button"], .clickable {
+    cursor: url('../static/images/ui/cursor.svg') 20 20, pointer !important;
+}
+
 /* ====== RESET & BASE ====== */
 * {
     margin: 0;
