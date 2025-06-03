@@ -17,13 +17,14 @@ body {
     pointer-events: none !important;
 }
 
-/* ====== CANVAS ====== */
+/* ====== CANVAS PARTAGÉ ====== */
 .webgl {
     position: fixed;
     inset: 0;
     outline: none;
     opacity: 0;
     transition: opacity 1.5s ease;
+    z-index: 1; /* En arrière-plan pour les deux versions */
 }
 
 .loading-bar {
@@ -43,7 +44,7 @@ body {
 .options-overlay {
     position: fixed;
     inset: 0;
-    background-color: rgba(0, 0, 0, 0.8);
+    background-color: rgba(0, 0, 0, 0.2);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -53,7 +54,7 @@ body {
 }
 
 .start-overlay {
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: rgba(0, 0, 0, 0.2);
     backdrop-filter: blur(10px);
     justify-content: center;
 }
@@ -756,9 +757,10 @@ body {
     display: none;
     position: fixed;
     inset: 0;
-    background: linear-gradient(135deg, #001a33 0%, #002a4a 50%, #001a33 100%);
+    background: rgba(15,2,72, 0.1);
+    backdrop-filter: blur(2px);
     overflow-y: auto;
-    z-index: 9999;
+    z-index: 50;
 }
 
 .mobile-content {
@@ -777,8 +779,7 @@ body {
 }
 
 .mobile-logo {
-    width: 80vw;
-    max-width: 300px;
+    width: 99px;
     height: auto;
     margin-bottom: 20px;
 }
@@ -804,13 +805,33 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: center;
+    align-items: center;
     max-width: 500px;
     margin: 0 auto;
+}
+
+.mobile-message img {
+    height: 48px;
+    margin-bottom: 64px;
+}
+
+.mobile-message p {
+    font-family: 'montserrat', sans-serif;
+    font-size: 18px;
+    line-height: 1.6;
+    opacity: 0.8;
+    max-width: 260px;
+    margin-bottom: 30px;
 }
 
 .mobile-icon {
     font-size: 60px;
     margin-bottom: 20px;
+}
+
+.mobile-icon-image {
+    width: 118px;
+    height: 118px;
 }
 
 .mobile-message h2 {
@@ -833,19 +854,20 @@ body {
 }
 
 .mobile-btn {
-    display: block;
+    display: flex;
     width: 100%;
-    max-width: 300px;
+    width: 140px;
+    height: 38px;
     margin: 12px auto;
-    padding: 15px 20px;
+    padding: 8px 12px;
     text-decoration: none;
-    border-radius: 6px;
     font-family: 'montserrat', sans-serif;
     font-size: 16px;
-    font-weight: 600;
     text-align: center;
+    justify-content: center;
+    align-items: center;
     transition: all 0.3s ease;
-    border: 2px solid transparent;
+    border: 1px solid transparent;
 }
 
 .mobile-btn.primary {
@@ -892,45 +914,21 @@ body {
 /* Desktop content - visible par défaut */
 .desktop-content {
     display: block;
+    position: relative;
+    z-index: 10;
 }
 
 /* ====== MEDIA QUERIES ====== */
 
 /* Tablettes (768px à 1024px) */
 @media (max-width: 1024px) and (min-width: 769px) {
-    .header-container {
-        top: 25%;
-    }
-    
-    .dysmeria-logo {
-        width: 450px;
-    }
-    
-    .header-container p {
-        font-size: 20px;
-    }
-    
-    #choices-container, #end-choices-container {
-        bottom: 120px;
-        gap: 24px;
-    }
-    
-    .btn-base {
-        min-width: 300px;
-        padding: 12px 20px;
-        font-size: 1.6em;
-    }
-    
-    .start-button {
-        font-size: 20px;
+    /* Masquer tout le contenu desktop sauf canvas et mobile-container */
+    .desktop-content > *:not(.webgl):not(.loading-bar):not(.mobile-container) {
+        display: none !important;
     }
     
     .mobile-container {
         display: block;
-    }
-    
-    .desktop-content {
-        display: none !important;
     }
     
     .mobile-icon {
@@ -951,247 +949,42 @@ body {
     
     .mobile-btn {
         max-width: 350px;
-        padding: 18px 24px;
         font-size: 18px;
     }
 }
 
 /* Téléphones et petites tablettes (max 768px) */
 @media (max-width: 768px) {
-    .header-container {
-        top: 20%;
-        padding: 0 20px;
-        text-align: center;
+    /* Masquer tout le contenu desktop sauf canvas et mobile-container */
+    .desktop-content > *:not(.webgl):not(.loading-bar):not(.mobile-container) {
+        display: none !important;
     }
     
-    .dysmeria-logo {
-        width: 80vw;
-        max-width: 400px;
-        min-width: 280px;
-    }
-    
-    .header-container p {
-        font-size: 18px;
-        margin-top: 20px;
-        line-height: 1.4;
-    }
-    
-    #choices-container, #end-choices-container {
-        bottom: 80px;
-        gap: 20px;
-        padding: 0 20px;
-    }
-    
-    #choices-buttons-container {
-        flex-direction: column;
-        gap: 20px;
-        width: 100%;
-    }
-    
-    .btn-base {
-        min-width: 280px;
-        max-width: 90vw;
-        padding: 12px 16px;
-        font-size: 1.3em;
-        gap: 12px;
-    }
-    
-    .start-button {
-        font-size: 18px;
-        top: 8%;
-    }
-    
-    #choices-title {
-        font-size: 16px;
-        padding: 8px 16px;
-        margin: 0 20px;
-    }
-    
-    .tutorial-container {
-        top: 5%;
-        padding: 0 20px;
-        gap: 20px;
-    }
-    
-    .key-letter {
-        width: 25px;
-        height: 25px;
-        font-size: 16px;
-    }
-    
-    /* Footer adaptations */
-    .footer-container {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-        bottom: 20px;
-        padding: 0 20px;
-    }
-
-    .footer-btn-left,
-    .footer-btn-right {
-        font-size: 14px;
-        padding: 8px 16px;
-    }
-
-    .footer-right-buttons {
-        flex-direction: column;
-        gap: 10px;
-    }
-    
-    .center-logo {
-        height: 30px;
-    }
-    
-    /* Overlays adaptations */
-    .credits-overlay,
-    .options-overlay {
-        padding: 60px 20px 120px 20px;
-    }
-    
-    .credits-header h1,
-    .options-header h1 {
-        font-size: 40px;
-        letter-spacing: 2px;
-    }
-
-    .credits-content {
-        grid-template-columns: 1fr;
-        gap: 30px;
-    }
-
-    .credits-section h3 {
-        font-size: 14px;
-    }
-
-    .credits-section p {
-        font-size: 18px;
-    }
-
-    .credits-section .parenthesis-text {
-        font-size: 14px;
-    }
-
-    .option-item {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-    }
-
-    .option-item label {
-        min-width: auto;
-        width: 100%;
-        font-size: 14px;
-    }
-
-    .volume-slider {
-        width: 100%;
-        margin: 0;
-    }
-
-    .volume-value {
-        align-self: flex-end;
-        font-size: 18px;
-    }
-
-    .switch-container {
-        width: 50px;
-        height: 25px;
+    .mobile-container {
+        display: block;
     }
 }
 
 /* Petits téléphones (max 480px) */
 @media (max-width: 480px) {
-    .header-container {
-        top: 15%;
+    /* Masquer tout le contenu desktop sauf canvas et mobile-container */
+    .desktop-content > *:not(.webgl):not(.loading-bar):not(.mobile-container) {
+        display: none !important;
     }
     
-    .dysmeria-logo {
-        width: 85vw;
-        max-width: 300px;
-    }
-    
-    .header-container p {
-        font-size: 16px;
-        margin-top: 15px;
-    }
-    
-    #choices-container, #end-choices-container {
-        bottom: 60px;
-        gap: 16px;
-    }
-    
-    .btn-base {
-        min-width: 240px;
-        padding: 10px 14px;
-        font-size: 1.1em;
-        gap: 10px;
-    }
-    
-    .start-button {
-        font-size: 16px;
-        top: 6%;
-    }
-    
-    #choices-title {
-        font-size: 14px;
-        padding: 6px 12px;
-    }
-    
-    .key-letter {
-        width: 22px;
-        height: 22px;
-        font-size: 14px;
-    }
-    
-    .credits-header h1,
-    .options-header h1 {
-        font-size: 32px;
-        letter-spacing: 1px;
-    }
-    
-    .footer-btn-left,
-    .footer-btn-right {
-        font-size: 12px;
-        padding: 6px 12px;
-    }
-    
-    .center-logo {
-        height: 25px;
+    .mobile-container {
+        display: block;
     }
 }
 
 /* Mode landscape pour téléphones */
 @media (max-height: 600px) and (orientation: landscape) {
-    .header-container {
-        top: 10%;
+    /* Masquer tout le contenu desktop sauf canvas et mobile-container */
+    .desktop-content > *:not(.webgl):not(.loading-bar):not(.mobile-container) {
+        display: none !important;
     }
     
-    .dysmeria-logo {
-        width: 250px;
-    }
-    
-    .header-container p {
-        font-size: 14px;
-        margin-top: 10px;
-    }
-    
-    #choices-container, #end-choices-container {
-        bottom: 40px;
-        gap: 12px;
-    }
-    
-    .btn-base {
-        padding: 8px 12px;
-        font-size: 1em;
-    }
-    
-    .start-button {
-        font-size: 14px;
-        top: 4%;
-    }
-    
-    .footer-container {
-        bottom: 10px;
+    .mobile-container {
+        display: block;
     }
 }
