@@ -144,7 +144,7 @@ export default class StoryManager {
         setTimeout(() => {
             this.app.uiManager.showTutorial()
         }, 3000)
-        // await this.app.soundManager.playVoiceLine('1_INTRO')
+        await this.app.soundManager.playVoiceLine('1_INTRO')
 
         if (!this.checkActiveTask('intro')) return
         await this.app.uiManager
