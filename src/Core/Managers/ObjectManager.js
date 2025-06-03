@@ -485,6 +485,9 @@ export default class ObjectManager {
                 uStrength: { value: 0.4 },
                 time: { value: 0 },
                 cameraPos: { value: this.app.physicsManager.sphereBody.position },
+                fogColor: { value: new THREE.Color(0x081346) },
+                fogNear: { value: 5 },
+                fogFar: { value: 50 }
             },
             vertexShader: LayerShader.vertexShader,
             fragmentShader: LayerShader.fragmentShader,

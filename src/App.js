@@ -128,8 +128,6 @@ export default class App extends EventEmitter {
         this.mediaManager.init(this.scene)
         this.mediaManager.connectToPostProcessingManager(this.postProcessing)
         this.animationLoop.start()
-        this.debug.init()
-        this.debug.showAnimationClipLine(this.assetManager.getItem('Dauphins'))
         
         // Initialiser les volumes sauvegardés
         this.loadSavedVolumeSettings()
@@ -137,7 +135,10 @@ export default class App extends EventEmitter {
         await this.storyManager.startOrResume()
         this.isSceneReady = true
         this.assetManager.showMainScreen()
-
+        
+        this.debug.init()
+        this.debug.showAnimationClipLine(this.assetManager.getItem('Dauphins'))
+        
         this.paintingManager = new PaintingManager()
         this.setupPaintings()
     }
