@@ -388,6 +388,7 @@ export default class StoryManager {
 
         this.app.objectManager.remove('Aquaturtle')
         this.app.objectManager.remove('Tortue')
+        this.app.objectManager.removeBoids()
 
         this.app.mediaManager.showRoomTitle('Tortues de Mayotte')
         if (!this.checkActiveTask('aquaturtle')) return
@@ -860,7 +861,6 @@ export default class StoryManager {
                 this.app.postProcessing.triggerGlitch()
                 this.app.objectManager.remove('Dauphins')
                 this.app.objectManager.remove('Dauphin')
-                this.app.objectManager.removeBoids()
                 this.app.objectManager.remove('Couloir')
                 break
             case 'boat':
@@ -1205,6 +1205,10 @@ export default class StoryManager {
             dynamicCollision: true,
         })
         this.app.objectManager.add('Tortue', new THREE.Vector3(0, 0, 0))
+
+        this.app.objectManager.addBoids(50, 17, new THREE.Vector3(-126, 10, -110))
+        this.app.objectManager.addBoids(50, 17, new THREE.Vector3(-105, 10, -150))
+        this.app.objectManager.addBoids(50, 17, new THREE.Vector3(-80, 10, -120))
     }
 
     initSpotsLights() {
