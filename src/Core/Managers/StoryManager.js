@@ -34,20 +34,28 @@ export default class StoryManager {
 
     // NOUVEAU: Méthode pour gérer les clics
     handleClick(event) {
-        // Vérifier qu'on est dans la phase end et qu'on a des boutons
-        if (!this.activeTasks.includes('end') || !this.endButtons) return
+        // Vérifier qu'on est dans la phase end
+        if (!this.activeTasks.includes('end')) return
         
         // NOUVEAU: Vérifier que le pointer lock est activé
         if (!document.pointerLockElement) return
-    
+
+        // Vérifier s'il y a un panel regardé (avec contour blanc)
+        if (this.currentLookedPanel && this.currentLookedPanel.url) {
+            window.open(this.currentLookedPanel.url, '_blank')
+            return
+        }
+
         // Vérifier s'il y a un bouton en hover
-        const hoveredButton = this.endButtons.find(button => 
-            button.material.map === button.hoverTexture
-        )
-        
-        if (hoveredButton && hoveredButton.url) {
-            console.log('Ouverture de:', hoveredButton.url) // Debug
-            window.open(hoveredButton.url, '_blank')
+        if (this.endButtons) {
+            const hoveredButton = this.endButtons.find(button => 
+                button.material.map === button.hoverTexture
+            )
+            
+            if (hoveredButton && hoveredButton.url) {
+                window.open(hoveredButton.url, '_blank')
+                return
+            }
         }
     }
 
@@ -63,23 +71,16 @@ export default class StoryManager {
             return
         }
         
-        // Gérer les touches U et I pour les boutons
-        if (event.code === 'KeyU') {
-            const buttonU = this.endButtons.find(button => button.key === 'U')
-            if (buttonU && buttonU.url) {
-                console.log('Ouverture via touche U:', buttonU.url) // Debug
-                window.open(buttonU.url, '_blank')
+        // NOUVEAU: Gérer la touche Entrée pour les boutons en hover
+        if (event.code === 'Enter' && this.endButtons) {
+            const hoveredButton = this.endButtons.find(button => 
+                button.material.map === button.hoverTexture
+            )
+            
+            if (hoveredButton && hoveredButton.url) {
+                window.open(hoveredButton.url, '_blank')
+                return
             }
-            return
-        }
-        
-        if (event.code === 'KeyI') {
-            const buttonI = this.endButtons.find(button => button.key === 'I')
-            if (buttonI && buttonI.url) {
-                console.log('Ouverture via touche I:', buttonI.url) // Debug
-                window.open(buttonI.url, '_blank')
-            }
-            return
         }
     }
 
@@ -676,7 +677,6 @@ export default class StoryManager {
         let panel1, panel2, panel3
 
         const loader = new THREE.TextureLoader()
-        const labelTexture = loader.load('images/ui/btn_see_more.svg') // Ton image "Appuyez sur Entrée"
 
         const titles = ['OceanKillers', 'DolphinByCatch', 'Braconnage à Mayotte']
         
@@ -739,21 +739,6 @@ export default class StoryManager {
             panel.userData.physicsBody = panelBody
 
             video.play().catch(e => console.error('Erreur lors de la lecture vidéo:', e))
-
-            const spriteMaterial = new THREE.SpriteMaterial({
-                map: labelTexture,
-                transparent: true,
-            })
-            const sprite = new THREE.Sprite(spriteMaterial)
-            sprite.scale.set(3.25, 0.6, 1)
-
-            sprite.position.set(0, 0, 0.05)
-            panel.add(sprite)
-
-            sprite.visible = false
-
-            if (!this.panelSprites) this.panelSprites = []
-            this.panelSprites.push(sprite)
 
             const titleCanvas = document.createElement('canvas')
             titleCanvas.width = 1024
@@ -1033,11 +1018,6 @@ export default class StoryManager {
                 // Si on change de panel, on met à jour immédiatement
                 if (this.currentLookedPanelIndex !== lookedIndex) {
                     this.currentLookedPanelIndex = lookedIndex
-                    this.app.uiManager.showPanelHint('/images/ui/btn_see_more.svg')
-                }
-                // Si on reste sur le même panel, on s'assurer que le hint est visible
-                else if (this.currentLookedPanelIndex === lookedIndex) {
-                    this.app.uiManager.showPanelHint('/images/ui/btn_see_more.svg')
                 }
             }
         } else {
@@ -1071,7 +1051,7 @@ export default class StoryManager {
         }
     }
 
-    // NOUVEAU: Méthode pour gérer les touches
+    // NOUVEAU: Méthode pour gérer les touches (sans les touches U et I)
     handleKeyDown(event) {
         // Vérifier qu'on est dans la phase end et qu'on a des panels
         if (!this.activeTasks.includes('end') || !this.endPanels) return
@@ -1082,21 +1062,16 @@ export default class StoryManager {
             return
         }
         
-        // Gérer les touches U et I pour les boutons
-        if (event.code === 'KeyU') {
-            const buttonU = this.endButtons.find(button => button.key === 'U')
-            if (buttonU && buttonU.url) {
-                window.open(buttonU.url, '_blank')
+        // NOUVEAU: Gérer la touche Entrée pour les boutons en hover
+        if (event.code === 'Enter' && this.endButtons) {
+            const hoveredButton = this.endButtons.find(button => 
+                button.material.map === button.hoverTexture
+            )
+            
+            if (hoveredButton && hoveredButton.url) {
+                window.open(hoveredButton.url, '_blank')
+                return
             }
-            return
-        }
-        
-        if (event.code === 'KeyI') {
-            const buttonI = this.endButtons.find(button => button.key === 'I')
-            if (buttonI && buttonI.url) {
-                window.open(buttonI.url, '_blank')
-            }
-            return
         }
     }
 
@@ -1180,7 +1155,6 @@ export default class StoryManager {
         }
         
         // Nettoyer les références des sprites et labels
-        this.panelSprites = null
         this.panelLabelMeshes = null
         this.panelTitleMeshes = null
         this.currentLookedPanelIndex = null
@@ -1327,88 +1301,6 @@ export default class StoryManager {
         }
     }
 
-    async initRoom(roomName) {
-        switch (roomName) {
-            case 'intro':
-                this.activeTasks.push(roomName)
-                break
-            case 'aquarium':
-                this.clearTasks(true)
-                this.activeTasks.push(roomName)
-                this.saveManager.saveProgress(roomName)
-                this.app.doorManager.triggerCloseDoorByIndex(0)
-                break
-            case 'corridor':
-                this.clearTasks()
-                this.activeTasks.push(roomName)
-                this.saveManager.saveProgress(roomName)
-                this.app.soundManager.attachToSpeakers()
-                this.app.soundManager.stopAllMusicSounds(true, false)
-                this.app.doorManager.triggerCloseDoorByIndex(1)
-                await this.sleep(2000)
-                this.app.postProcessing.triggerGlitch()
-                this.app.objectManager.remove('Dauphins')
-                this.app.objectManager.remove('Dauphin')
-                this.app.objectManager.removeBoids()
-                this.app.soundManager.playMusic('corridor_ambiance')
-                this.corridorRoomLoaded = true
-                break
-            case 'aquaturtle':
-                this.clearTasks()
-                this.saveManager.saveProgress(roomName)
-                this.activeTasks.push(roomName)
-                this.app.soundManager.attachToSpeakers()
-                this.app.soundManager.stopAllMusicSounds(true, false)
-                this.app.doorManager.triggerCloseDoorByIndex(2)
-                await this.sleep(2000)
-                this.app.postProcessing.triggerGlitch()
-                this.app.objectManager.remove('Dauphins')
-                this.app.objectManager.remove('Dauphin')
-                this.app.objectManager.removeBoids()
-                this.app.objectManager.remove('Couloir')
-                break
-            case 'boat':
-                this.clearTasks()
-                this.app.physicsManager.controls.speed = 0.4
-                this.app.doorManager.removeDoorsFromScene()
-                this.saveManager.saveProgress(roomName)
-                this.activeTasks.push(roomName)
-                this.app.objectManager.add('BoatScene', new THREE.Vector3(0, 0, 0))
-                this.initSpotsLights()
-                this.turnOffScreens()
-                this.app.environment.setBlackEnvironment()
-                this.app.soundManager.attachToSpeakers()
-                this.app.soundManager.stopAllMusicSounds(true, false)
-                this.app.objectManager.remove('Dauphins')
-                this.app.objectManager.remove('Dauphin')
-                this.app.objectManager.removeBoids()
-                this.app.objectManager.remove('Couloir')
-                this.app.objectManager.remove('Aquaturtle')
-                this.app.objectManager.remove('Elevator')
-                this.app.objectManager.remove('Tortue')
-                this.app.objectManager.remove('AquaturtleHaut')
-                this.app.objectManager.waterUniformData.uColor2.value.setHex(0x020222)
-                this.app.objectManager.removeBoids()
-                this.teleportPlayerTo(new THREE.Vector3(0, 3.5, 47), new THREE.Vector3(0, 0, 0))
-                break
-            case 'end':
-                this.clearTasks()
-                this.saveManager.saveProgress(roomName)
-                this.activeTasks.push(roomName)
-                this.app.soundManager.attachToSpeakers()
-                this.app.soundManager.stopAllMusicSounds(true, false)
-                this.app.postProcessing.triggerGlitch()
-                this.app.objectManager.remove('Dauphins')
-                this.app.objectManager.remove('Dauphin')
-                this.app.objectManager.removeBoids()
-                this.app.objectManager.remove('Couloir')
-                this.app.objectManager.remove('Aquaturtle')
-                this.app.objectManager.remove('Elevator')
-                this.app.objectManager.remove('Tortue')
-                this.app.objectManager.remove('AquaturtleHaut')
-        }
-    }
-
     update() {
         if (this.activeTasks.includes('end') && this.endPanels) {
             this.updateEndPanelsCTA()
@@ -1468,11 +1360,8 @@ export default class StoryManager {
         button2.rotation.y = -Math.PI * 0.1 // Légère rotation vers la gauche
         button2.name = 'endButton2'
         
-        // Ajouter les keyhints et textes sur les boutons
-        this.addKeyHintToButton(button1, "U", -1.3)
+        // Ajouter seulement les textes sur les boutons (centrés)
         this.addTextToButton(button1, "SOUTENIR LEUR COMBAT")
-        
-        this.addKeyHintToButton(button2, "I", -1.5)
         this.addTextToButton(button2, "REJOINDRE SEA SHEPHERD")
         
         buttonsContainer.add(button1)
@@ -1529,8 +1418,8 @@ export default class StoryManager {
         })
         
         const textMesh = new THREE.Mesh(textGeometry, textMaterial)
-        // Positionner le texte plus près de la keyhint et plus centré
-        textMesh.position.set(0.4, 0, 0.01) // Réduit l'espacement de 0.8 à 0.4
+        // MODIFIÉ: Centrer le texte dans le bouton
+        textMesh.position.set(0, 0, 0.01) // Position centrée (0, 0, 0.01)
 
     buttonMesh.add(textMesh)
 }
