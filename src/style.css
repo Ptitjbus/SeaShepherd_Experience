@@ -17,14 +17,13 @@ body {
     pointer-events: none !important;
 }
 
-/* ====== CANVAS PARTAGÉ ====== */
+/* ====== CANVAS ====== */
 .webgl {
     position: fixed;
     inset: 0;
     outline: none;
     opacity: 0;
     transition: opacity 1.5s ease;
-    z-index: 1; /* En arrière-plan pour les deux versions */
 }
 
 .loading-bar {
@@ -44,7 +43,7 @@ body {
 .options-overlay {
     position: fixed;
     inset: 0;
-    background-color: rgba(0, 0, 0, 0.2);
+    background-color: rgba(0, 0, 0, 0.8);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -54,7 +53,7 @@ body {
 }
 
 .start-overlay {
-    background-color: rgba(0, 0, 0, 0.2);
+    background-color: rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(10px);
     justify-content: center;
 }
@@ -759,11 +758,24 @@ body {
     inset: 0;
     background: rgba(15,2,72, 0.1);
     backdrop-filter: blur(2px);
-    overflow-y: auto;
+    overflow: hidden;
     z-index: 50;
+
+}
+
+.mobile-background-video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: -1;
 }
 
 .mobile-content {
+    position: relative;
+    z-index: 1;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -772,163 +784,128 @@ body {
     box-sizing: border-box;
     text-align: center;
     color: white;
+    background: rgba(0, 0, 0, 0.3);
 }
 
 .mobile-header {
-    margin-bottom: 40px;
-}
-
-.mobile-logo {
-    width: 99px;
-    height: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     margin-bottom: 20px;
 }
 
-.mobile-header h1 {
-    font-family: 'rafaella', sans-serif;
-    font-size: 32px;
-    font-weight: 400;
-    letter-spacing: 2px;
-    margin: 0 0 15px 0;
-}
-
-.mobile-header p {
-    font-family: 'montserrat', sans-serif;
-    font-size: 18px;
-    font-weight: 500;
-    opacity: 0.8;
-    margin: 0;
+.mobile-logo {
+    max-width: 200px;
+    height: auto;
 }
 
 .mobile-message {
-    flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
-    max-width: 500px;
-    margin: 0 auto;
+    gap: 30px;
+    flex: 1;
+    justify-content: center;
 }
 
-.mobile-message img {
-    height: 48px;
-    margin-bottom: 64px;
+.mobile-message .dysmeria-logo {
+    width: 300px;
+    height: auto;
 }
 
 .mobile-message p {
     font-family: 'montserrat', sans-serif;
-    font-size: 18px;
-    line-height: 1.6;
-    opacity: 0.8;
-    max-width: 260px;
-    margin-bottom: 30px;
+    font-weight: 500;
+    font-size: 24px;
+    color: #fff;
+    margin: 0;
+    text-align: center;
 }
 
 .mobile-icon {
-    font-size: 60px;
-    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .mobile-icon-image {
-    width: 118px;
-    height: 118px;
-}
-
-.mobile-message h2 {
-    font-family: 'montserrat', sans-serif;
-    font-size: 16px;
-    line-height: 1.6;
-    opacity: 0.9;
-    margin-bottom: 30px;
+    width: 80px;
+    height: auto;
 }
 
 .mobile-cta {
-    margin: 40px 0;
-}
-
-.mobile-cta h3 {
-    font-family: 'montserrat', sans-serif;
-    font-size: 18px;
-    font-weight: 600;
-    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .mobile-btn {
-    display: flex;
-    width: 100%;
-    width: 140px;
-    height: 38px;
-    margin: 12px auto;
-    padding: 8px 12px;
-    text-decoration: none;
-    font-family: 'montserrat', sans-serif;
-    font-size: 16px;
-    text-align: center;
-    justify-content: center;
-    align-items: center;
-    transition: all 0.3s ease;
-    border: 1px solid transparent;
-}
-
-.mobile-btn.primary {
-    background-color: #4a90e2;
+    display: inline-block;
+    padding: 15px 30px;
+    background-color: rgba(0, 21, 68, 0.8);
     color: white;
+    text-decoration: none;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    font-family: 'montserrat', sans-serif;
+    font-weight: 500;
+    font-size: 16px;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
 }
 
-.mobile-btn.primary:hover {
-    background-color: #357abd;
-    transform: translateY(-2px);
+.mobile-btn:hover {
+    background-color: rgba(0, 21, 68, 1);
+    border-color: rgba(255, 255, 255, 0.8);
 }
 
 .mobile-btn.secondary {
-    background-color: transparent;
-    color: white;
-    border-color: white;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.5);
 }
 
 .mobile-btn.secondary:hover {
-    background-color: white;
-    color: #001a33;
-}
-
-.mobile-footer {
-    margin-top: 40px;
-    padding-top: 20px;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.mobile-footer-logo {
-    width: 60px;
-    height: auto;
-    margin-bottom: 15px;
-    opacity: 0.8;
-}
-
-.mobile-footer p {
-    font-family: 'montserrat', sans-serif;
-    font-size: 12px;
-    opacity: 0.6;
-    margin: 0;
-}
-
-/* Desktop content - visible par défaut */
-.desktop-content {
-    display: block;
-    position: relative;
-    z-index: 10;
+    background-color: rgba(255, 255, 255, 0.2);
 }
 
 /* ====== MEDIA QUERIES ====== */
 
 /* Tablettes (768px à 1024px) */
 @media (max-width: 1024px) and (min-width: 769px) {
-    /* Masquer tout le contenu desktop sauf canvas et mobile-container */
-    .desktop-content > *:not(.webgl):not(.loading-bar):not(.mobile-container) {
-        display: none !important;
+    .header-container {
+        top: 25%;
+    }
+    
+    .dysmeria-logo {
+        width: 450px;
+    }
+    
+    .header-container p {
+        font-size: 20px;
+    }
+    
+    #choices-container, #end-choices-container {
+        bottom: 120px;
+        gap: 24px;
+    }
+    
+    .btn-base {
+        min-width: 300px;
+        padding: 12px 20px;
+        font-size: 1.6em;
+    }
+    
+    .start-button {
+        font-size: 20px;
     }
     
     .mobile-container {
         display: block;
+    }
+    
+    .desktop-content {
+        display: none !important;
     }
     
     .mobile-icon {
@@ -949,42 +926,40 @@ body {
     
     .mobile-btn {
         max-width: 350px;
+        padding: 18px 24px;
         font-size: 18px;
     }
 }
 
 /* Téléphones et petites tablettes (max 768px) */
 @media (max-width: 768px) {
-    /* Masquer tout le contenu desktop sauf canvas et mobile-container */
-    .desktop-content > *:not(.webgl):not(.loading-bar):not(.mobile-container) {
-        display: none !important;
-    }
-    
     .mobile-container {
         display: block;
+    }
+    
+    .desktop-content {
+        display: none !important;
     }
 }
 
 /* Petits téléphones (max 480px) */
 @media (max-width: 480px) {
-    /* Masquer tout le contenu desktop sauf canvas et mobile-container */
-    .desktop-content > *:not(.webgl):not(.loading-bar):not(.mobile-container) {
-        display: none !important;
-    }
-    
     .mobile-container {
         display: block;
+    }
+    
+    .desktop-content {
+        display: none !important;
     }
 }
 
 /* Mode landscape pour téléphones */
 @media (max-height: 600px) and (orientation: landscape) {
-    /* Masquer tout le contenu desktop sauf canvas et mobile-container */
-    .desktop-content > *:not(.webgl):not(.loading-bar):not(.mobile-container) {
-        display: none !important;
-    }
-    
     .mobile-container {
         display: block;
+    }
+    
+    .desktop-content {
+        display: none !important;
     }
 }

@@ -10,6 +10,43 @@
         <link rel="icon" type="image/png" href="./favicon.png" />
     </head>
     <body>
+        <!-- Container spécial pour mobile/tablette -->
+        <div class="mobile-container">
+            <video class="mobile-background-video" autoplay muted loop playsinline>
+                <source src="/videos/background.mp4" type="video/mp4">
+                <!-- Fallback pour les navigateurs qui ne supportent pas la vidéo -->
+            </video>
+            <div class="mobile-content">
+                <div class="mobile-header">
+                    <img
+                        src="/images/logos/sea_shepherd_logo_fr.svg"
+                        alt="Logo Sea Shepherd France"
+                        class="mobile-logo"
+                    />
+                </div>
+
+                <div class="mobile-message">
+                    <img src="/images/logos/dysmeria_logo.svg" alt="Logo dysmeria" class="dysmeria-logo">
+
+                    <p>Cette expérience se vit uniquement sur ordinateur !</p>
+
+                    <div class="mobile-icon">
+                        <img
+                            src="/images/logos/desktop_logo.svg"
+                            alt="Uniquement sur ordinateur"
+                            class="mobile-icon-image"
+                        />
+                    </div>
+                </div>
+
+                <div class="mobile-cta">
+                    <a href="https://www.helloasso.com/associations/sea-shepherd-france/formulaires/1" target="_blank" class="mobile-btn secondary">
+                        En savoir plus
+                    </a>
+                </div>
+            </div>
+        </div>
+
         <!-- Contenu desktop (masqué sur mobile/tablette) -->
         <div class="desktop-content">
             <div class="loading-bar"></div>
@@ -241,38 +278,6 @@
                             <span class="choice-button-text"></span>
                         </button>
                     </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="mobile-container">
-            <div class="mobile-content">
-                <div class="mobile-header">
-                    <img
-                        src="/images/logos/sea_shepherd_logo_fr.svg"
-                        alt="Logo Sea Shepherd France"
-                        class="mobile-logo"
-                    />
-                </div>
-
-                <div class="mobile-message">
-                    <img src="/images/logos/dysmeria_logo.svg" alt="Logo dysmeria" class="dysmeria-logo">
-
-                    <p>Cette expérience se vit uniquement sur ordinateur !</p>
-
-                    <div class="mobile-icon">
-                        <img
-                            src="/images/logos/desktop_logo.svg"
-                            alt="Uniquement sur ordinateur"
-                            class="mobile-icon-image"
-                        />
-                    </div>
-                </div>
-
-                <div class="mobile-cta">
-                    <a href="https://www.helloasso.com/associations/sea-shepherd-france/formulaires/1" target="_blank" class="mobile-btn secondary">
-                        En savoir plus
-                    </a>
                 </div>
             </div>
         </div>
