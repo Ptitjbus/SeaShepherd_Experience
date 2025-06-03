@@ -22,6 +22,65 @@ export default class StoryManager {
 
     init() {
         this.savedStep = this.saveManager.loadProgress()
+        
+        // NOUVEAU: Ajouter l'event listener pour les clics
+        this.handleClickBound = this.handleClick.bind(this)
+        document.addEventListener('click', this.handleClickBound)
+        
+        // NOUVEAU: Ajouter l'event listener pour les touches
+        this.handleKeyDownBound = this.handleKeyDown.bind(this)
+        document.addEventListener('keydown', this.handleKeyDownBound)
+    }
+
+    // NOUVEAU: Méthode pour gérer les clics
+    handleClick(event) {
+        // Vérifier qu'on est dans la phase end et qu'on a des boutons
+        if (!this.activeTasks.includes('end') || !this.endButtons) return
+        
+        // NOUVEAU: Vérifier que le pointer lock est activé
+        if (!document.pointerLockElement) return
+    
+        // Vérifier s'il y a un bouton en hover
+        const hoveredButton = this.endButtons.find(button => 
+            button.material.map === button.hoverTexture
+        )
+        
+        if (hoveredButton && hoveredButton.url) {
+            console.log('Ouverture de:', hoveredButton.url) // Debug
+            window.open(hoveredButton.url, '_blank')
+        }
+    }
+
+    // NOUVEAU: Méthode pour gérer les touches
+    handleKeyDown(event) {
+        // Vérifier qu'on est dans la phase end et qu'on a des panels
+        if (!this.activeTasks.includes('end') || !this.endPanels) return
+        
+        // Gérer la touche Entrée pour les panels
+        if (event.code === 'Enter' && this.currentLookedPanel) {
+            console.log('Ouverture du panel:', this.currentLookedPanel.url) // Debug
+            window.open(this.currentLookedPanel.url, '_blank')
+            return
+        }
+        
+        // Gérer les touches U et I pour les boutons
+        if (event.code === 'KeyU') {
+            const buttonU = this.endButtons.find(button => button.key === 'U')
+            if (buttonU && buttonU.url) {
+                console.log('Ouverture via touche U:', buttonU.url) // Debug
+                window.open(buttonU.url, '_blank')
+            }
+            return
+        }
+        
+        if (event.code === 'KeyI') {
+            const buttonI = this.endButtons.find(button => button.key === 'I')
+            if (buttonI && buttonI.url) {
+                console.log('Ouverture via touche I:', buttonI.url) // Debug
+                window.open(buttonI.url, '_blank')
+            }
+            return
+        }
     }
 
     async startOrResume(room = null) {
@@ -831,17 +890,14 @@ export default class StoryManager {
 
         const playerPos = this.app.physicsManager.controls.getObject().position
         
-        // Utiliser la caméra des contrôles de physique
-        const controlsObject = this.app.physicsManager.controls.getObject()
+        // CORRIGÉ: Utiliser mainCamera au lieu de camera
+        const camera = this.app.camera.mainCamera
         
-        // CORRIGÉ: Raycasting avec direction simple qui suit la rotation
-        const direction = new THREE.Vector3(0, 0, -1)
-        direction.applyQuaternion(controlsObject.quaternion)
-        
-        this.raycaster.set(controlsObject.position, direction)
-        
-        // NOUVEAU: Visualiser le raycast
-        this.visualizeRaycast(controlsObject.position, direction)
+        // Créer un point au centre de l'écran (coordonnées normalisées)
+        const mouse = new THREE.Vector2(0, 0) // (0,0) = centre de l'écran
+
+        // Configurer le raycaster depuis le centre de l'écran
+        this.raycaster.setFromCamera(mouse, camera)
         
         // CORRIGÉ: Tester TOUS les objets interactifs en une seule fois
         const allInteractiveObjects = []
@@ -857,18 +913,6 @@ export default class StoryManager {
         }
         
         const intersects = this.raycaster.intersectObjects(allInteractiveObjects, false)
-        
-        // DEBUG: Afficher les intersections
-        console.log('Intersections trouvées:', intersects.length)
-        if (intersects.length > 0) {
-            console.log('Premier objet intersecté:', intersects[0].object.name)
-        }
-        
-        // NOUVEAU: Visualiser les zones de détection des panels
-        this.visualizePanelBounds()
-        
-        // NOUVEAU: Visualiser les zones de détection des boutons
-        this.visualizeButtonBounds()
         
         // Supprimer tous les contours existants
         this.endPanels.forEach(panel => {
@@ -898,7 +942,6 @@ export default class StoryManager {
             const intersectedPanel = this.endPanels.find(panel => panel.mesh === intersectedObject)
             if (intersectedPanel) {
                 lookedPanel = intersectedPanel
-                console.log('Panel détecté !') // Debug
                 
                 // Créer un contour avec des couches multiples pour l'épaisseur
                 const outlineGeometry = new THREE.EdgesGeometry(intersectedPanel.mesh.geometry)
@@ -931,7 +974,6 @@ export default class StoryManager {
             const intersectedButton = this.endButtons.find(button => button.mesh === intersectedObject)
             if (intersectedButton) {
                 lookedButton = intersectedButton
-                console.log('Bouton détecté:', intersectedButton.key) // Debug
             }
         }
         
@@ -940,19 +982,20 @@ export default class StoryManager {
         // Gestion des boutons - Réinitialiser tous les boutons puis mettre en surbrillance le bon
         if (this.endButtons) {
             this.endButtons.forEach(button => {
-                // Revenir à la texture normale
-                if (button.material.map === button.hoverTexture) {
-                    button.material.map = button.material.map.userData?.normalTexture || button.material.map
+                // Sauvegarder la texture normale lors de la première utilisation
+                if (!button.normalTexture) {
+                    button.normalTexture = button.material.map
+                }
+                
+                // Revenir à la texture normale pour tous les boutons
+                if (button.material.map !== button.normalTexture) {
+                    button.material.map = button.normalTexture
                     button.material.needsUpdate = true
                 }
             })
             
             // Mettre en surbrillance le bouton regardé
             if (lookedButton && lookedButton.hoverTexture) {
-                // Sauvegarder la texture normale si pas déjà fait
-                if (!lookedButton.material.map.userData?.normalTexture) {
-                    lookedButton.material.map.userData = { normalTexture: lookedButton.material.map }
-                }
                 lookedButton.material.map = lookedButton.hoverTexture
                 lookedButton.material.needsUpdate = true
             }
@@ -1010,75 +1053,48 @@ export default class StoryManager {
         }
     }
 
-    // NOUVEAU: Méthode pour visualiser le raycast
-    visualizeRaycast(origin, direction) {
-        // Supprimer l'ancien raycast visuel s'il existe
-        if (this.raycastVisualLine) {
-            this.app.scene.remove(this.raycastVisualLine)
-            this.raycastVisualLine.geometry.dispose()
-            this.raycastVisualLine.material.dispose()
+    // NOUVEAU: Méthode pour gérer les touches
+    handleKeyDown(event) {
+        // Vérifier qu'on est dans la phase end et qu'on a des panels
+        if (!this.activeTasks.includes('end') || !this.endPanels) return
+        
+        // Gérer la touche Entrée pour les panels
+        if (event.code === 'Enter' && this.currentLookedPanel) {
+            window.open(this.currentLookedPanel.url, '_blank')
+            return
         }
         
-        // Créer une ligne pour visualiser le raycast
-        const rayLength = 15 // Longueur du ray visible
-        const end = origin.clone().add(direction.clone().multiplyScalar(rayLength))
-        
-        const geometry = new THREE.BufferGeometry().setFromPoints([origin, end])
-        const material = new THREE.LineBasicMaterial({ 
-            color: 0xff0000, // Rouge pour le raycast
-            transparent: true,
-            opacity: 0.8
-        })
-        
-        this.raycastVisualLine = new THREE.Line(geometry, material)
-        this.app.scene.add(this.raycastVisualLine)
-    }
-
-    // NOUVEAU: Méthode pour visualiser les bounding boxes des panels
-    visualizePanelBounds() {
-        // Supprimer les anciens helpers s'ils existent
-        if (this.panelBoundingBoxHelpers) {
-            this.panelBoundingBoxHelpers.forEach(helper => {
-                this.app.scene.remove(helper)
-            })
+        // Gérer les touches U et I pour les boutons
+        if (event.code === 'KeyU') {
+            const buttonU = this.endButtons.find(button => button.key === 'U')
+            if (buttonU && buttonU.url) {
+                window.open(buttonU.url, '_blank')
+            }
+            return
         }
-        this.panelBoundingBoxHelpers = []
         
-        // Créer des wireframes pour chaque panel
-        this.endPanels.forEach((panel, index) => {
-            const box = new THREE.Box3().setFromObject(panel.mesh)
-            const helper = new THREE.Box3Helper(box, new THREE.Color(0x00ff00)) // Vert pour les zones de détection
-            helper.material.transparent = true
-            helper.material.opacity = 0.5
-            this.app.scene.add(helper)
-            this.panelBoundingBoxHelpers.push(helper)
-        })
-    }
-
-    // NOUVEAU: Méthode pour visualiser les bounding boxes des boutons
-    visualizeButtonBounds() {
-        // Supprimer les anciens helpers s'ils existent
-        if (this.buttonBoundingBoxHelpers) {
-            this.buttonBoundingBoxHelpers.forEach(helper => {
-                this.app.scene.remove(helper)
-            })
-        }
-        this.buttonBoundingBoxHelpers = []
-        
-        // Créer des wireframes pour chaque bouton
-        if (this.endButtons) {
-            this.endButtons.forEach((button, index) => {
-                const box = new THREE.Box3().setFromObject(button.mesh)
-                const helper = new THREE.Box3Helper(box, new THREE.Color(0x0000ff)) // Bleu pour les boutons
-                helper.material.transparent = true
-                helper.material.opacity = 0.5
-                this.app.scene.add(helper)
-                this.buttonBoundingBoxHelpers.push(helper)
-            })
+        if (event.code === 'KeyI') {
+            const buttonI = this.endButtons.find(button => button.key === 'I')
+            if (buttonI && buttonI.url) {
+                window.open(buttonI.url, '_blank')
+            }
+            return
         }
     }
 
     destroy() {
+        // NOUVEAU: Nettoyer l'event listener des clics
+        if (this.handleClickBound) {
+            document.removeEventListener('click', this.handleClickBound)
+            this.handleClickBound = null
+        }
+        
+        // NOUVEAU: Nettoyer l'event listener des touches
+        if (this.handleKeyDownBound) {
+            document.removeEventListener('keydown', this.handleKeyDownBound)
+            this.handleKeyDownBound = null
+        }
+        
         // Nettoyer les visualisations de debug
         if (this.raycastVisualLine) {
             this.app.scene.remove(this.raycastVisualLine)
@@ -1372,7 +1388,6 @@ export default class StoryManager {
                 this.app.objectManager.remove('Elevator')
                 this.app.objectManager.remove('Tortue')
                 this.app.objectManager.remove('AquaturtleHaut')
-                break
         }
     }
 
