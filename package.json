@@ -11,23 +11,25 @@
     "preview": "vite preview"
   },
   "devDependencies": {
-    "vite": "^6.2.2",
+    "vite": "^6.3.5",
     "vite-plugin-restart": "^0.4.2"
   },
   "dependencies": {
-    "@pmndrs/vanilla": "^1.20.4",
+    "@pmndrs/vanilla": "^1.24.1",
     "@theatre/core": "^0.7.2",
     "@theatre/studio": "^0.7.2",
+    "@vercel/analytics": "^1.5.0",
+    "@vercel/speed-insights": "^1.2.0",
     "cannon-es": "^0.20.0",
-    "eslint": "^9.24.0",
-    "gsap": "^3.12.7",
+    "eslint": "^9.34.0",
+    "gsap": "^3.13.0",
     "howler": "^2.2.4",
     "install": "^0.13.0",
     "lil-gui": "^0.20.0",
-    "npm": "^11.3.0",
-    "react": "^19.1.0",
-    "terser": "^5.39.2",
+    "npm": "^11.5.2",
+    "react": "^19.1.1",
+    "terser": "^5.44.0",
     "three": "^0.174.0",
-    "three-custom-shader-material": "^6.3.5"
+    "three-custom-shader-material": "^6.3.7"
   }
 }
