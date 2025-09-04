@@ -255,6 +255,7 @@ export default class MediaManager {
 
     // Ajoute cette méthode dans ta classe MediaManager (ou StoryManager si tu préfères)
     showRoomTitle(title) {
+        title = this.app.translationManager.t(title)
         const container = document.getElementById('room-title-container')
         const titleElem = document.getElementById('room-title')
         if (!container || !titleElem) return

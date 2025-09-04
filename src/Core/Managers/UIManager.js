@@ -32,6 +32,7 @@ export class UiManager extends EventEmitter {
     }
 
     showKeyHint(key, labelText) {
+        labelText = this.app.translationManager.t(labelText)
         // Permettre de remplacer un hint existant avec la même clé
         if(this.currentKeyHint && this.currentKeyHint.key === key && this.currentKeyHint.labelText === labelText){
             return; // Même hint, pas besoin de le réafficher
@@ -138,7 +139,7 @@ export class UiManager extends EventEmitter {
 
             if (options.title) {
                 const titleElement = document.getElementById('choices-title')
-                titleElement.textContent = options.title
+                titleElement.textContent = this.app.translationManager.t(options.title)
             }
 
             const button1Wrapper = document.getElementById('dialog-button-1')
@@ -150,8 +151,8 @@ export class UiManager extends EventEmitter {
             const button2 = button2Wrapper.querySelector('button')
             const button2Text = button2.querySelector('span')
 
-            button1Text.textContent = options.choice1
-            button2Text.textContent = options.choice2
+            button1Text.textContent = this.app.translationManager.t(options.choice1)
+            button2Text.textContent = this.app.translationManager.t(options.choice2)
 
             if (options.disabledIndex === 0) {
                 button1.setAttribute('disabled', 'disabled')
@@ -160,7 +161,6 @@ export class UiManager extends EventEmitter {
 
             button1.addEventListener('click', () => this.handleChoice(1, resolve))            
 
-            button2Text.innerText = options.choice2
             if (options.disabledIndex === 1) {
                 button2.setAttribute('disabled', 'disabled')
                 button2.classList.add('disabled')

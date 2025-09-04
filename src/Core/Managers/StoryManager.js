@@ -139,7 +139,7 @@ export default class StoryManager {
         this.activeTasks.push('intro')
         await this.sleep(2000)
 
-        this.app.mediaManager.showRoomTitle('Accueil du musée')
+        this.app.mediaManager.showRoomTitle('museumWelcomeTitle')
         this.app.soundManager.playMusic('background_intro')
 
         if (!this.checkActiveTask('intro')) return
@@ -151,9 +151,9 @@ export default class StoryManager {
         if (!this.checkActiveTask('intro')) return
         await this.app.uiManager
             .showChoices({
-                title: "J'imagine que vous mourez  d'envie de savoir qui je suis ?",
-                choice1: 'Dites moi',
-                choice2: 'Non pas vraiment',
+                title: 'introChoiceTitle',
+                choice1: 'introChoice1',
+                choice2: 'introChoice2',
             })
             .then(async choiceIndex => {
                 if (choiceIndex === 1) {
@@ -169,9 +169,9 @@ export default class StoryManager {
         if (!this.checkActiveTask('intro')) return
         await this.app.uiManager
             .showChoices({
-                title: 'Vous avez hâte, hein ....?',
-                choice1: "Pour l'instant je suis pas convaincu …",
-                choice2: 'Ouais carrément !',
+                title: 'hateChoiceTitle',
+                choice1: 'hateChoice1',
+                choice2: 'hateChoice2',
             })
             .then(async choiceIndex => {
                 if (choiceIndex === 1) {
@@ -186,7 +186,7 @@ export default class StoryManager {
 
         if (!this.checkActiveTask('intro')) return
         this.app.postProcessing.triggerGlitch()
-        this.app.eventsManager.displayAlert('Nous vous montrerons ce que ce musée ne veut pas vous dévoiler.', 500)
+        this.app.eventsManager.displayAlert('museumRevealAlert', 3000)
 
         if (!this.checkActiveTask('intro')) return
         await this.app.soundManager.playVoiceLine('4_CONNEXION')
@@ -199,7 +199,7 @@ export default class StoryManager {
     async initAquarium() {
         await this.initRoom('aquarium')
 
-        this.app.mediaManager.showRoomTitle('Aquarium des dauphins')
+        this.app.mediaManager.showRoomTitle('dolphinAquariumTitle')
         this.app.soundManager.playMusic('aquarium')
 
         await this.sleep(2000)
@@ -209,9 +209,9 @@ export default class StoryManager {
         if (!this.checkActiveTask('aquarium')) return
         await this.app.uiManager
             .showChoices({
-                title: "...",
-                choice1: "Dites m'en plus je veux tout savoir !",
-                choice2: 'Vous avez rien de plus intéressant ?',
+                title: 'dolphinChoiceTitle',
+                choice1: 'dolphinChoice1',
+                choice2: 'dolphinChoice2',
             })
             .then(async choiceIndex => {
                 if (choiceIndex === 1) {
@@ -249,9 +249,9 @@ export default class StoryManager {
         if (!this.checkActiveTask('corridor')) return
         await this.app.uiManager
             .showChoices({
-                title: "Lancer la publicité ?",
-                choice1: 'Lancer la publicité',
-                choice2: 'Ne pas supporter le musée',
+                title: 'adChoiceTitle',
+                choice1: 'adChoice1',
+                choice2: 'adChoice2',
             })
             .then(async choiceIndex => {
                 if (choiceIndex === 2) {
@@ -278,15 +278,15 @@ export default class StoryManager {
         if (!this.checkActiveTask('corridor')) return
         await this.app.uiManager
             .showChoices({
-                title: "On reprend la visite... ?",
-                choice1: 'Oui, allons-y !',
-                choice2: "J'ai l'impression qu'on ne me dit pas tout",
+                title: 'resumeVisitChoiceTitle',
+                choice1: 'resumeVisitChoice1',
+                choice2: 'resumeVisitChoice2',
             })
             .then(async choiceIndex => {
                 if (choiceIndex === 1) {
                     await this.app.soundManager.playVoiceLine('6.4_CHOIX1')
                 } else {
-                    this.app.eventsManager.displayAlert('Il ne vous dit pas tout en effet...')
+                    this.app.eventsManager.displayAlert('narratorLiesAlert')
                     await this.app.soundManager.playVoiceLine('6.5_CHOIX2')
                 }
             })
@@ -386,7 +386,7 @@ export default class StoryManager {
         this.app.objectManager.remove('Tortue')
         this.app.objectManager.removeBoids()
 
-        this.app.mediaManager.showRoomTitle('Tortues de Mayotte')
+        this.app.mediaManager.showRoomTitle('mayotteTurtlesTitle')
         if (!this.checkActiveTask('aquaturtle')) return
         await this.sleep(5000)
 
@@ -407,9 +407,9 @@ export default class StoryManager {
         if (!this.checkActiveTask('aquaturtle')) return
         await this.app.uiManager
             .showChoices({
-                title: "On reste là-dessus...",
-                choice1: "C'est trop mignon les tortues !",
-                choice2: 'Connaître la vérité',
+                title: 'turtleChoiceTitle',
+                choice1: 'turtleChoice1',
+                choice2: 'turtleChoice2',
             })
             .then(async choiceIndex => {
                 await this.app.mediaManager.playMediaWithGlitch('turtle_3')
@@ -457,9 +457,9 @@ export default class StoryManager {
 
         await this.app.uiManager
             .showChoices({
-                title: "4E65206C27E9636F757465207061732C20696C207465206D656E74",
-                choice1: 'Encore des mensonges ?',
-                choice2: 'Non dites moi ?!',
+                title: 'boatChoiceTitle',
+                choice1: 'boatChoice1',
+                choice2: 'boatChoice2',
                 disabledIndex: 1,
             })
             .then(async choiceIndex => {
@@ -692,7 +692,7 @@ export default class StoryManager {
 
         let panel1, panel2, panel3
 
-        const titles = ['OceanKillers', 'DolphinByCatch', 'Braconnage à Mayotte']
+        const titles = ['oceanKillersTitle', 'dolphinByCatchTitle', 'nyambaOperationTitle']
         
         for (let i = 0; i < 3; i++) {
             const angle = -arcAngle / 2 + (i * arcAngle) / 2
@@ -761,7 +761,8 @@ export default class StoryManager {
             titleCtx.fillStyle = 'white'
             titleCtx.font = '94px pf-videotext'
             titleCtx.textAlign = 'center'
-            titleCtx.fillText(titles[i], titleCanvas.width / 2, titleCanvas.height / 2 + 20)
+            const title = this.app.translationManager.t(titles[i])
+            titleCtx.fillText(title, titleCanvas.width / 2, titleCanvas.height / 2 + 20)
 
             const titleTexture = new THREE.CanvasTexture(titleCanvas)
             titleTexture.minFilter = THREE.LinearFilter
@@ -1379,8 +1380,8 @@ export default class StoryManager {
         button2.name = 'endButton2'
         
         // Ajouter seulement les textes sur les boutons (centrés)
-        this.addTextToButton(button1, "SOUTENIR LEUR COMBAT")
-        this.addTextToButton(button2, "REJOINDRE SEA SHEPHERD")
+        this.addTextToButton(button1, "supportTheirFightButton")
+        this.addTextToButton(button2, "joinSeaShepherdButton")
         
         buttonsContainer.add(button1)
         buttonsContainer.add(button2)
@@ -1421,7 +1422,7 @@ export default class StoryManager {
         ctx.textBaseline = 'middle'
         
         // Dessiner le texte
-        ctx.fillText(text, canvas.width / 2, canvas.height / 2)
+        ctx.fillText(this.app.translationManager.t(text), canvas.width / 2, canvas.height / 2)
         
         // Créer la texture à partir du canvas
         const textTexture = new THREE.CanvasTexture(canvas)

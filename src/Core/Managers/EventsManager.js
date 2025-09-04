@@ -1,4 +1,5 @@
 import EventEmitter from '../../Utils/EventEmitter'
+import App from '../../App'
 
 /**
  * Classe gérant les alertes du système via des éléments dialog HTML5
@@ -8,6 +9,7 @@ export default class EventsManager extends EventEmitter {
         super()
         this.activeDialogs = []
         this.dialogCounter = 0
+        this.app = new App()
 
         // Vérifier que le conteneur existe
         this.dialogContainer = document.getElementById('dialog-container')
@@ -47,6 +49,8 @@ export default class EventsManager extends EventEmitter {
      * @returns {string} - L'ID de la dialog créée
      */
     displayAlert(message = null, time = 2000, type = 'information', title = null) {
+        message = this.app.translationManager.t(message)
+        title = this.app.translationManager.t(title)
         const displayMessage = message || 'Information'
 
         // Check if template exists, if not create dialog manually

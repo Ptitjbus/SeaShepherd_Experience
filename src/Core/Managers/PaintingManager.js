@@ -148,7 +148,7 @@ export default class PaintingManager {
             this.currentNearPainting = nearPainting
             
             if (this.app.uiManager && typeof this.app.uiManager.showKeyHint === 'function') {
-                this.app.uiManager.showKeyHint('⏎', 'Découvrir la vérité')
+                this.app.uiManager.showKeyHint('⏎', 'discoverTruthButton')
             }
         } else if (!nearPainting && this.currentNearPainting) {
             this.currentNearPainting = null
