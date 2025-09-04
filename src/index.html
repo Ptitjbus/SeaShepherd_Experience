@@ -32,7 +32,7 @@
                         class="dysmeria-logo"
                     />
 
-                    <p>Cette expérience se vit uniquement sur ordinateur !</p>
+                    <p data-i18n="mobileMessage">Cette expérience se vit uniquement sur ordinateur !</p>
 
                     <div class="mobile-icon">
                         <img
@@ -44,7 +44,7 @@
                 </div>
 
                 <div class="mobile-cta">
-                    <a href="https://seashepherd.fr/" target="_blank" class="mobile-btn secondary">
+                    <a href="https://seashepherd.fr/" target="_blank" class="mobile-btn secondary" data-i18n="learnMoreButton">
                         En savoir plus
                     </a>
                 </div>
@@ -58,7 +58,9 @@
 
             <div id="video-loading-container">
                 <video id="intro-video" playsinline muted></video>
-                <button id="skip-video-btn" disabled>Passer l'introduction</button>
+                <button id="skip-video-btn" disabled data-i18n="skipIntroButton">Passer l'introduction</button>
+                <div id="click-to-play-overlay" class="click-to-play-overlay" data-i18n="clickToPlayVideo">
+                </div>
             </div>
 
             <div class="start-overlay">
@@ -70,15 +72,20 @@
                             class="dysmeria-logo"
                         />
                     </h1>
-                    <p>Un voyage au coeur d'un océan protégé</p>
+                    <p data-i18n="startOverlayTitle">Un voyage au coeur d'un océan protégé</p>
                 </div>
 
                 <button class="btn-base start-button" id="start-experience-btn">
-                    <span class="key-letter">↵</span> Débuter l'expérience
+                    <span class="key-letter">↵</span> 
+                    <span data-i18n="startExperience">Débuter l'expérience</span>
                 </button>
 
                 <div class="footer-container">
-                    <button class="footer-btn-left" id="credits-btn">crédits</button>
+                    
+                    <select id="language-select">
+                        <option value="fr">Français</option>
+                        <option value="en">English</option>
+                    </select>
                     <div class="footer-logo">
                         <img
                             src="/images/logos/sea_shepherd_logo.svg"
@@ -87,8 +94,8 @@
                         />
                     </div>
                     <div class="footer-right-buttons">
-                        <button class="footer-btn-right">langue</button>
-                        <button class="footer-btn-right">options</button>
+                        <button class="footer-btn-right" id="credits-btn" data-i18n="creditsButton">crédits</button>
+                        <button class="footer-btn-right" data-i18n="optionsButton">options</button>
                     </div>
                 </div>
             </div>
@@ -97,37 +104,37 @@
             <div class="credits-overlay hidden" id="credits-overlay">
                 <div class="credits-container">
                     <div class="credits-header">
-                        <h1>Crédits</h1>
+                        <h1 data-i18n="creditsTitle">Crédits</h1>
                     </div>
 
                     <div class="credits-content">
                         <div class="credits-section">
-                            <h3>designers</h3>
+                            <h3 data-i18n="designersTitle">designers</h3>
                             <p>Killian RIZZO</p>
                             <p>Théo LANGLADE</p>
                             <p>Pierre-Emmanuel THÉVENET</p>
                         </div>
 
                         <div class="credits-section">
-                            <h3>développeurs</h3>
+                            <h3 data-i18n="developersTitle">développeurs</h3>
                             <p>Mathis VIOLLET</p>
                             <p>Mathieu DUBART</p>
                         </div>
 
                         <div class="credits-section">
-                            <h3>Voix</h3>
+                            <h3 data-i18n="voicesTitle">Voix</h3>
                             <p>
                                 Pierre-Alain DE GUARRIGUES
-                                <span class="parenthesis-text">(Voix Narrateur)</span>
+                                <span class="parenthesis-text" data-i18n="narratorVoice">(Voix Narrateur)</span>
                             </p>
                             <p>
                                 Françoise Cadol
-                                <span class="parenthesis-text">(Voix Sea Shepherd)</span>
+                                <span class="parenthesis-text" data-i18n="seaShepherdVoice">(Voix Sea Shepherd)</span>
                             </p>
                         </div>
 
                         <div class="credits-section">
-                            <h3>Remerciements</h3>
+                            <h3 data-i18n="thanksTitle">Remerciements</h3>
                             <p>Guillaume <span class="parenthesis-text">(Sea Shepherd)</span></p>
                             <p>Yann GILQUIN</p>
                             <p>Eric GAUDET TRAFFY</p>
@@ -136,7 +143,7 @@
                 </div>
 
                 <div class="footer-container">
-                    <button class="footer-btn-left" id="back-btn">retour</button>
+                    <button class="footer-btn-left" id="back-btn" data-i18n="backButton">retour</button>
                 </div>
             </div>
 
@@ -144,13 +151,13 @@
             <div class="options-overlay hidden" id="options-overlay">
                 <div class="options-container">
                     <div class="options-header">
-                        <h1>Options</h1>
+                        <h1 data-i18n="optionsTitle">Options</h1>
                     </div>
 
                     <div class="options-content">
-                        <h3>son</h3>
+                        <h3 data-i18n="soundTitle">son</h3>
                         <div class="option-item">
-                            <label for="music-volume">Volume musique</label>
+                            <label for="music-volume" data-i18n="musicVolumeLabel">Volume musique</label>
                             <input
                                 type="range"
                                 id="music-volume"
@@ -163,7 +170,7 @@
                         </div>
 
                         <div class="option-item">
-                            <label for="sfx-volume">Volume effets sonores</label>
+                            <label for="sfx-volume" data-i18n="sfxVolumeLabel">Volume effets sonores</label>
                             <input
                                 type="range"
                                 id="sfx-volume"
@@ -175,9 +182,9 @@
                             <span class="volume-value">70%</span>
                         </div>
 
-                        <h3>graphisme</h3>
+                        <h3 data-i18n="graphicsTitle">graphisme</h3>
                         <div class="option-item">
-                            <label for="graphics-quality">Mode performance</label>
+                            <label for="graphics-quality" data-i18n="performanceModeLabel">Mode performance</label>
                             <div class="switch-container" data-active="false">
                                 <span class="switch-option active" data-value="false"></span>
                                 <span class="switch-option" data-value="true"></span>
@@ -188,7 +195,7 @@
                 </div>
 
                 <div class="footer-container">
-                    <button class="footer-btn-left" id="back-options-btn">retour</button>
+                    <button class="footer-btn-left" id="back-options-btn" data-i18n="backButton">retour</button>
                 </div>
             </div>
 
@@ -201,14 +208,14 @@
                     />
                 </div>
 
-                <div class="end-message">
+                <div class="end-message" data-i18n="endMessage">
                     D’ici <span class="bold">2050</span>, la biodiversité marine aura presque
                     entièrement <span class="bold">disparue</span>.
                 </div>
 
                 <div class="buttons-container">
-                    <a href="#" class="cta-button">Soutenir Sea Shepherd</a>
-                    <a href="#" class="cta-button">Rejoindre Sea Shepherd</a>
+                    <a href="#" class="cta-button" data-i18n="supportButton">Soutenir Sea Shepherd</a>
+                    <a href="#" class="cta-button" data-i18n="joinButton">Rejoindre Sea Shepherd</a>
                 </div>
             </div>
 
@@ -237,18 +244,18 @@
 
             <div id="keys-tutorial-container" class="tutorial-container">
                 <div class="btn-base">
-                    <span class="">Pressez</span>
+                    <span data-i18n="pressText">Pressez</span>
                     <div class="key-letter" data-key="z">Z</div>
                     <div class="key-letter" data-key="q">Q</div>
                     <div class="key-letter" data-key="s">S</div>
                     <div class="key-letter" data-key="d">D</div>
-                    <span class="">pour bouger</span>
+                    <span data-i18n="toMoveText">pour bouger</span>
                 </div>
             </div>
 
             <div id="mouse-tutorial-container" class="tutorial-container">
                 <div class="btn-base">
-                    <span class="">Déplacez la souris pour regarder autour de vous</span>
+                    <span data-i18n="mouseTutorialText">Déplacez la souris pour regarder autour de vous</span>
                 </div>
             </div>
 

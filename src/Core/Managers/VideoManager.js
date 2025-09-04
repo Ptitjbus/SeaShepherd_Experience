@@ -8,6 +8,7 @@ export default class VideoManager extends EventEmitter {
         this.app = new App()
         this.videoElement = null
         this.videoContainer = null
+        this.clickToPlayOverlay = null
         this.isVideoPlaying = false
         this.videoEnded = false
 
@@ -17,6 +18,7 @@ export default class VideoManager extends EventEmitter {
     init() {
         this.videoContainer = document.getElementById('video-loading-container')
         this.videoElement = document.getElementById('intro-video')
+        this.clickToPlayOverlay = document.getElementById('click-to-play-overlay')
 
         const skipButton = document.getElementById('skip-video-btn')
 
@@ -29,6 +31,11 @@ export default class VideoManager extends EventEmitter {
             console.error('Erreur video:', e)
             this.handleVideoEnded() // Continuer en cas d'erreur
         })
+
+        // Cacher l'overlay au démarrage
+        if (this.clickToPlayOverlay) {
+            this.clickToPlayOverlay.style.display = 'none'
+        }
     }
 
     loadVideo(videoSrc) {
@@ -67,47 +74,36 @@ export default class VideoManager extends EventEmitter {
             if (playPromise !== undefined) {
                 playPromise
                     .then(() => {
+                        // Cacher l'overlay si la vidéo démarre
+                        if (this.clickToPlayOverlay) {
+                            this.clickToPlayOverlay.style.display = 'none'
+                        }
                     })
                     .catch(error => {
                         console.error('Video playback failed:', error)
 
-                        // Si la lecture échoue, créer un overlay pour informer l'utilisateur
-                        const clickToPlayOverlay = document.createElement('div')
-                        clickToPlayOverlay.style.cssText = `
-                            position: absolute;
-                            top: 0;
-                            left: 0;
-                            width: 100%;
-                            height: 100%;
-                            background-color: rgba(0, 0, 0, 0.7);
-                            color: white;
-                            display: flex;
-                            justify-content: center;
-                            align-items: center;
-                            font-family: sans-serif;
-                            font-size: 24px;
-                            cursor: pointer;
-                            z-index: 1002;
-                        `
-                        clickToPlayOverlay.textContent = 'Cliquez pour lancer la vidéo avec son'
-                        clickToPlayOverlay.addEventListener('click', () => {
-                            this.videoElement.muted = false
-                            this.videoElement
-                                .play()
-                                .then(() => {
-                                    clickToPlayOverlay.remove()
-                                })
-                                .catch(e => {
-                                    console.error(
-                                        'Impossible de jouer la vidéo après interaction:',
-                                        e
-                                    )
-                                    this.handleVideoEnded() // Passer à l'expérience si la vidéo ne peut toujours pas être lue
-                                    clickToPlayOverlay.remove()
-                                })
-                        })
-
-                        this.videoContainer.appendChild(clickToPlayOverlay)
+                        // Si la lecture échoue, afficher l'overlay existant
+                        if (this.clickToPlayOverlay) {
+                            this.clickToPlayOverlay.style.display = 'flex'
+                            
+                            // Ajouter l'écouteur de clic
+                            this.clickToPlayOverlay.addEventListener('click', () => {
+                                this.videoElement.muted = false
+                                this.videoElement
+                                    .play()
+                                    .then(() => {
+                                        this.clickToPlayOverlay.style.display = 'none'
+                                    })
+                                    .catch(e => {
+                                        console.error(
+                                            'Impossible de jouer la vidéo après interaction:',
+                                            e
+                                        )
+                                        this.handleVideoEnded() // Passer à l'expérience si la vidéo ne peut toujours pas être lue
+                                        this.clickToPlayOverlay.style.display = 'none'
+                                    })
+                            })
+                        }
                     })
             }
         }
@@ -157,5 +153,6 @@ export default class VideoManager extends EventEmitter {
         }
 
         this.videoContainer = null
+        this.clickToPlayOverlay = null
     }
 }

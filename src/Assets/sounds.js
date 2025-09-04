@@ -119,7 +119,7 @@ export default [
         options: {
             loop: false,
             volume: 2.0,
-            vttSrc: 'audio/subtitles/1_INTRO.vtt'
+            vttSrc: '1_INTRO'
         },
         license: '',
         author: '',
@@ -132,7 +132,7 @@ export default [
         options: {
             loop: false,
             volume: 2.0,
-            vttSrc: 'audio/subtitles/2.1_CHOIX1.vtt'
+            vttSrc: '2.1_CHOIX1'
         },
         license: '',
         author: '',
@@ -145,7 +145,7 @@ export default [
         options: {
             loop: false,
             volume: 2.0,
-            vttSrc: 'audio/subtitles/2.2_CHOIX2.vtt'
+            vttSrc: '2.2_CHOIX2'
         },
         license: '',
         author: '',
@@ -158,7 +158,7 @@ export default [
         options: {
             loop: false,
             volume: 2.0,
-            vttSrc: 'audio/subtitles/3.1_VOUSAVEZHATE.vtt'
+            vttSrc: '3.1_VOUSAVEZHATE'
         },
         license: '',
         author: '',
@@ -171,7 +171,7 @@ export default [
         options: {
             loop: false,
             volume: 2.0,
-            vttSrc: 'audio/subtitles/3.2_CHOIX1.vtt'
+            vttSrc: '3.2_CHOIX1'
         },
         license: '',
         author: '',
@@ -184,7 +184,7 @@ export default [
         options: {
             loop: false,
             volume: 2.0,
-            vttSrc: 'audio/subtitles/3.3_CHOIX2.vtt'
+            vttSrc: '3.3_CHOIX2'
         },
         license: '',
         author: '',
@@ -197,7 +197,7 @@ export default [
         options: {
             loop: false,
             volume: 2.0,
-            vttSrc: 'audio/subtitles/4_CONNEXION.vtt'
+            vttSrc: '4_CONNEXION'
         },
         license: '',
         author: '',
@@ -210,7 +210,7 @@ export default [
         options: {
             loop: false,
             volume: 2.0,
-            vttSrc: 'audio/subtitles/5.1_DAUPHINS.vtt'
+            vttSrc: '5.1_DAUPHINS'
         },
         license: '',
         author: '',
@@ -223,7 +223,7 @@ export default [
         options: {
             loop: false,
             volume: 2.0,
-            vttSrc: 'audio/subtitles/5.2_CHOIX1.vtt'
+            vttSrc: '5.2_CHOIX1'
         },
         license: '',
         author: '',
@@ -236,7 +236,7 @@ export default [
         options: {
             loop: false,
             volume: 2.0,
-            vttSrc: 'audio/subtitles/5.3_CHOIX2.vtt'
+            vttSrc: '5.3_CHOIX2'
         },
         license: '',
         author: '',
@@ -249,7 +249,7 @@ export default [
         options: {
             loop: false,
             volume: 2.0,
-            vttSrc: 'audio/subtitles/5.4_FINDAUPHIN.vtt'
+            vttSrc: '5.4_FINDAUPHIN'
         },
         license: '',
         author: '',
@@ -262,7 +262,7 @@ export default [
         options: {
             loop: false,
             volume: 2.0,
-            vttSrc: 'audio/subtitles/6.1_PUB.vtt'
+            vttSrc: '6.1_PUB'
         },
         license: '',
         author: '',
@@ -275,7 +275,7 @@ export default [
         options: {
             loop: false,
             volume: 2.0,
-            vttSrc: 'audio/subtitles/6.2_VIDEO.vtt'
+            vttSrc: '6.2_VIDEO'
         },
         license: '',
         author: '',
@@ -288,7 +288,7 @@ export default [
         options: {
             loop: false,
             volume: 2.0,
-            vttSrc: 'audio/subtitles/6.3_NARRATEURINCOMPREHENSION.vtt'
+            vttSrc: '6.3_NARRATEURINCOMPREHENSION'
         },
         license: '',
         author: '',
@@ -301,7 +301,7 @@ export default [
         options: {
             loop: false,
             volume: 2.0,
-            vttSrc: 'audio/subtitles/6.4_CHOIX1.vtt'
+            vttSrc: '6.4_CHOIX1'
         },
         license: '',
         author: '',
@@ -314,7 +314,7 @@ export default [
         options: {
             loop: false,
             volume: 2.0,
-            vttSrc: 'audio/subtitles/6.5_CHOIX2.vtt'
+            vttSrc: '6.5_CHOIX2'
         },
         license: '',
         author: '',
@@ -327,7 +327,7 @@ export default [
         options: {
             loop: false,
             volume: 2.0,
-            vttSrc: 'audio/subtitles/7.1_TORTUES.vtt'
+            vttSrc: '7.1_TORTUES'
         },
         license: '',
         author: '',
@@ -340,7 +340,7 @@ export default [
         options: {
             loop: false,
             volume: 2.0,
-            vttSrc: 'audio/subtitles/7.2_TORTUES.vtt'
+            vttSrc: '7.2_TORTUES'
         },
         license: '',
         author: '',
@@ -353,7 +353,7 @@ export default [
         options: {
             loop: false,
             volume: 2.0,
-            vttSrc: 'audio/subtitles/7.3_VIDEO.vtt'
+            vttSrc: '7.3_VIDEO'
         },
         license: '',
         author: '',
@@ -366,7 +366,7 @@ export default [
         options: {
             loop: false,
             volume: 1.0,
-            vttSrc: 'audio/subtitles/7.3.2_SEASHEPHERD.vtt'
+            vttSrc: '7.3.2_SEASHEPHERD'
         },
         license: '',
         author: '',
@@ -379,7 +379,7 @@ export default [
         options: {
             loop: false,
             volume: 2.0,
-            vttSrc: 'audio/subtitles/7.4_VIDEO.vtt'
+            vttSrc: '7.4_VIDEO'
         },
         license: '',
         author: '',
@@ -392,7 +392,7 @@ export default [
         options: {
             loop: false,
             volume: 2.0,
-            vttSrc: 'audio/subtitles/7.5_FAKENEWS.vtt'
+            vttSrc: '7.5_FAKENEWS'
         },
         license: '',
         author: '',
@@ -405,7 +405,7 @@ export default [
         options: {
             loop: false,
             volume: 1.0,
-            vttSrc: 'audio/subtitles/7.5.2_SEASHEPHERD.vtt'
+            vttSrc: '7.5.2_SEASHEPHERD'
         },
         license: '',
         author: '',
@@ -418,7 +418,7 @@ export default [
         options: {
             loop: false,
             volume: 2.0,
-            vttSrc: 'audio/subtitles/7.6_INTOX.vtt'
+            vttSrc: '7.6_INTOX'
         },
         license: '',
         author: '',
@@ -431,7 +431,7 @@ export default [
         options: {
             loop: false,
             volume: 2.0,
-            vttSrc: 'audio/subtitles/8.1_TELEPORTATION.vtt'
+            vttSrc: '8.1_TELEPORTATION'
         },
         license: '',
         author: '',
@@ -444,7 +444,7 @@ export default [
         options: {
             loop: false,
             volume: 2.0,
-            vttSrc: 'audio/subtitles/8.2_CHOIX1.vtt'
+            vttSrc: '8.2_CHOIX1'
         },
         license: '',
         author: '',
@@ -457,7 +457,7 @@ export default [
         options: {
             loop: false,
             volume: 1.0,
-            vttSrc: 'audio/subtitles/8.2.2_SEASHEPHERD.vtt'
+            vttSrc: '8.2.2_SEASHEPHERD'
         },
         license: '',
         author: '',
@@ -470,7 +470,7 @@ export default [
         options: {
             loop: false,
             volume: 2.0,
-            vttSrc: 'audio/subtitles/8.3_PIRATAGE.vtt'
+            vttSrc: '8.3_PIRATAGE'
         },
         license: '',
         author: '',
@@ -483,7 +483,7 @@ export default [
         options: {
             loop: false,
             volume: 1.0,
-            vttSrc: 'audio/subtitles/8.3.2_SEASHEPHERD.vtt'
+            vttSrc: '8.3.2_SEASHEPHERD'
         },
         license: '',
         author: '',
@@ -496,7 +496,7 @@ export default [
         options: {
             loop: false,
             volume: 2.0,
-            vttSrc: 'audio/subtitles/8.4_LAFERME.vtt'
+            vttSrc: '8.4_LAFERME'
         },
         license: '',
         author: '',
@@ -509,7 +509,7 @@ export default [
         options: {
             loop: false,
             volume: 2.0,
-            vttSrc: 'audio/subtitles/8.6_AGONIE.vtt'
+            vttSrc: '8.6_AGONIE'
         },
         license: '',
         author: '',
@@ -522,7 +522,7 @@ export default [
         options: {
             loop: false,
             volume: 2.0,
-            vttSrc: 'audio/subtitles/8.7_DEFEAT.vtt'
+            vttSrc: '8.7_DEFEAT'
         },
         license: '',
         author: '',
@@ -535,7 +535,7 @@ export default [
         options: {
             loop: false,
             volume: 2.0,
-            vttSrc: 'audio/subtitles/9.1_SEASHEPHERD.vtt'
+            vttSrc: '9.1_SEASHEPHERD'
         },
         license: '',
         author: '',
@@ -548,7 +548,7 @@ export default [
         options: {
             loop: false,
             volume: 2.0,
-            vttSrc: 'audio/subtitles/9.2_SEASHEPHERD.vtt'
+            vttSrc: '9.2_SEASHEPHERD'
         },
         license: '',
         author: '',
@@ -561,7 +561,7 @@ export default [
         options: {
             loop: false,
             volume: 2.0,
-            vttSrc: 'audio/subtitles/9.3_SEASHEPHERD.vtt'
+            vttSrc: '9.3_SEASHEPHERD'
         },
         license: '',
         author: '',
@@ -574,7 +574,7 @@ export default [
         options: {
             loop: false,
             volume: 2.0,
-            vttSrc: 'audio/subtitles/9.4_OUTRO.vtt'
+            vttSrc: '9.4_OUTRO'
         },
         license: '',
         author: '',

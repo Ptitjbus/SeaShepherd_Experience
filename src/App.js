@@ -18,6 +18,7 @@ import DoorManager from './Core/Managers/DoorManager.js'
 import PhysicsManager from './Core/Managers/PhysicsManager.js'
 import StoryManager from './Core/Managers/StoryManager.js'
 import PaintingManager from './Core/Managers/PaintingManager.js'
+import TranslationManager from './Core/Managers/TranslationManager.js'
 
 let myAppInstance = null
 
@@ -37,6 +38,7 @@ export default class App extends EventEmitter {
 
         myAppInstance = this
 
+        this.translationManager = new TranslationManager()
         this.canvas = canvas
         this.canvasSize = new CanvasSize(canvas)
 

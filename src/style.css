@@ -59,6 +59,24 @@ body {
     border: none;
 }
 
+/* ====== VIDEO OVERLAY ====== */
+.click-to-play-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: sans-serif;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 1002;
+}
+
 .loading-bar {
     position: fixed;
     top: 0;
@@ -388,6 +406,35 @@ body {
     justify-self: end;
     display: flex;
     gap: 15px;
+}
+
+#language-select {
+    background: transparent;
+    border: none;
+    color: white;
+    padding: 12px 20px;
+    font-family: 'montserrat', sans-serif;
+    font-weight: 500;
+    font-size: 16px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: fit-content;
+}
+
+#language-select:hover {
+    opacity: 0.7;
+}
+
+#language-select option {
+    background-color: #1a1a1a;
+    color: white;
+}
+
+#language-select:focus,
+#language-select:active {
+    outline: none;
+    border: none;
 }
 
 /* ====== CREDITS PAGE ====== */

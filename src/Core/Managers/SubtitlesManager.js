@@ -119,7 +119,9 @@ export default class SubtitlesManager extends EventEmitter {
      */
     async loadVTT(vttUrl) {
         try {
-            const response = await fetch(vttUrl)
+
+            const lang = localStorage.getItem('language') || 'fr'
+            const response = await fetch(`/audio/subtitles/${lang}/${vttUrl}.vtt`)
             const text = await response.text()
 
             // Parse VTT content
