@@ -27,7 +27,7 @@ export default [
     {
         name: 'FishModel1',
         type: 'gltf',
-        path: '/models/glb/fish.glb',
+        path: '/models/glb/fish-v1.glb',
         license: '',
         author: 'Kilian Rizzo',
         url: ''
@@ -35,7 +35,7 @@ export default [
     {
         name: 'Dauphins',
         type: 'gltf',
-        path: '/models/glb/Dauphins_v10.glb',
+        path: '/models/glb/Dauphins_v13.glb',
         license: '',
         author: 'Kilian Rizzo',
         url: ''
@@ -43,7 +43,7 @@ export default [
     {
         name: 'Dauphin',
         type: 'gltf',
-        path: '/models/glb/Dauphin-anim_v3.glb',
+        path: '/models/glb/Dauphin-anim_v4.glb',
         license: '',
         author: 'Kilian Rizzo',
         url: ''
@@ -51,7 +51,7 @@ export default [
     {
         name: 'Couloir',
         type: 'gltf',
-        path: '/models/glb/Couloir_v8.glb',
+        path: '/models/glb/Couloir_v9.glb',
         license: '',
         author: 'Kilian Rizzo',
         url: ''
@@ -59,7 +59,7 @@ export default [
     {
         name: 'Aquaturtle',
         type: 'gltf',
-        path: '/models/glb/Tortues_bas_V8.glb',
+        path: '/models/glb/Tortues_bas_V9.glb',
         license: '',
         author: 'Kilian Rizzo',
         url: ''
@@ -67,7 +67,7 @@ export default [
     {
         name: 'AquaturtleHaut',
         type: 'gltf',
-        path: '/models/glb/Tortues_haut_V9.glb',
+        path: '/models/glb/Tortues_haut_V10.glb',
         license: '',
         author: 'Kilian Rizzo',
         url: ''
@@ -75,7 +75,7 @@ export default [
     {
         name: 'Tortue',
         type: 'gltf',
-        path: '/models/glb/Tortue_V2.glb',
+        path: '/models/glb/Tortue_V3.glb',
         license: '',
         author: 'Kilian Rizzo',
         url: ''
@@ -91,7 +91,7 @@ export default [
     {
         name: 'BoatScene',
         type: 'gltf',
-        path: '/models/glb/Bateau_v7.glb',
+        path: '/models/glb/Bateau_v8.glb',
         license: '',
         author: 'Kilian Rizzo',
         url: ''

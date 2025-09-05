@@ -133,7 +133,7 @@ export default class ObjectManager {
             }
 
             if (child.isMesh) {
-                if (child.userData.collide) {
+                if (child.userData.collide || child.userData.is_aquarium_glass) {
                     const body = this.createTrimeshBodyFromMesh(child)
 
                     if (dynamicCollision) {
